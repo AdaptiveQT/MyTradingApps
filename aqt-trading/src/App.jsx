@@ -129,9 +129,9 @@ const LandingPage = ({ onEnterApp }) => {
               <div className="bg-gradient-to-b from-blue-600/20 to-purple-600/20 backdrop-blur-md rounded-2xl p-8 border border-blue-500 relative flex flex-col">
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Most Popular</div>
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-white">Pro Lifetime</h3>
-                  <div className="text-4xl font-bold text-white mt-2">$29</div>
-                  <div className="text-blue-300 text-sm">One-time payment</div>
+                  <h3 className="text-2xl font-bold text-white">Pro Monthly</h3>
+                  <div className="text-4xl font-bold text-white mt-2">$9</div>
+                  <div className="text-blue-300 text-sm">per month • Cancel anytime</div>
                 </div>
                 <ul className="space-y-4 mb-8 flex-1">
                   {['Unlimited Trades', 'Psychology Tracking', 'Advanced Analytics Charts', 'CSV & PDF Export', 'Priority Support'].map(f => (
