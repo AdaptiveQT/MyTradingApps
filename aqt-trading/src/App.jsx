@@ -1,656 +1,498 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-    ArrowRight, TrendingUp, AlertCircle, DollarSign, Target, Shield,
-    Download, Upload, Brain, Zap, Trash2, CheckCircle2, Bell, Clock,
-    Building2, Calculator, PieChart as PieIcon, BarChart2,
-    ChevronDown, ChevronUp, WifiOff, Save, Sun, Moon
+﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { 
+  ArrowRight, TrendingUp, AlertCircle, DollarSign, Target, Shield, 
+  Download, Upload, Brain, Zap, Trash2, CheckCircle2, Bell, Clock, 
+  Building2, Calculator, PieChart as PieIcon, BarChart2, 
+  ChevronDown, ChevronUp, WifiOff, Save, Sun, Moon, Cloud, Loader2, Lock, X, 
+  Users, Trophy, Star
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 
-// --- COLLAPSIBLE SECTION COMPONENT ---
-const CollapsibleSection = ({ title, icon: Icon, children, defaultOpen = true }) => {
-    const [isOpen, setIsOpen] = useState(defaultOpen);
-    const contentRef = useRef(null);
-    const [height, setHeight] = useState(defaultOpen ? 'auto' : 0);
+// --- FIREBASE IMPORTS ---
+import { auth, db } from './firebase';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { 
+  doc, setDoc, updateDoc, onSnapshot, collection, 
+  addDoc, deleteDoc, serverTimestamp, query, orderBy, writeBatch 
+} from 'firebase/firestore';
 
-    useEffect(() => {
-        if (isOpen) {
-            const scrollHeight = contentRef.current?.scrollHeight;
-            setHeight(`${scrollHeight}px`);
-        } else {
-            setHeight('0px');
-        }
-    }, [isOpen, children]);
+// ==========================================
+// 1. MARKETING / LANDING PAGE COMPONENT
+// ==========================================
+const LandingPage = ({ onEnterApp }) => {
+  const [activeTab, setActiveTab] = useState('landing');
 
-    return (
-        <div className="bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden mb-6 transition-all shadow-sm dark:shadow-none">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4 md:p-8 font-sans text-slate-100">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* Navigation */}
+        <nav className="flex justify-between items-center mb-12">
+          <div className="text-2xl font-bold tracking-tighter">AQT <span className="text-blue-400">Pro</span></div>
+          <button 
+            onClick={onEnterApp}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-all shadow-lg shadow-blue-500/20"
+          >
+            Log In
+          </button>
+        </nav>
+
+        {/* Tab Navigation (Mobile Friendly) */}
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+          {['landing', 'pricing', 'testimonials', 'features', 'onboarding'].map(tab => (
             <button
-                onClick={() => setIsOpen(!isOpen)}
-                aria-expanded={isOpen}
-                className="w-full flex justify-between items-center p-4 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 md:px-6 py-2 rounded-full font-bold whitespace-nowrap transition-all text-sm md:text-base ${
+                activeTab === tab 
+                  ? 'bg-white text-blue-900' 
+                  : 'bg-white/5 text-blue-200 hover:bg-white/10'
+              }`}
             >
-                <div className="flex items-center gap-2 font-bold text-lg text-slate-800 dark:text-white">
-                    {Icon && <Icon size={20} className="text-blue-600 dark:text-blue-400" />}
-                    {title}
-                </div>
-                {isOpen ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
+          ))}
+        </div>
 
-            <div
-                ref={contentRef}
-                style={{ height }}
-                className="transition-[height] duration-300 ease-in-out overflow-hidden"
-            >
-                <div className="p-6 border-t border-slate-200 dark:border-white/10">
-                    {children}
-                </div>
+        {/* Landing Page Section */}
+        {activeTab === 'landing' && (
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center space-y-6 py-10">
+              <h1 className="text-5xl md:text-7xl font-bold text-white mb-4 tracking-tight leading-tight">
+                Stop Losing Money.<br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
+                  Start Trading Smart.
+                </span>
+              </h1>
+              <p className="text-xl text-blue-200 max-w-2xl mx-auto leading-relaxed">
+                The only trading journal that automatically calculates position sizing, 
+                tracks your psychology, and syncs across all your devices.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+                <button 
+                  onClick={onEnterApp}
+                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-lg rounded-xl hover:scale-105 transition-all shadow-2xl shadow-blue-500/30 flex items-center gap-3"
+                >
+                  <Zap className="w-5 h-5" />
+                  Start Free Trial (10 Trades)
+                </button>
+              </div>
+              <div className="text-sm text-blue-300/60 mt-4">No credit card required • Instant access</div>
             </div>
-        </div>
-    );
+
+            {/* Social Proof */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 text-center">
+                <div className="text-4xl font-bold text-white mb-1">10,000+</div>
+                <div className="text-blue-300 text-sm">Active Traders</div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 text-center">
+                <div className="text-4xl font-bold text-green-400 mb-1">$2.1M+</div>
+                <div className="text-blue-300 text-sm">Profits Tracked</div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 text-center">
+                <div className="text-4xl font-bold text-yellow-400 mb-1">4.9★</div>
+                <div className="text-blue-300 text-sm">User Rating</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pricing Section */}
+        {activeTab === 'pricing' && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center mb-8">
+              <h2 className="text-4xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
+              <p className="text-blue-200">Join thousands of profitable traders today.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {/* Free Tier */}
+              <div className="bg-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/10 flex flex-col">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-white">Starter</h3>
+                  <div className="text-4xl font-bold text-white mt-2">$0</div>
+                  <div className="text-blue-300 text-sm">Forever free</div>
+                </div>
+                <ul className="space-y-4 mb-8 flex-1">
+                  {['10 Cloud-Synced Trades', 'Automated Position Sizing', 'Basic Tier System', 'Mobile App Access'].map(f => (
+                    <li key={f} className="flex items-center gap-3 text-sm text-slate-300"><CheckCircle2 size={16} className="text-blue-400"/> {f}</li>
+                  ))}
+                </ul>
+                <button onClick={onEnterApp} className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition-all">
+                  Start Free
+                </button>
+              </div>
+
+              {/* Pro Tier */}
+              <div className="bg-gradient-to-b from-blue-600/20 to-purple-600/20 backdrop-blur-md rounded-2xl p-8 border border-blue-500 relative flex flex-col">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Most Popular</div>
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-white">Pro Lifetime</h3>
+                  <div className="text-4xl font-bold text-white mt-2">$29</div>
+                  <div className="text-blue-300 text-sm">One-time payment</div>
+                </div>
+                <ul className="space-y-4 mb-8 flex-1">
+                  {['Unlimited Trades', 'Psychology Tracking', 'Advanced Analytics Charts', 'CSV & PDF Export', 'Priority Support'].map(f => (
+                    <li key={f} className="flex items-center gap-3 text-sm text-white"><CheckCircle2 size={16} className="text-green-400"/> {f}</li>
+                  ))}
+                </ul>
+                <button onClick={onEnterApp} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/25">
+                  Get Lifetime Access
+                </button>
+                <div className="text-center mt-3 text-xs text-blue-300">30-day money-back guarantee</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Testimonials */}
+        {activeTab === 'testimonials' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             {[
+               { name: 'Marcus Chen', role: 'FTMO Funded', quote: 'AQT helped me pass my FTMO challenge. The psychology tracking showed I was revenge trading.', result: '+$47K Profit' },
+               { name: 'Sarah W.', role: 'Forex Scalper', quote: 'I tried 4 other journals. AQT is the only one that automatically adjusts my lot sizes.', result: '89% Win Rate' },
+               { name: 'David R.', role: 'Swing Trader', quote: 'The setup analytics revealed my breakout strategy was losing money. Stopped it and doubled my profits.', result: '+142% Return' }
+             ].map((t, i) => (
+               <div key={i} className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                 <div className="flex gap-1 mb-4">{[1,2,3,4,5].map(s => <Star key={s} size={14} className="fill-yellow-400 text-yellow-400"/>)}</div>
+                 <p className="text-slate-300 mb-6 italic">"{t.quote}"</p>
+                 <div className="flex items-center justify-between">
+                   <div>
+                     <div className="font-bold text-white">{t.name}</div>
+                     <div className="text-xs text-blue-400">{t.role}</div>
+                   </div>
+                   <div className="bg-green-500/20 text-green-400 text-xs font-bold px-2 py-1 rounded">{t.result}</div>
+                 </div>
+               </div>
+             ))}
+          </div>
+        )}
+
+        {/* Features Grid */}
+        {activeTab === 'features' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {[
+              { icon: Target, title: 'Auto Position Sizing', desc: 'No more manual math. AQT calculates lots based on your account tier.' },
+              { icon: Brain, title: 'Psychology Tracker', desc: 'Tag emotions (FOMO, Calm) to see how they affect your P&L.' },
+              { icon: Cloud, title: 'Cloud Sync', desc: 'Trade on your phone, review on your PC. Data syncs instantly.' },
+              { icon: BarChart2, title: 'Deep Analytics', desc: 'Win rate by setup, time of day, and market condition.' },
+              { icon: Download, title: 'Tax Export', desc: 'One-click CSV export for your accountant or tax software.' },
+              { icon: Shield, title: 'Risk Guard', desc: 'Safe Mode automatically halves your risk during drawdowns.' }
+            ].map((f, i) => (
+              <div key={i} className="flex gap-4 p-6 bg-white/5 rounded-2xl border border-white/10">
+                <f.icon className="w-10 h-10 text-blue-400 flex-shrink-0" />
+                <div>
+                  <h3 className="font-bold text-white text-lg mb-2">{f.title}</h3>
+                  <p className="text-slate-400 text-sm">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
 };
 
-// --- TRADINGVIEW WIDGET COMPONENT ---
-const TradingViewTicker = () => {
-    const containerRef = useRef(null);
-    const [error, setError] = useState(false);
+// ==========================================
+// 2. DASHBOARD / APP COMPONENT 
+// ==========================================
 
-    useEffect(() => {
-        if (!containerRef.current) return;
-        containerRef.current.innerHTML = '';
-
-        try {
-            const script = document.createElement('script');
-            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
-            script.async = true;
-            script.onerror = () => setError(true);
-            script.innerHTML = JSON.stringify({
-                "symbols": [
-                    { "proName": "FOREXCOM:SPX500", "title": "S&P 500" },
-                    { "proName": "FOREXCOM:NSXUSD", "title": "US 100" },
-                    { "proName": "FX_IDC:EURUSD", "title": "EUR/USD" },
-                    { "proName": "BITSTAMP:BTCUSD", "title": "Bitcoin" },
-                    { "proName": "BITSTAMP:ETHUSD", "title": "Ethereum" },
-                    { "proName": "OANDA:XAUUSD", "title": "Gold" },
-                    { "proName": "FX_IDC:USDJPY", "title": "USD/JPY" }
-                ],
-                "showSymbolLogo": true,
-                "colorTheme": document.documentElement.classList.contains('dark') ? "dark" : "light",
-                "isTransparent": true,
-                "displayMode": "adaptive",
-                "locale": "en"
-            });
-            containerRef.current.appendChild(script);
-        } catch (e) {
-            setError(true);
-        }
-        return () => { if (containerRef.current) containerRef.current.innerHTML = ''; };
-    }, []);
-
-    if (error) return (
-        <div className="w-full h-12 mb-6 flex items-center justify-center bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs border-b border-red-200 dark:border-red-500/20">
-            <WifiOff size={14} className="mr-2" /> Live Feed Offline
-        </div>
-    );
-
-    return (
-        <div className="tradingview-widget-container w-full h-12 mb-6 pointer-events-none">
-            <div className="tradingview-widget-container__widget" ref={containerRef}></div>
-        </div>
-    );
-};
-
-// --- CONFIGURATION ---
+// --- CONSTANTS ---
 const TIERS = [
-    { name: 'SURVIVAL', min: 10, max: 19, pairs: 2, suggestedPairs: 'EURUSD, GBPUSD', desc: 'Capital preservation mode' },
-    { name: 'BUILDING', min: 20, max: 49, pairs: 3, suggestedPairs: 'EURUSD, GBPUSD, USDJPY', desc: 'Steady growth phase' },
-    { name: 'SCALING', min: 50, max: 99, pairs: 4, suggestedPairs: 'Majors + 1 Cross', desc: 'Accelerated scaling' },
-    { name: 'GROWTH', min: 100, max: 249, pairs: 5, suggestedPairs: 'Majors + 2 Crosses', desc: 'Sustained growth' },
-    { name: 'EXPANSION', min: 250, max: 499, pairs: 6, suggestedPairs: 'Majors + Crosses + Gold', desc: 'Portfolio expansion' },
-    { name: 'ADVANCED', min: 500, max: 999, pairs: 7, suggestedPairs: 'Full Forex + Gold', desc: 'Advanced strategies' },
-    { name: 'MASTERY', min: 1000, max: 2499, pairs: 8, suggestedPairs: 'Forex, Gold, Indices', desc: 'Full system mastery' },
-    { name: 'ELITE', min: 2500, max: 4999, pairs: 10, suggestedPairs: 'Any Liquid Asset', desc: 'Elite trader status' },
-    { name: 'LEGEND', min: 5000, max: 999999, pairs: 12, suggestedPairs: 'Full Market Access', desc: 'Legendary performance' }
-];
-
-const SETTINGS_DEFAULT = { pipValue: 10, stopLoss: 15, dailyGrowth: 20 };
-
-const TAX_BRACKETS_2025 = [
-    { rate: 0.10, label: '10% (< $11,925)', minIncome: 0 },
-    { rate: 0.12, label: '12% ($11,925 - $48,475)', minIncome: 11925 },
-    { rate: 0.22, label: '22% ($48,475 - $103,350)', minIncome: 48475 },
-    { rate: 0.24, label: '24% ($103,350 - $197,300)', minIncome: 103350 },
-    { rate: 0.32, label: '32% ($197,300 - $250,525)', minIncome: 197300 },
-    { rate: 0.35, label: '35% ($250,525 - $626,350)', minIncome: 250525 },
-    { rate: 0.37, label: '37% (> $626,350)', minIncome: 626350 },
+  { name: 'SURVIVAL', min: 10, max: 19, pairs: 2, desc: 'Capital preservation mode' },
+  { name: 'BUILDING', min: 20, max: 49, pairs: 3, desc: 'Steady growth phase' },
+  { name: 'SCALING', min: 50, max: 99, pairs: 4, desc: 'Accelerated scaling' },
+  { name: 'GROWTH', min: 100, max: 249, pairs: 5, desc: 'Sustained growth' },
+  { name: 'EXPANSION', min: 250, max: 499, pairs: 6, desc: 'Portfolio expansion' },
+  { name: 'ADVANCED', min: 500, max: 999, pairs: 7, desc: 'Advanced strategies' },
+  { name: 'MASTERY', min: 1000, max: 2499, pairs: 8, desc: 'Full system mastery' },
+  { name: 'ELITE', min: 2500, max: 4999, pairs: 10, desc: 'Elite trader status' },
+  { name: 'LEGEND', min: 5000, max: 999999, pairs: 12, desc: 'Legendary performance' }
 ];
 
 const BROKERS = {
-    'IC Markets': { minLot: 0.01, regulation: 'ASIC/CySEC/FSA', leverage: ['1:30', '1:100', '1:200', '1:500'], default: '1:500' },
-    'Pepperstone': { minLot: 0.01, regulation: 'ASIC/FCA/CySEC', leverage: ['1:30', '1:100', '1:200', '1:500'], default: '1:500' },
-    'OANDA': { minLot: 0.001, regulation: 'FCA/ASIC/NFA/CFTC', leverage: ['1:30', '1:50', '1:100', '1:200'], default: '1:50' },
-    'Exness': { minLot: 0.01, regulation: 'FCA/CySEC/FSA', leverage: ['1:100', '1:200', '1:1000', '1:2000', '1:Unlimited'], default: '1:2000' },
-    'XM': { minLot: 0.01, regulation: 'CySEC/ASIC/IFSC', leverage: ['1:30', '1:100', '1:500', '1:888'], default: '1:888' },
-    'FTMO': { minLot: 0.01, regulation: 'Prop Firm (CZ)', leverage: ['1:100', '1:200'], default: '1:100' },
-    'HankoTrade': { minLot: 0.01, regulation: 'Offshore/Unregulated', leverage: ['1:100', '1:200', '1:300', '1:400', '1:500'], default: '1:500' },
-    'Coinexx': { minLot: 0.01, regulation: 'Offshore/Unregulated', leverage: ['1:100', '1:200', '1:300', '1:400', '1:500'], default: '1:500' },
-    'Dura Markets': { minLot: 0.01, regulation: 'Offshore/Unregulated', leverage: ['1:100', '1:200', '1:300', '1:400', '1:500'], default: '1:500' },
-    'Defco FX': { minLot: 0.01, regulation: 'Offshore/Unregulated', leverage: ['1:100', '1:200', '1:300', '1:400', '1:500'], default: '1:500' },
-    'NordFX': { minLot: 0.01, regulation: 'Offshore/Unregulated', leverage: ['1:100', '1:200', '1:500', '1:1000'], default: '1:500' },
-    'LHFX': { minLot: 0.01, regulation: 'Offshore/Unregulated', leverage: ['1:100', '1:200', '1:300', '1:400', '1:500'], default: '1:500' },
+  'IC Markets': { minLot: 0.01, leverage: ['1:500'], default: '1:500' },
+  'Pepperstone': { minLot: 0.01, leverage: ['1:500'], default: '1:500' },
+  'HankoTrade': { minLot: 0.01, leverage: ['1:500'], default: '1:500' },
+  'Coinexx': { minLot: 0.01, leverage: ['1:500'], default: '1:500' },
+  'Prop Firm': { minLot: 0.01, leverage: ['1:100'], default: '1:100' },
 };
 
-const COMMON_PAIRS = ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD', 'USDCAD', 'BTCUSD', 'ETHUSD', 'US30', 'NAS100', 'SPX500'];
+const TRADE_SETUPS = ['Breakout', 'Reversal', 'Trend Follow', 'Range', 'News', 'Scalp', 'Swing', 'SMC', 'ICT'];
+const TAX_BRACKETS_2025 = [{ rate: 0.10, label: '10%' }, { rate: 0.12, label: '12%' }, { rate: 0.22, label: '22%' }, { rate: 0.24, label: '24%' }, { rate: 0.32, label: '32%' }];
 
-// --- HELPERS ---
 const getPairMetadata = (rawPair) => {
-    const pair = rawPair ? rawPair.toUpperCase() : '';
-    if (pair.includes('JPY')) return { placeholder: '145.50', step: 0.01, multiplier: 100, isYen: true };
-    if (pair.includes('XAU')) return { placeholder: '2350.10', step: 0.01, multiplier: 100, isGold: true };
-    if (pair.includes('BTC') || pair.includes('ETH')) return { placeholder: '62000', step: 1, multiplier: 1 };
-    if (pair.includes('US30') || pair.includes('NAS') || pair.includes('SPX')) return { placeholder: '35000', step: 1, multiplier: 1 };
-    return { placeholder: '1.0850', step: 0.0001, multiplier: 10000 };
+  const pair = rawPair ? rawPair.toUpperCase() : '';
+  if (pair.includes('JPY') || pair.includes('XAU')) return { multiplier: 100 };
+  if (pair.includes('BTC') || pair.includes('ETH') || pair.includes('US30')) return { multiplier: 1 }; 
+  return { multiplier: 10000 };
 };
 
-const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
 const roundToTwo = (num) => Math.round((num + Number.EPSILON) * 100) / 100;
 
-const normalizeTrade = (trade, lotSize) => ({
-    ...trade,
-    id: generateId(),
-    entry: parseFloat(trade.entry),
-    exit: parseFloat(trade.exit),
-    date: new Date().toLocaleDateString(),
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    lots: parseFloat(lotSize),
-    pair: trade.pair.toUpperCase()
-});
+// --- COLLAPSIBLE COMPONENT ---
+const CollapsibleSection = ({ title, icon: Icon, children, defaultOpen = true }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const contentRef = useRef(null);
+  const [height, setHeight] = useState(defaultOpen ? 'auto' : 0);
 
-function usePersistentState(key, defaultValue) {
-    const [state, setState] = useState(() => {
-        try {
-            const stored = localStorage.getItem(key);
-            return stored ? JSON.parse(stored) : defaultValue;
-        } catch (e) { return defaultValue; }
-    });
-    useEffect(() => { localStorage.setItem(key, JSON.stringify(state)); }, [key, state]);
-    return [state, setState];
-}
-
-const calculateTradingMetrics = (balance, broker, safeMode, brokerList, settings, leverage, currentPair) => {
-    const safeBal = !isNaN(balance) && balance !== null ? parseFloat(balance) : 0;
-    const currentTier = TIERS.find(t => safeBal >= t.min && safeBal <= t.max) || TIERS[0];
-    const brokerData = brokerList[broker] || brokerList['IC Markets'];
-    const baseLot = Math.max(brokerData.minLot, parseFloat((Math.floor(currentTier.min / 10) * 0.01).toFixed(2)));
-    const lotSize = safeMode ? Math.max(brokerData.minLot, parseFloat((baseLot * 0.5).toFixed(2))) : baseLot;
-    const dailyGoal = (safeBal * (settings.dailyGrowth / 100)).toFixed(2);
-    const pipValueForLot = lotSize * settings.pipValue;
-    const maxLoss = (pipValueForLot * settings.stopLoss).toFixed(2);
-
-    const leverageNum = parseInt(leverage.replace('1:', '').replace('Unlimited', '2000')) || 500;
-    const pairMeta = getPairMetadata(currentPair || 'EURUSD');
-    const proxyPrice = parseFloat(pairMeta.placeholder);
-    let contractSize = 100000;
-    if (pairMeta.isGold) contractSize = 100;
-
-    const marginRequired = (safeBal > 0 && lotSize > 0) ? ((lotSize * contractSize * proxyPrice) / leverageNum).toFixed(2) : '0.00';
-    const nextTierIndex = TIERS.indexOf(currentTier) + 1;
-    const nextTier = TIERS[nextTierIndex];
-
-    let progress = 100;
-    if (nextTier) {
-        const range = nextTier.min - currentTier.min;
-        const current = safeBal - currentTier.min;
-        progress = Math.min(100, Math.max(0, (current / range) * 100));
+  useEffect(() => {
+    if (isOpen) {
+      const scrollHeight = contentRef.current?.scrollHeight;
+      setHeight(`${scrollHeight}px`);
+    } else {
+      setHeight('0px');
     }
-    return { currentTier, lotSize, dailyGoal, maxLoss, nextTier, progress: progress.toFixed(1), pipValueForLot, marginRequired };
-};
+  }, [isOpen, children]);
 
-// --- MAIN COMPONENT ---
-const App = () => {
-    const [balance, setBalance] = usePersistentState('aqt_balance', 1000);
-    const [balanceInput, setBalanceInput] = useState(balance ? balance.toString() : '0');
-    const [broker, setBroker] = usePersistentState('aqt_broker', 'IC Markets');
-    const [leverage, setLeverage] = usePersistentState('aqt_leverage', BROKERS['IC Markets'].default);
-    const [safeMode, setSafeMode] = usePersistentState('aqt_safemode', true);
-    const [trades, setTrades] = usePersistentState('aqt_trades', []);
-    const [taxBracketIndex, setTaxBracketIndex] = usePersistentState('aqt_tax_bracket_v2', 2);
-    const [isSection1256, setIsSection1256] = usePersistentState('aqt_tax_1256', false);
-    const [alertsEnabled, setAlertsEnabled] = usePersistentState('aqt_alerts_enabled', false);
-    const [currentTime, setCurrentTime] = useState(new Date());
-    const [darkMode, setDarkMode] = usePersistentState('aqt_darkmode', true);
-
-    // --- THEME MANAGEMENT ---
-    useEffect(() => {
-        if (darkMode) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }, [darkMode]);
-
-    // Alerts
-    useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
-
-    useEffect(() => {
-        if (!alertsEnabled) return;
-        const now = new Date();
-        const londonTime = new Date(now.toLocaleString("en-US", { timeZone: "Europe/London" }));
-        const isLondonOpen = londonTime.getHours() === 8 && londonTime.getMinutes() === 0 && now.getSeconds() === 0;
-        const nyTime = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
-        const isNYOpen = nyTime.getHours() === 8 && nyTime.getMinutes() === 0 && now.getSeconds() === 0;
-
-        if (isLondonOpen) new Notification(`MARKET ALERT: London Open`, { body: `08:00 London Time - High Volatility`, icon: '/favicon.ico' });
-        if (isNYOpen) new Notification(`MARKET ALERT: New York Open`, { body: `08:00 New York Time - Session Start`, icon: '/favicon.ico' });
-    }, [currentTime, alertsEnabled]);
-
-    const requestNotificationPermission = async () => {
-        if (!('Notification' in window)) return alert('Browser notifications not supported');
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') setAlertsEnabled(true);
-    };
-
-    // Sync Input
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            const num = parseFloat(balanceInput);
-            if (!isNaN(num) && Math.abs(num - balance) > 0.001) setBalance(num);
-            else if (balanceInput === '') setBalance(0);
-        }, 600);
-        return () => clearTimeout(timer);
-    }, [balanceInput, balance]);
-
-    useEffect(() => {
-        const currentNum = parseFloat(balanceInput);
-        if (Math.abs(balance - currentNum) > 0.01) setBalanceInput(balance.toString());
-    }, [balance]);
-
-    // Trade State
-    const initialTradeState = { pair: '', direction: 'Long', entry: '', exit: '', setup: 'Breakout', emotion: 'Calm', notes: '' };
-    const [newTrade, setNewTrade] = useState(initialTradeState);
-    const pairMeta = useMemo(() => getPairMetadata(newTrade.pair), [newTrade.pair]);
-
-    // Metrics & Logic
-    const metrics = useMemo(() => {
-        return calculateTradingMetrics(balance, broker, safeMode, BROKERS, SETTINGS_DEFAULT, leverage, newTrade.pair);
-    }, [balance, broker, safeMode, leverage, newTrade.pair]);
-
-    const { currentTier, lotSize, dailyGoal, maxLoss, progress, pipValueForLot, marginRequired } = metrics;
-
-    const calculatePnL = useCallback((tradeVals) => {
-        const { entry, exit, pair, direction } = tradeVals;
-        const entryNum = parseFloat(entry);
-        const exitNum = parseFloat(exit);
-        if (isNaN(entryNum) || isNaN(exitNum)) return 0;
-        const meta = getPairMetadata(pair);
-        const dirMult = direction === 'Long' ? 1 : -1;
-        return roundToTwo((exitNum - entryNum) * dirMult * meta.multiplier * pipValueForLot);
-    }, [pipValueForLot]);
-
-    const isFormValid = useMemo(() => {
-        const e = parseFloat(newTrade.entry);
-        const x = parseFloat(newTrade.exit);
-        return newTrade.pair.length >= 2 && !isNaN(e) && e > 0 && !isNaN(x) && x > 0 && e !== x;
-    }, [newTrade]);
-
-    const addTrade = () => {
-        if (!isFormValid) return;
-        const pnlValue = calculatePnL(newTrade);
-        const tradeEntry = { ...normalizeTrade(newTrade, lotSize), pnl: pnlValue };
-        setTrades(prev => [tradeEntry, ...prev]);
-        setBalance(prev => roundToTwo(prev + pnlValue));
-        setNewTrade(initialTradeState);
-    };
-
-    const deleteTrade = (id) => {
-        const trade = trades.find(t => t.id === id);
-        if (trade && window.confirm('Delete trade? Balance will be reverted.')) {
-            setBalance(prev => roundToTwo(prev - trade.pnl));
-            setTrades(prev => prev.filter(t => t.id !== id));
-        }
-    };
-
-    // --- DATA MANAGEMENT ---
-    const exportToCSV = () => {
-        const headers = "Date,Time,Pair,Direction,Lots,PnL";
-        const rows = trades.map(t => `${t.date},${t.time},${t.pair},${t.direction},${t.lots},${t.pnl.toFixed(2)}`).join("\n");
-        const blob = new Blob([headers + "\n" + rows], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `aqt_journal_${new Date().toISOString().slice(0, 10)}.csv`;
-        a.click();
-    };
-
-    const backupData = () => {
-        const data = {
-            version: '2.5',
-            timestamp: new Date().toISOString(),
-            balance,
-            trades,
-            settings: { broker, leverage, safeMode, taxBracketIndex, isSection1256, darkMode }
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `aqt_backup_${new Date().toISOString().slice(0, 10)}.json`;
-        a.click();
-    };
-
-    const restoreData = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const data = JSON.parse(event.target.result);
-                if (confirm(`Restore backup from ${new Date(data.timestamp).toLocaleDateString()}? Current data will be replaced.`)) {
-                    setBalance(data.balance);
-                    setTrades(data.trades);
-                    if (data.settings) {
-                        setBroker(data.settings.broker || 'IC Markets');
-                        setLeverage(data.settings.leverage || '1:500');
-                        setSafeMode(data.settings.safeMode ?? true);
-                        setTaxBracketIndex(data.settings.taxBracketIndex ?? 2);
-                        setIsSection1256(data.settings.isSection1256 ?? false);
-                        setDarkMode(data.settings.darkMode ?? true);
-                    }
-                    alert('System restored successfully.');
-                }
-            } catch (err) {
-                alert('Invalid backup file.');
-            }
-        };
-        reader.readAsText(file);
-    };
-
-    // Analytics
-    const totalPnL = trades.reduce((sum, t) => sum + t.pnl, 0);
-    const winCount = trades.filter(t => t.pnl > 0).length;
-    const lossCount = trades.filter(t => t.pnl < 0).length;
-    const activeTaxRate = isSection1256 ? ((0.60 * 0.15) + (0.40 * TAX_BRACKETS_2025[taxBracketIndex].rate)) : TAX_BRACKETS_2025[taxBracketIndex].rate;
-    const estimatedTax = Math.max(0, totalPnL) * activeTaxRate;
-    const netPocket = totalPnL - estimatedTax;
-
-    const balanceHistory = useMemo(() => {
-        let runningBal = balance - trades.reduce((acc, t) => acc + t.pnl, 0);
-        const points = [{ trade: 0, balance: roundToTwo(runningBal) }];
-        [...trades].reverse().forEach((t, i) => {
-            runningBal += t.pnl;
-            points.push({ trade: i + 1, balance: roundToTwo(runningBal) });
-        });
-        return points;
-    }, [trades, balance]);
-
-    return (
-        <div className={`min-h-screen font-sans overflow-x-hidden pb-12 transition-colors duration-300 ${darkMode ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`}>
-            <TradingViewTicker />
-
-            <div className="max-w-7xl mx-auto space-y-4 p-4">
-                {/* HEADER */}
-                <div className="flex flex-col md:flex-row justify-between items-center py-2">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">AQT <span className="text-blue-600 dark:text-blue-400">v2.5</span></h1>
-                        <p className="text-slate-600 dark:text-blue-300 text-sm">Adaptive Quantitative Trading System</p>
-                    </div>
-                    <div className="flex items-center gap-4 mt-4 md:mt-0">
-                        <div className="text-right hidden sm:block">
-                            <div className="text-xs text-slate-500 dark:text-slate-400">System Time</div>
-                            <div className="font-mono text-xl">{currentTime.toLocaleTimeString()}</div>
-                        </div>
-
-                        {/* MODE TOGGLE */}
-                        <button onClick={() => setDarkMode(!darkMode)}
-                            className={`p-3 rounded-full transition-all ${darkMode ? 'bg-slate-800 text-yellow-400' : 'bg-slate-200 text-orange-500'}`}>
-                            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-                        </button>
-
-                        {/* NOTIFICATIONS */}
-                        <button onClick={alertsEnabled ? () => setAlertsEnabled(false) : requestNotificationPermission}
-                            className={`p-3 rounded-full transition-all ${alertsEnabled ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
-                            <Bell size={20} />
-                        </button>
-                    </div>
-                </div>
-
-                {/* SECTION 1: CONFIGURATION */}
-                <CollapsibleSection title="Configuration" icon={Shield}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                        <div>
-                            <label className="text-blue-700 dark:text-blue-200 text-xs font-bold uppercase tracking-wider mb-2 block">Balance ($)</label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-2.5 text-blue-600 dark:text-blue-400">$</span>
-                                <input type="text" value={balanceInput} onChange={(e) => setBalanceInput(e.target.value)}
-                                    className="w-full pl-8 pr-4 py-2 bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-white/20 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-lg" />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="text-blue-700 dark:text-blue-200 text-xs font-bold uppercase tracking-wider mb-2 block">Broker & Lev</label>
-                            <div className="flex gap-2">
-                                <select value={broker} onChange={(e) => setBroker(e.target.value)}
-                                    className="w-full px-2 py-2 bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-white/20 rounded-lg text-slate-900 dark:text-white text-sm">
-                                    {Object.keys(BROKERS).map(b => <option key={b} value={b}>{b}</option>)}
-                                </select>
-                                <select value={leverage} onChange={(e) => setLeverage(e.target.value)}
-                                    className="w-24 px-2 py-2 bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-white/20 rounded-lg text-slate-900 dark:text-white text-sm">
-                                    {BROKERS[broker].leverage.map(l => <option key={l} value={l}>{l}</option>)}
-                                </select>
-                            </div>
-                            <div className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 text-right">
-                                {BROKERS[broker].regulation}
-                            </div>
-                        </div>
-                        <div>
-                            <label className="text-blue-700 dark:text-blue-200 text-xs font-bold uppercase tracking-wider mb-2 block">Risk Mode</label>
-                            <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-lg border border-slate-300 dark:border-white/20">
-                                <button onClick={() => setSafeMode(true)} className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all ${safeMode ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400' : 'text-slate-400'}`}>Safe</button>
-                                <button onClick={() => setSafeMode(false)} className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all ${!safeMode ? 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400' : 'text-slate-400'}`}>Aggr.</button>
-                            </div>
-                        </div>
-                        <div>
-                            <label className="text-blue-700 dark:text-blue-200 text-xs font-bold uppercase tracking-wider mb-2 block">Tax (2025)</label>
-                            <select value={taxBracketIndex} onChange={(e) => setTaxBracketIndex(parseInt(e.target.value))}
-                                className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-white/20 rounded-lg text-slate-900 dark:text-white text-sm">
-                                {TAX_BRACKETS_2025.map((b, i) => <option key={i} value={i}>{b.label}</option>)}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* DATA BACKUP CONTROLS */}
-                    <div className="mt-6 pt-6 border-t border-slate-200 dark:border-white/10 flex justify-between items-center">
-                        <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            <Save size={14} /> System Data Control
-                        </div>
-                        <div className="flex gap-3">
-                            <button onClick={backupData} className="text-xs flex items-center gap-1 bg-blue-100 dark:bg-blue-600/20 hover:bg-blue-200 dark:hover:bg-blue-600/40 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded transition-colors border border-blue-300 dark:border-blue-500/30">
-                                <Download size={12} /> Backup JSON
-                            </button>
-                            <label className="cursor-pointer text-xs flex items-center gap-1 bg-green-100 dark:bg-green-600/20 hover:bg-green-200 dark:hover:bg-green-600/40 text-green-700 dark:text-green-300 px-3 py-1.5 rounded transition-colors border border-green-300 dark:border-green-500/30">
-                                <Upload size={12} /> Restore
-                                <input type="file" accept=".json" onChange={restoreData} className="hidden" />
-                            </label>
-                        </div>
-                    </div>
-                </CollapsibleSection>
-
-                {/* SECTION 2: METRICS */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div className="bg-white dark:bg-gradient-to-br dark:from-blue-600/20 dark:to-indigo-600/20 rounded-xl p-6 border border-slate-200 dark:border-white/10 relative overflow-hidden shadow-sm dark:shadow-none">
-                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800 dark:text-white"><TrendingUp size={20} /> Tier Status</h3>
-                        <div className="space-y-4 relative z-10">
-                            <div className="flex justify-between border-b border-slate-200 dark:border-white/10 pb-2">
-                                <span className="text-blue-700 dark:text-blue-200">Current Tier</span>
-                                <span className="font-bold text-green-600 dark:text-green-400 text-lg">{currentTier.name}</span>
-                            </div>
-                            <div className="w-full bg-slate-200 dark:bg-black/30 h-3 rounded-full overflow-hidden">
-                                <div className="bg-gradient-to-r from-blue-400 to-green-400 h-full transition-all duration-1000" style={{ width: `${progress}%` }} />
-                            </div>
-                            <p className="text-xs text-slate-500 dark:text-blue-300 italic">{currentTier.desc}</p>
-                        </div>
-                    </div>
-
-                    <div className={`rounded-xl p-6 border border-slate-200 dark:border-white/10 relative overflow-hidden transition-colors duration-500 shadow-sm dark:shadow-none ${safeMode ? 'bg-emerald-50 dark:bg-emerald-600/20' : 'bg-orange-50 dark:bg-orange-600/20'}`}>
-                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800 dark:text-white"><Target size={20} /> Risk Controls</h3>
-                        <div className="space-y-2 relative z-10 text-sm">
-                            <div className="flex justify-between pb-2 border-b border-slate-200 dark:border-white/10">
-                                <span className="text-slate-700 dark:text-white">Rec. Lots</span>
-                                <span className="font-bold text-xl text-slate-900 dark:text-white">{lotSize}</span>
-                            </div>
-                            <div className="flex justify-between pb-2 border-b border-slate-200 dark:border-white/10">
-                                <span className="text-slate-700 dark:text-white">Max Loss</span>
-                                <span className="font-bold text-red-600 dark:text-red-300">${maxLoss}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-slate-700 dark:text-white">Margin ({newTrade.pair || 'EURUSD'})</span>
-                                <span className="font-mono text-blue-600 dark:text-blue-200">${marginRequired}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-gradient-to-br dark:from-slate-700/50 dark:to-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-white/10 relative overflow-hidden shadow-sm dark:shadow-none">
-                        <div className="flex justify-between items-start mb-4 relative z-10">
-                            <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white"><Calculator size={20} /> Tax Est.</h3>
-                            <button onClick={() => setIsSection1256(!isSection1256)}
-                                className={`text-[10px] px-2 py-1 rounded border ${isSection1256 ? 'bg-purple-100 dark:bg-purple-500/20 border-purple-500 text-purple-700 dark:text-purple-300' : 'bg-slate-100 dark:bg-slate-600/20 border-slate-500 text-slate-500 dark:text-slate-400'}`}>
-                                {isSection1256 ? '1256 (60/40)' : 'Ord. Income'}
-                            </button>
-                        </div>
-                        <div className="space-y-3 relative z-10 text-sm">
-                            <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                                <span>Gross P&L</span>
-                                <span className={totalPnL >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>${totalPnL.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                                <span>Est. Tax ({(activeTaxRate * 100).toFixed(1)}%)</span>
-                                <span className="text-red-500 dark:text-red-300">-${estimatedTax.toFixed(2)}</span>
-                            </div>
-                            <div className="border-t border-slate-200 dark:border-white/20 pt-2 flex justify-between">
-                                <span className="font-bold text-slate-800 dark:text-white">Net Pocket</span>
-                                <span className={`font-bold text-lg ${netPocket >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>${netPocket.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* SECTION 3: ENTRY */}
-                <div className="bg-white dark:bg-white/10 dark:backdrop-blur-md rounded-xl p-6 border border-slate-200 dark:border-white/20 mb-6 shadow-md dark:shadow-blue-900/10">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white"><DollarSign /> Trade Entry</h3>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        <div className="col-span-2 md:col-span-1">
-                            <label className="text-xs text-blue-700 dark:text-blue-200 block mb-1">Pair</label>
-                            <input type="text" placeholder="EURUSD" value={newTrade.pair}
-                                onChange={e => setNewTrade({ ...newTrade, pair: e.target.value.toUpperCase() })}
-                                className="w-full bg-slate-100 dark:bg-black/20 border border-slate-300 dark:border-white/10 rounded px-3 py-3 uppercase focus:ring-blue-500 outline-none text-lg font-bold text-slate-900 dark:text-white"
-                                list="common-pairs"
-                            />
-                            <datalist id="common-pairs">{COMMON_PAIRS.map(p => <option key={p} value={p} />)}</datalist>
-                        </div>
-                        <div>
-                            <label className="text-xs text-blue-700 dark:text-blue-200 block mb-1">Dir</label>
-                            <select value={newTrade.direction} onChange={e => setNewTrade({ ...newTrade, direction: e.target.value })}
-                                className="w-full bg-slate-100 dark:bg-black/20 border border-slate-300 dark:border-white/10 rounded px-3 py-3 focus:ring-blue-500 outline-none text-sm text-slate-900 dark:text-white">
-                                <option value="Long">Long</option><option value="Short">Short</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-xs text-blue-700 dark:text-blue-200 block mb-1">Entry</label>
-                            <input type="number" placeholder={pairMeta.placeholder} step={pairMeta.step} value={newTrade.entry}
-                                onChange={e => setNewTrade({ ...newTrade, entry: e.target.value })}
-                                className="w-full bg-slate-100 dark:bg-black/20 border border-slate-300 dark:border-white/10 rounded px-3 py-3 focus:ring-blue-500 outline-none text-slate-900 dark:text-white" />
-                        </div>
-                        <div>
-                            <label className="text-xs text-blue-700 dark:text-blue-200 block mb-1">Exit</label>
-                            <input type="number" placeholder={pairMeta.placeholder} step={pairMeta.step} value={newTrade.exit}
-                                onChange={e => setNewTrade({ ...newTrade, exit: e.target.value })}
-                                className="w-full bg-slate-100 dark:bg-black/20 border border-slate-300 dark:border-white/10 rounded px-3 py-3 focus:ring-blue-500 outline-none text-slate-900 dark:text-white" />
-                        </div>
-                    </div>
-                    <div className="mt-4">
-                        <button onClick={addTrade} disabled={!isFormValid}
-                            className={`w-full font-bold py-3 rounded-lg text-lg transition-all shadow-xl ${isFormValid ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20' : 'bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
-                            {isFormValid ? `Log Result ($${calculatePnL(newTrade)})` : 'Enter Trade Details'}
-                        </button>
-                    </div>
-                </div>
-
-                {/* SECTION 4: CHARTS */}
-                {trades.length > 0 && (
-                    <CollapsibleSection title="Performance Charts" icon={PieIcon} defaultOpen={false}>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="md:col-span-2 bg-slate-100 dark:bg-white/5 rounded-xl p-4 border border-slate-200 dark:border-white/10">
-                                <h3 className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Growth Curve</h3>
-                                <ResponsiveContainer width="100%" height={200}>
-                                    <LineChart data={balanceHistory}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} />
-                                        <XAxis dataKey="trade" stroke="#64748b" tick={{ fontSize: 10 }} />
-                                        <YAxis stroke="#64748b" tick={{ fontSize: 10 }} domain={['auto', 'auto']} />
-                                        <Tooltip contentStyle={{ backgroundColor: darkMode ? '#0f172a' : '#ffffff', borderColor: darkMode ? '#334155' : '#e2e8f0', color: darkMode ? '#fff' : '#000' }} />
-                                        <Line type="monotone" dataKey="balance" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
-                            <div className="bg-slate-100 dark:bg-white/5 rounded-xl p-4 border border-slate-200 dark:border-white/10">
-                                <h3 className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Win/Loss Ratio</h3>
-                                <ResponsiveContainer width="100%" height={200}>
-                                    <PieChart>
-                                        <Pie data={[{ name: 'Wins', value: winCount }, { name: 'Losses', value: lossCount }]} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={5} dataKey="value">
-                                            {[{ name: 'Wins', value: winCount }, { name: 'Losses', value: lossCount }].map((entry, index) => <Cell key={`cell-${index}`} fill={['#10b981', '#ef4444'][index]} />)}
-                                        </Pie>
-                                        <Tooltip contentStyle={{ backgroundColor: darkMode ? '#0f172a' : '#ffffff', borderColor: darkMode ? '#334155' : '#e2e8f0' }} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-                    </CollapsibleSection>
-                )}
-
-                {/* SECTION 5: JOURNAL */}
-                <CollapsibleSection title={`Journal (${trades.length})`} icon={Brain}>
-                    <div className="flex justify-end mb-4">
-                        <button onClick={exportToCSV} className="text-xs flex items-center gap-1 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 px-3 py-1.5 rounded transition-colors text-slate-600 dark:text-white">
-                            <Download size={14} /> Export CSV
-                        </button>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="text-left text-blue-600 dark:text-blue-300 border-b border-slate-200 dark:border-white/10">
-                                    <th className="pb-3 pl-2">Time</th>
-                                    <th className="pb-3">Pair</th>
-                                    <th className="pb-3">Dir</th>
-                                    <th className="pb-3">P&L</th>
-                                    <th className="pb-3 text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {trades.length === 0 ? (
-                                    <tr><td colSpan={5} className="text-center py-6 text-slate-500">No trades recorded.</td></tr>
-                                ) : (
-                                    trades.map(t => (
-                                        <tr key={t.id} className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5">
-                                            <td className="py-3 pl-2 text-slate-600 dark:text-white">{t.date} <span className="text-xs text-slate-400 dark:text-slate-500">{t.time}</span></td>
-                                            <td className="py-3 font-bold text-slate-800 dark:text-white">{t.pair}</td>
-                                            <td className="py-3"><span className={`px-2 py-0.5 rounded text-xs ${t.direction === 'Long' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'}`}>{t.direction}</span></td>
-                                            <td className={`py-3 font-bold ${t.pnl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>${t.pnl.toFixed(2)}</td>
-                                            <td className="py-3 text-right">
-                                                <button onClick={() => deleteTrade(t.id)} className="text-slate-400 hover:text-red-500"><Trash2 size={14} /></button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </CollapsibleSection>
-
-            </div>
+  return (
+    <div className="bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden mb-6 transition-all shadow-sm dark:shadow-none">
+      <button onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center p-4 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors focus:outline-none">
+        <div className="flex items-center gap-2 font-bold text-lg text-slate-800 dark:text-white">
+          {Icon && <Icon size={20} className="text-blue-600 dark:text-blue-400" />} {title}
         </div>
-    );
+        {isOpen ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+      </button>
+      <div ref={contentRef} style={{ height }} className="transition-[height] duration-300 ease-in-out overflow-hidden">
+        <div className="p-6 border-t border-slate-200 dark:border-white/10">{children}</div>
+      </div>
+    </div>
+  );
 };
 
-export default App;
+// --- DASHBOARD COMPONENT ---
+const Dashboard = () => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [balance, setBalance] = useState(1000);
+  const [broker, setBroker] = useState('IC Markets');
+  const [safeMode, setSafeMode] = useState(true);
+  const [trades, setTrades] = useState([]);
+  const [isPremium, setIsPremium] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
+  const [newTrade, setNewTrade] = useState({ pair: 'EURUSD', direction: 'Long', entry: '', exit: '', setup: 'Breakout' });
+
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        const unsubscribeDoc = onSnapshot(doc(db, 'users', currentUser.uid), (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setBalance(data.balance ?? 1000);
+            setBroker(data.broker ?? 'IC Markets');
+            setSafeMode(data.safeMode ?? true);
+            setIsPremium(data.isPremium ?? false);
+            setDarkMode(data.darkMode ?? true);
+          } else {
+            setDoc(doc(db, 'users', currentUser.uid), { balance: 1000, isPremium: false, darkMode: true });
+          }
+          setLoading(false);
+        });
+        const unsubscribeTrades = onSnapshot(query(collection(db, 'users', currentUser.uid, 'trades'), orderBy('timestamp', 'desc')), (snapshot) => {
+          setTrades(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+        });
+        return () => { unsubscribeDoc(); unsubscribeTrades(); };
+      } else {
+        signInAnonymously(auth);
+      }
+    });
+    return () => unsubscribeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (darkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, [darkMode]);
+
+  const updateSetting = async (key, value) => {
+    if (key === 'darkMode') setDarkMode(value);
+    if (user) await updateDoc(doc(db, 'users', user.uid), { [key]: value });
+  };
+
+  const currentTier = TIERS.find(t => balance >= t.min && balance <= t.max) || TIERS[0];
+  const baseLot = Math.max(BROKERS[broker]?.minLot || 0.01, parseFloat((Math.floor(currentTier.min / 10) * 0.01).toFixed(2)));
+  const lotSize = safeMode ? Math.max(BROKERS[broker]?.minLot || 0.01, parseFloat((baseLot * 0.5).toFixed(2))) : baseLot;
+  const pipValue = lotSize * 10;
+  const maxLoss = (pipValue * 15).toFixed(2);
+  const nextTier = TIERS[TIERS.indexOf(currentTier) + 1];
+  let progress = 100;
+  if (nextTier) progress = Math.min(100, Math.max(0, ((balance - currentTier.min) / (nextTier.min - currentTier.min)) * 100));
+
+  const addTrade = async () => {
+    if (!isPremium && trades.length >= 10) { setShowPaywall(true); return; }
+    if (!user) return;
+    const en = parseFloat(newTrade.entry); const ex = parseFloat(newTrade.exit);
+    if(isNaN(en) || isNaN(ex)) return;
+    const m = getPairMetadata(newTrade.pair).multiplier;
+    const pnl = roundToTwo((ex - en) * (newTrade.direction === 'Long' ? 1 : -1) * m * pipValue);
+    const tradeData = { ...newTrade, lots: lotSize, pnl, date: new Date().toLocaleDateString(), timestamp: serverTimestamp() };
+    try {
+      await addDoc(collection(db, 'users', user.uid, 'trades'), tradeData);
+      await updateDoc(doc(db, 'users', user.uid), { balance: roundToTwo(balance + pnl) });
+      setNewTrade({ ...newTrade, entry: '', exit: '' });
+    } catch (e) { alert(e.message); }
+  };
+
+  const deleteTrade = async (t) => {
+    if (!confirm('Delete trade?')) return;
+    await deleteDoc(doc(db, 'users', user.uid, 'trades', t.id));
+    await updateDoc(doc(db, 'users', user.uid), { balance: roundToTwo(balance - t.pnl) });
+  };
+
+  const handleUpgrade = async () => {
+    if(!user) return;
+    await updateSetting('isPremium', true);
+    setShowPaywall(false);
+    alert("Welcome to Pro! Account upgraded.");
+  };
+
+  const setupPerformance = useMemo(() => {
+    if (!isPremium) return [];
+    return TRADE_SETUPS.map(s => {
+      const related = trades.filter(t => t.setup === s);
+      if(related.length === 0) return null;
+      const w = related.filter(t => t.pnl > 0).length;
+      return { name: s, winRate: ((w/related.length)*100).toFixed(0) };
+    }).filter(Boolean);
+  }, [trades, isPremium]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-blue-400"><Loader2 className="animate-spin mr-2"/> Loading Cloud Data...</div>;
+
+  return (
+    <div className={`min-h-screen font-sans overflow-x-hidden pb-12 transition-colors duration-300 ${darkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`}>
+      
+      {/* PAYWALL */}
+      {showPaywall && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border-2 border-blue-500 rounded-2xl p-8 max-w-md w-full text-center relative shadow-2xl">
+            <button onClick={() => setShowPaywall(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white"><X /></button>
+            <Shield size={48} className="mx-auto text-blue-500 mb-4"/>
+            <h2 className="text-2xl font-bold text-white mb-2">Unlock AQT Pro</h2>
+            <p className="text-blue-200 mb-6">Unlimited trades, analytics & cloud sync.</p>
+            <button onClick={handleUpgrade} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-white mb-3">Upgrade for $29 (Demo)</button>
+            <button onClick={() => setShowPaywall(false)} className="text-sm text-slate-400">Maybe Later</button>
+          </div>
+        </div>
+      )}
+
+      {/* HEADER */}
+      <div className="max-w-7xl mx-auto p-4 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">AQT <span className="text-blue-500">v3.2</span></h1>
+          <div className="flex items-center gap-2 text-xs text-green-500 mt-1"><Cloud size={12} /> {isPremium ? "Pro Cloud" : "Free Cloud"}</div>
+        </div>
+        <div className="flex items-center gap-3">
+           {!isPremium && <button onClick={() => setShowPaywall(true)} className="px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-full animate-pulse">Upgrade</button>}
+           <button onClick={() => updateSetting('darkMode', !darkMode)} className="p-2 rounded-full bg-white/10">{darkMode ? <Sun size={20} /> : <Moon size={20} />}</button>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto space-y-4 p-4">
+        {/* CONFIG */}
+        <CollapsibleSection title="Configuration" icon={Shield}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div><label className="text-xs font-bold uppercase mb-2 block opacity-70">Balance</label><div className="text-2xl font-mono">${balance.toFixed(2)}</div></div>
+            <div>
+              <label className="text-xs font-bold uppercase mb-2 block opacity-70">Broker</label>
+              <select value={broker} onChange={(e) => updateSetting('broker', e.target.value)} className="w-full p-2 bg-transparent border border-slate-600 rounded">
+                {Object.keys(BROKERS).map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase mb-2 block opacity-70">Risk</label>
+              <div className="flex bg-slate-800 rounded p-1">
+                <button onClick={() => updateSetting('safeMode', true)} className={`flex-1 py-1 text-xs font-bold rounded ${safeMode ? 'bg-green-500' : 'opacity-50'}`}>SAFE</button>
+                <button onClick={() => updateSetting('safeMode', false)} className={`flex-1 py-1 text-xs font-bold rounded ${!safeMode ? 'bg-red-500' : 'opacity-50'}`}>AGGR</button>
+              </div>
+            </div>
+          </div>
+        </CollapsibleSection>
+
+        {/* METRICS */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white/5 rounded-xl p-6 border border-white/10 md:col-span-2">
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><TrendingUp size={20} /> Tier: {currentTier.name}</h3>
+            <div className="w-full bg-black/30 h-3 rounded-full overflow-hidden mb-2"><div className="bg-blue-500 h-full" style={{width: `${progress}%`}} /></div>
+          </div>
+          <div className="rounded-xl p-6 border border-white/10 bg-white/5">
+             <div className="flex justify-between mb-2"><span className="opacity-70">Lots</span><span className="font-bold">{lotSize}</span></div>
+             <div className="flex justify-between"><span className="opacity-70">Risk</span><span className="font-bold text-red-500">${maxLoss}</span></div>
+          </div>
+          <div className="bg-white/5 rounded-xl p-6 border border-white/10 flex items-center justify-center">
+             <button onClick={() => isPremium ? alert("Exporting...") : setShowPaywall(true)} className="flex flex-col items-center gap-2 text-sm font-bold opacity-70 hover:opacity-100">
+               {isPremium ? <Download size={24} className="text-blue-400"/> : <Lock size={24} className="text-amber-400"/>}
+               {isPremium ? "Export" : "Unlock"}
+             </button>
+          </div>
+        </div>
+
+        {/* ANALYTICS */}
+        <CollapsibleSection title="Analytics" icon={BarChart2} defaultOpen={isPremium}>
+          <div className="relative h-64">
+            {!isPremium && <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center"><Lock className="mb-2 text-amber-500"/><button onClick={() => setShowPaywall(true)} className="text-blue-400 hover:underline">Upgrade to View</button></div>}
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={setupPerformance}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333"/>
+                <XAxis dataKey="name" stroke="#888" fontSize={10}/>
+                <YAxis stroke="#888"/>
+                <Bar dataKey="winRate" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CollapsibleSection>
+
+        {/* ENTRY */}
+        <div className="bg-white/10 p-6 rounded-xl border border-white/10 shadow-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold flex items-center gap-2"><DollarSign size={18}/> New Trade</h3>
+            {!isPremium && <span className="text-xs text-orange-500 bg-orange-900/30 px-2 py-1 rounded">{trades.length}/10 Free Trades</span>}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <input type="text" placeholder="Pair" value={newTrade.pair} onChange={e => setNewTrade({...newTrade, pair: e.target.value.toUpperCase()})} className="p-2 rounded bg-black/30 border border-white/10 text-sm" />
+            <select value={newTrade.direction} onChange={e => setNewTrade({...newTrade, direction: e.target.value})} className="p-2 rounded bg-black/30 border border-white/10 text-sm"><option>Long</option><option>Short</option></select>
+            <input type="number" placeholder="Entry" value={newTrade.entry} onChange={e => setNewTrade({...newTrade, entry: e.target.value})} className="p-2 rounded bg-black/30 border border-white/10 text-sm" />
+            <input type="number" placeholder="Exit" value={newTrade.exit} onChange={e => setNewTrade({...newTrade, exit: e.target.value})} className="p-2 rounded bg-black/30 border border-white/10 text-sm" />
+            <select value={newTrade.setup} onChange={e => setNewTrade({...newTrade, setup: e.target.value})} className="p-2 rounded bg-black/30 border border-white/10 text-sm">{TRADE_SETUPS.map(s => <option key={s}>{s}</option>)}</select>
+            <button onClick={addTrade} className="bg-blue-600 hover:bg-blue-500 text-white font-bold rounded text-sm transition-all">Log</button>
+          </div>
+        </div>
+
+        {/* JOURNAL */}
+        <CollapsibleSection title={`Journal (${trades.length})`} icon={Brain}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead><tr className="border-b border-white/10 opacity-60"><th>Date</th><th>Pair</th><th>Setup</th><th>P&L</th><th>Action</th></tr></thead>
+              <tbody>
+                {trades.map(t => (
+                  <tr key={t.id} className="border-b border-white/5 hover:bg-white/5">
+                    <td className="py-3">{t.date}</td>
+                    <td className="py-3 font-bold">{t.pair} <span className={`text-[10px] ml-1 px-1 rounded ${t.direction === 'Long' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{t.direction}</span></td>
+                    <td className="py-3 opacity-70">{t.setup}</td>
+                    <td className={`py-3 font-bold ${t.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>${t.pnl.toFixed(2)}</td>
+                    <td className="py-3"><button onClick={() => deleteTrade(t)} className="text-slate-400 hover:text-red-500"><Trash2 size={14}/></button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CollapsibleSection>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// 3. ROOT APP (View Switcher)
+// ==========================================
+const RootApp = () => {
+  const [view, setView] = useState('landing');
+  return view === 'landing' ? <LandingPage onEnterApp={() => setView('app')} /> : <Dashboard />;
+};
+
+export default RootApp;
