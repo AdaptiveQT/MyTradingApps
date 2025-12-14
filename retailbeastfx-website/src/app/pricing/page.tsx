@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { GlowButton } from '@/components/Marketing';
 
 interface PricingTier {
@@ -294,8 +295,19 @@ export default function PricingPage() {
             </section>
 
             {/* CTA */}
-            <section className="section-padding bg-cyber-dark">
-                <div className="container-narrow mx-auto text-center">
+            <section className="section-padding bg-cyber-dark relative overflow-hidden">
+                {/* Background mascot */}
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden lg:block">
+                    <Image
+                        src="/mascot/beast-pose-4-hero.png"
+                        alt=""
+                        width={400}
+                        height={400}
+                        className="drop-shadow-[0_0_60px_rgba(0,230,118,0.3)]"
+                    />
+                </div>
+
+                <div className="container-narrow mx-auto text-center relative z-10">
                     <h2 className="heading-cyber text-3xl md:text-4xl text-white mb-4">
                         Still Have Questions?
                     </h2>

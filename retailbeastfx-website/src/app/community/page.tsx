@@ -18,26 +18,55 @@ export default function CommunityPage() {
                 <div className="absolute inset-0 bg-grid opacity-30" />
                 <div className="absolute inset-0 bg-radial-glow" />
 
-                <div className="container-wide mx-auto relative z-10 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-beast-green/10 border border-beast-green/30 mb-6 animate-pulse">
-                        <span className="w-2 h-2 rounded-full bg-beast-green" />
-                        <span className="text-sm text-beast-green font-medium">2,500+ Active Members</span>
+                <div className="container-wide mx-auto relative z-10">
+                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        {/* Left: Content */}
+                        <div className="text-center lg:text-left">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-beast-green/10 border border-beast-green/30 mb-6 animate-pulse">
+                                <span className="w-2 h-2 rounded-full bg-beast-green" />
+                                <span className="text-sm text-beast-green font-medium">2,500+ Active Members</span>
+                            </div>
+
+                            <h1 className="heading-cyber text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                                <span className="text-white">Join the</span>
+                                <br />
+                                <span className="gradient-text">Beast Pack</span>
+                            </h1>
+
+                            <p className="text-xl text-gray-400 max-w-2xl mb-8">
+                                Connect with elite traders, share journal insights, and hunt liquidity together
+                                on our exclusive Discord server.
+                            </p>
+
+                            <GlowButton href="https://discord.gg/retailbeastfx" external size="lg">
+                                Join Discord Server
+                            </GlowButton>
+                        </div>
+
+                        {/* Right: Mascot */}
+                        <div className="relative hidden lg:block">
+                            <div className="relative aspect-square max-w-md mx-auto">
+                                {/* Glowing background */}
+                                <div className="absolute inset-0 bg-beast-green/20 rounded-full blur-3xl animate-pulse" />
+
+                                {/* Mascot with hover effect */}
+                                <div className="relative animate-float">
+                                    <Image
+                                        src="/mascot/beast-pose-3-hero.png"
+                                        alt="Beast Pack Mascot"
+                                        width={400}
+                                        height={400}
+                                        className="drop-shadow-[0_0_40px_rgba(0,230,118,0.5)] hover:scale-105 transition-transform duration-500"
+                                    />
+                                </div>
+
+                                {/* Floating badge */}
+                                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 glass-card rounded-xl px-6 py-3 border border-beast-green/30">
+                                    <p className="text-beast-green font-bold text-center">🐺 Join the Pack</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
-                    <h1 className="heading-cyber text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                        <span className="text-white">Join the</span>
-                        <br />
-                        <span className="gradient-text">Beast Pack</span>
-                    </h1>
-
-                    <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
-                        Connect with elite traders, share journal insights, and hunt liquidity together
-                        on our exclusive Discord server.
-                    </p>
-
-                    <GlowButton href="https://discord.gg/retailbeastfx" external size="lg">
-                        Join Discord Server
-                    </GlowButton>
                 </div>
             </section>
 

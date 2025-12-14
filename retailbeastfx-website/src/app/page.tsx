@@ -1,15 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { GlowButton, FeatureCard, TestimonialCarousel } from '@/components/Marketing';
-
-// Mascot poses for the hero section
-const mascotPoses = [
-  { src: '/mascot/beast-pose-1-hero.png', alt: 'RetailBeastFX Mascot - Pose 1' },
-  { src: '/mascot/beast-pose-2-hero.png', alt: 'RetailBeastFX Mascot - Pose 2' },
-  { src: '/mascot/beast-pose-3-hero.png', alt: 'RetailBeastFX Mascot - Pose 3' },
-  { src: '/mascot/beast-pose-4-hero.png', alt: 'RetailBeastFX Mascot - Pose 4' },
-];
 
 // Icons for feature cards
 const IndicatorIcon = () => (
@@ -35,56 +26,6 @@ const CommunityIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
   </svg>
 );
-
-// Mascot Showcase Component - auto-cycles through poses
-const MascotShowcase = () => {
-  const [currentPose, setCurrentPose] = useState(0);
-
-  // Auto-cycle every 3 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPose((prev) => (prev + 1) % mascotPoses.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="relative w-full h-full">
-      {/* Main Image with crossfade effect */}
-      {mascotPoses.map((pose, index) => (
-        <div
-          key={pose.src}
-          className={`absolute inset-0 transition-opacity duration-700 ${index === currentPose ? 'opacity-100' : 'opacity-0'
-            }`}
-        >
-          <Image
-            src={pose.src}
-            alt={pose.alt}
-            fill
-            className="object-contain drop-shadow-[0_0_40px_rgba(0,230,118,0.4)] cursor-pointer"
-            onClick={() => setCurrentPose((currentPose + 1) % mascotPoses.length)}
-            priority={index === 0}
-          />
-        </div>
-      ))}
-
-      {/* Pose indicator dots */}
-      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {mascotPoses.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentPose(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentPose
-              ? 'bg-beast-green w-6'
-              : 'bg-beast-green/30 hover:bg-beast-green/50'
-              }`}
-            aria-label={`Show pose ${index + 1}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
 
 export default function HomePage() {
   return (
@@ -152,42 +93,101 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right: Mascot Showcase */}
+            {/* Right: Widget with Mascot Peeking */}
             <div className="relative animate-slide-up">
-              {/* Main Mascot Display */}
-              <div className="glass-card rounded-2xl p-6 md:p-8 relative overflow-hidden">
+              {/* Mascot peeking from behind the card - positioned to look like he's interacting */}
+              <div className="absolute -right-8 md:-right-12 top-0 w-32 md:w-44 z-0 animate-float">
+                <Image
+                  src="/mascot/beast-pose-1-hero.png"
+                  alt="The Beast peeking"
+                  width={180}
+                  height={180}
+                  className="drop-shadow-[0_0_30px_rgba(0,230,118,0.4)] scale-x-[-1]"
+                />
+              </div>
+
+              {/* Main Signal Widget */}
+              <div className="glass-card rounded-2xl p-6 md:p-8 relative overflow-hidden z-10">
                 {/* Glowing background effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-beast-green/5 via-transparent to-beast-green/10" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-beast-green/20 rounded-full blur-3xl" />
 
-                {/* Mascot Image Container */}
-                <div className="relative aspect-square max-w-md mx-auto">
-                  <MascotShowcase />
+                {/* Widget Header */}
+                <div className="relative z-10 flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-beast-green animate-pulse" />
+                    <span className="text-beast-green font-semibold">Live Signal Feed</span>
+                  </div>
+                  <span className="text-xs text-gray-500">NY Session Active</span>
                 </div>
 
-                {/* Mascot Label */}
-                <div className="text-center mt-4 relative z-10">
-                  <p className="text-beast-green font-bold heading-cyber text-lg">THE BEAST</p>
-                  <p className="text-gray-400 text-sm">Your Mechanical Trading Companion</p>
+                {/* Chart Preview Mock */}
+                <div className="relative z-10 bg-cyber-dark/50 rounded-xl p-4 mb-4 border border-beast-green/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-white font-bold">EUR/USD</span>
+                    <span className="text-beast-green text-sm">Fresh OB ↑</span>
+                  </div>
+                  {/* Simplified chart bars */}
+                  <div className="flex items-end gap-1 h-20">
+                    {[40, 55, 45, 70, 60, 85, 75, 90, 80, 95, 88, 100].map((h, i) => (
+                      <div
+                        key={i}
+                        className={`flex-1 rounded-sm ${i >= 9 ? 'bg-beast-green' : 'bg-gray-700'}`}
+                        style={{ height: `${h}%` }}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex justify-between mt-2 text-xs text-gray-500">
+                    <span>Entry: 1.0850</span>
+                    <span className="text-beast-green">TP: 1.0920</span>
+                  </div>
+                </div>
+
+                {/* Signal Details */}
+                <div className="relative z-10 grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-cyber-dark/30 rounded-lg p-3">
+                    <p className="text-beast-green text-xl font-bold">3.2R</p>
+                    <p className="text-xs text-gray-500">Target</p>
+                  </div>
+                  <div className="bg-cyber-dark/30 rounded-lg p-3">
+                    <p className="text-beast-gold text-xl font-bold">78%</p>
+                    <p className="text-xs text-gray-500">Win Rate</p>
+                  </div>
+                  <div className="bg-cyber-dark/30 rounded-lg p-3">
+                    <p className="text-white text-xl font-bold">A+</p>
+                    <p className="text-xs text-gray-500">Grade</p>
+                  </div>
                 </div>
               </div>
 
-              {/* Quick Stats Card - Overlapping */}
-              <div className="absolute -bottom-4 left-4 right-4 glass-card rounded-xl p-4 border border-beast-green/20">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-beast-green animate-pulse" />
-                    <span className="text-sm text-gray-400">Latest Signal</span>
-                  </div>
-                  <span className="px-2 py-1 text-xs bg-beast-green/20 text-beast-green rounded font-medium">LOGGED</span>
+              {/* Quick Stats Card - Beast pointing at it */}
+              <div className="relative mt-6">
+                {/* Small mascot pointing at the stats */}
+                <div className="absolute -left-16 md:-left-20 top-1/2 -translate-y-1/2 w-20 md:w-28 z-20">
+                  <Image
+                    src="/mascot/beast-pose-3-card.png"
+                    alt="Beast pointing"
+                    width={112}
+                    height={112}
+                    className="drop-shadow-[0_0_20px_rgba(0,230,118,0.5)]"
+                  />
                 </div>
-                <div className="flex items-center justify-between mt-2">
-                  <div>
-                    <p className="font-semibold text-white">EUR/USD Long</p>
-                    <p className="text-xs text-gray-500">Fresh OB + NY Killzone</p>
+
+                <div className="glass-card rounded-xl p-4 border border-beast-green/20 ml-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-beast-green animate-pulse" />
+                      <span className="text-sm text-gray-400">Logged to Journal</span>
+                    </div>
+                    <span className="px-2 py-1 text-xs bg-beast-green/20 text-beast-green rounded font-medium">✓ SAVED</span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-beast-green font-bold text-lg">+2.4R</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <div>
+                      <p className="font-semibold text-white">EUR/USD Long</p>
+                      <p className="text-xs text-gray-500">Fresh OB + NY Killzone</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-beast-green font-bold text-lg">+2.4R</p>
+                    </div>
                   </div>
                 </div>
               </div>

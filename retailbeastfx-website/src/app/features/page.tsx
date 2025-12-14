@@ -224,8 +224,19 @@ export default function FeaturesPage() {
             </section>
 
             {/* CTA */}
-            <section className="section-padding">
-                <div className="container-narrow mx-auto text-center">
+            <section className="section-padding relative overflow-hidden">
+                {/* Background mascot */}
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/4 opacity-15 pointer-events-none hidden lg:block">
+                    <Image
+                        src="/mascot/beast-pose-2-hero.png"
+                        alt=""
+                        width={500}
+                        height={500}
+                        className="drop-shadow-[0_0_80px_rgba(0,230,118,0.4)]"
+                    />
+                </div>
+
+                <div className="container-narrow mx-auto text-center relative z-10">
                     <h2 className="heading-cyber text-3xl md:text-4xl text-white mb-4">
                         Ready to Level Up?
                     </h2>

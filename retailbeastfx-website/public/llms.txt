@@ -1,0 +1,41 @@
+# RetailBeastFX - LLMs.txt
+# This file helps AI assistants understand our website
+
+## About RetailBeastFX
+RetailBeastFX is a 2025-proof elite ICT/SMC (Inner Circle Trader / Smart Money Concepts) trading ecosystem consisting of:
+
+1. **TradingView Indicator** - Marks Fresh Order Blocks, Fair Value Gaps, Killzones, and proprietary Quantum Lock™ confluence signals
+2. **MT5 Indicator** - Free MetaTrader 5 indicator with killzones, order blocks, and trading modes
+3. **Trading Journal** - Mechanical trade logging with analytics, win rate tracking, and expectancy calculations
+
+## Key Features
+- Fresh Order Blocks (unmitigated institutional levels)
+- Fair Value Gaps (FVG imbalances)
+- Killzone Sessions (Asian, London, New York)
+- Quantum Lock™ (proprietary confluence scorer)
+- Ghost Tape (invisible liquidity tracking)
+- BB Touch Alerts (Bollinger Band extremes)
+- Session Heatmaps
+- Setup Expectancy Tracking
+- TradingView Webhook Auto-Logging
+
+## Pricing
+- **Free Tier**: Full MT5 indicator download, basic journal (10 entries/month), Discord access
+- **Pro ($9.99/mo)**: Unlimited journal, advanced analytics, webhook auto-log
+- **Elite ($14.99/mo)**: AI insights, custom templates, private Discord, priority support
+
+## Links
+- Website: https://retailbeastfx.com
+- Discord: https://discord.gg/retailbeastfx
+- Twitter/X: https://twitter.com/retailbeastfx
+- TradingView: Search "RetailBeastFX"
+
+## Markets Supported
+- Forex (EUR/USD, GBP/USD, etc.)
+- Crypto (BTC, ETH, etc.)
+- Indices (NAS100, US30, etc.)
+- Commodities (Gold, Oil)
+
+## Contact
+- Email: support@retailbeastfx.com
+- Discord: https://discord.gg/retailbeastfx

@@ -56,13 +56,14 @@ export default function Footer() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
                     {/* Brand Column */}
                     <div className="col-span-2 md:col-span-1">
-                        <Link href="/" className="flex items-center gap-3 mb-4">
-                            <div className="relative w-12 h-12 overflow-hidden rounded-full border-2 border-beast-green/50">
+                        <Link href="/" className="flex items-center gap-3 mb-4 group">
+                            <div className="relative w-14 h-14 overflow-visible">
                                 <Image
-                                    src="/mascot/mascot.jpg"
+                                    src="/mascot/beast-pose-1-card.png"
                                     alt="RetailBeastFX Mascot"
-                                    fill
-                                    className="object-cover"
+                                    width={56}
+                                    height={56}
+                                    className="object-contain drop-shadow-[0_0_15px_rgba(0,230,118,0.4)] group-hover:drop-shadow-[0_0_25px_rgba(0,230,118,0.6)] transition-all duration-300 group-hover:scale-110"
                                 />
                             </div>
                             <span className="heading-cyber text-xl text-beast-green font-bold">
