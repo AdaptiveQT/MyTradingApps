@@ -93,9 +93,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right: Widget with Mascot Peeking */}
+            {/* Right: Indicator Showcase with Mascot */}
             <div className="relative animate-slide-up">
-              {/* Mascot peeking from behind the card - positioned to look like he's interacting */}
+              {/* Mascot peeking from behind the card */}
               <div className="absolute -right-8 md:-right-12 top-0 w-32 md:w-44 z-0 animate-float">
                 <Image
                   src="/mascot/beast-pose-1-hero.png"
@@ -106,62 +106,51 @@ export default function HomePage() {
                 />
               </div>
 
-              {/* Main Signal Widget */}
+              {/* Main Indicator Feature Card */}
               <div className="glass-card rounded-2xl p-6 md:p-8 relative overflow-hidden z-10">
                 {/* Glowing background effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-beast-green/5 via-transparent to-beast-green/10" />
 
-                {/* Widget Header */}
+                {/* Card Header */}
                 <div className="relative z-10 flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-beast-green animate-pulse" />
-                    <span className="text-beast-green font-semibold">Live Signal Feed</span>
+                    <div className="w-3 h-3 rounded-full bg-beast-green" />
+                    <span className="text-beast-green font-semibold">RetailBeastFX Indicator</span>
                   </div>
-                  <span className="text-xs text-gray-500">NY Session Active</span>
+                  <span className="text-xs text-gray-500">TradingView + MT5</span>
                 </div>
 
-                {/* Chart Preview Mock */}
-                <div className="relative z-10 bg-cyber-dark/50 rounded-xl p-4 mb-4 border border-beast-green/10">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-white font-bold">EUR/USD</span>
-                    <span className="text-beast-green text-sm">Fresh OB ↑</span>
-                  </div>
-                  {/* Simplified chart bars */}
-                  <div className="flex items-end gap-1 h-20">
-                    {[40, 55, 45, 70, 60, 85, 75, 90, 80, 95, 88, 100].map((h, i) => (
-                      <div
-                        key={i}
-                        className={`flex-1 rounded-sm ${i >= 9 ? 'bg-beast-green' : 'bg-gray-700'}`}
-                        style={{ height: `${h}%` }}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex justify-between mt-2 text-xs text-gray-500">
-                    <span>Entry: 1.0850</span>
-                    <span className="text-beast-green">TP: 1.0920</span>
-                  </div>
+                {/* Features List */}
+                <div className="relative z-10 space-y-3 mb-6">
+                  {[
+                    { icon: '🎯', label: 'Fresh Order Blocks' },
+                    { icon: '⏰', label: 'Killzone Overlays' },
+                    { icon: '🔒', label: 'Quantum Lock™ Signals' },
+                    { icon: '📊', label: 'Multi-Timeframe Analysis' },
+                    { icon: '🔔', label: 'Real-Time Alerts' },
+                  ].map((feature, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-cyber-dark/30 rounded-lg px-4 py-2">
+                      <span>{feature.icon}</span>
+                      <span className="text-gray-300">{feature.label}</span>
+                    </div>
+                  ))}
                 </div>
 
-                {/* Signal Details */}
-                <div className="relative z-10 grid grid-cols-3 gap-4 text-center">
+                {/* Bottom Stats */}
+                <div className="relative z-10 grid grid-cols-2 gap-4 text-center">
                   <div className="bg-cyber-dark/30 rounded-lg p-3">
-                    <p className="text-beast-green text-xl font-bold">3.2R</p>
-                    <p className="text-xs text-gray-500">Target</p>
+                    <p className="text-beast-green text-lg font-bold">Any Market</p>
+                    <p className="text-xs text-gray-500">Forex, Crypto, Indices</p>
                   </div>
                   <div className="bg-cyber-dark/30 rounded-lg p-3">
-                    <p className="text-beast-gold text-xl font-bold">78%</p>
-                    <p className="text-xs text-gray-500">Win Rate</p>
-                  </div>
-                  <div className="bg-cyber-dark/30 rounded-lg p-3">
-                    <p className="text-white text-xl font-bold">A+</p>
-                    <p className="text-xs text-gray-500">Grade</p>
+                    <p className="text-beast-gold text-lg font-bold">Any TF</p>
+                    <p className="text-xs text-gray-500">1m to Monthly</p>
                   </div>
                 </div>
               </div>
 
-              {/* Quick Stats Card - Beast pointing at it */}
+              {/* Journal Card - Beast pointing at it */}
               <div className="relative mt-6">
-                {/* Small mascot pointing at the stats */}
                 <div className="absolute -left-16 md:-left-20 top-1/2 -translate-y-1/2 w-20 md:w-28 z-20">
                   <Image
                     src="/mascot/beast-pose-3-card.png"
@@ -174,21 +163,10 @@ export default function HomePage() {
 
                 <div className="glass-card rounded-xl p-4 border border-beast-green/20 ml-8">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-beast-green animate-pulse" />
-                      <span className="text-sm text-gray-400">Logged to Journal</span>
-                    </div>
-                    <span className="px-2 py-1 text-xs bg-beast-green/20 text-beast-green rounded font-medium">✓ SAVED</span>
+                    <span className="text-sm text-gray-400">+ Trading Journal Included</span>
+                    <span className="px-2 py-1 text-xs bg-beast-green/20 text-beast-green rounded font-medium">FREE</span>
                   </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <div>
-                      <p className="font-semibold text-white">EUR/USD Long</p>
-                      <p className="text-xs text-gray-500">Fresh OB + NY Killzone</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-beast-green font-bold text-lg">+2.4R</p>
-                    </div>
-                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Track every trade, analyze your stats, improve your edge</p>
                 </div>
               </div>
             </div>
