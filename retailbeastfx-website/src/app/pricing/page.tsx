@@ -21,7 +21,7 @@ const pricingTiers: PricingTier[] = [
         name: 'Free',
         price: '$0',
         period: 'forever',
-        description: 'Full MT5 indicator - no limits',
+        description: 'Full MT5 indicator - get started free',
         features: [
             '🔥 Full MT5 Indicator Download',
             'Killzones (Asian, London, NY)',
@@ -29,72 +29,57 @@ const pricingTiers: PricingTier[] = [
             'Bollinger Bands + EMAs',
             'All Trading Modes (Scalper, Day, Swing)',
             'Community Discord access',
-            'Basic journal (10 entries/month)',
+            'Basic Trading Journal',
         ],
         badge: '100% FREE',
         cta: 'Download MT5 Indicator',
         ctaVariant: 'outline',
     },
     {
-        name: 'Pro',
-        price: '$9.99',
-        period: '/month',
-        description: 'Unlimited journaling + analytics',
+        name: 'Premium',
+        price: '$97',
+        period: 'one-time',
+        description: 'Full ICT/SMC indicator suite',
         features: [
-            'Everything in Free',
-            'Unlimited Journal Entries',
-            'Advanced Analytics Dashboard',
-            'Setup Expectancy Tracking',
-            'Session Heatmaps',
-            'TradingView Webhook Auto-Log',
-            'Export to CSV/PDF',
-            'Email Support',
+            'Everything in Free, PLUS:',
+            '♾️ Unlimited Order Blocks',
+            '📊 Higher Timeframe OB/FVG Analysis',
+            '🎯 Fair Value Gaps + iFVG',
+            '💧 Liquidity Sweep Detection',
+            '🎯 ATR-based SL/TP Levels',
+            '⚡ Silver Bullet & Power Hour',
+            '🔮 Alpha Edge A+ Strategies',
+            '📈 Multi-Timeframe Trend Table',
+            '🔄 Lifetime Updates',
+            '💬 Discord Community Access',
         ],
         highlighted: true,
-        badge: 'Most Popular',
-        cta: 'Go Pro',
-        ctaVariant: 'primary',
-    },
-    {
-        name: 'Elite',
-        price: '$14.99',
-        period: '/month',
-        description: 'For traders who want the edge',
-        features: [
-            'Everything in Pro',
-            'AI Journal Insights',
-            'Custom Journal Templates',
-            'Advanced Backtesting Tools',
-            'Private Discord Channel',
-            'Early Access to New Features',
-            'Priority Support',
-        ],
-        badge: 'Best Value',
-        cta: 'Go Elite',
+        badge: 'MOST POPULAR',
+        cta: 'Get Premium',
         ctaVariant: 'primary',
     },
 ];
 
 const faqItems = [
     {
-        q: 'Can I cancel anytime?',
-        a: 'Yes! No contracts, no commitments. Cancel with one click and keep access until the end of your billing period.',
+        q: 'Is this a one-time purchase?',
+        a: 'Yes! Pay once, use forever. You also get lifetime updates at no extra cost.',
     },
     {
         q: 'Is there a refund policy?',
-        a: 'We offer a 30-day money-back guarantee. If you\'re not satisfied, contact us for a full refund.',
+        a: 'We offer a 14-day money-back guarantee. If you\'re not satisfied, contact us for a full refund.',
     },
     {
-        q: 'Do I need TradingView to use the indicator?',
-        a: 'Yes, the indicator runs on TradingView. You\'ll need at least a free TradingView account.',
+        q: 'How do I install the MT5 indicator?',
+        a: 'After purchase, download the .ex5 file and copy it to your MT5 Indicators folder. Restart MT5 and it will appear in your Navigator.',
     },
     {
-        q: 'Can I use the journal without the indicator?',
-        a: 'Absolutely! The journal works standalone. You can manually log trades or import from MT4/MT5.',
+        q: 'Does it work on any broker?',
+        a: 'Yes! The indicator has universal broker support with adjustable GMT offset. Works with IC Markets, FTMO, OANDA, Exness, and more.',
     },
     {
-        q: 'Is my trading data private?',
-        a: 'Yes. Your data is encrypted and never shared. You can export or delete it anytime.',
+        q: 'What markets can I trade?',
+        a: 'Forex, crypto, indices, commodities – any market available on MT5.',
     },
 ];
 
@@ -222,9 +207,10 @@ export default function PricingPage() {
                                         </a>
                                     ) : (
                                         <GlowButton
-                                            href="#"
+                                            href="https://whop.com/retailbeastfx/retailbeastfx-premium"
                                             variant={tier.ctaVariant}
                                             className="w-full justify-center"
+                                            external
                                         >
                                             {tier.cta}
                                         </GlowButton>

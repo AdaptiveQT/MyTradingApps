@@ -143,7 +143,7 @@ input int InpDayTradeEnd = 21;               // DayTrader End Hour
 
 input group "=== BOLLINGER BANDS ==="
 input int InpBBPeriod = 20;                  // BB Period
-input double InpBBDeviation = 1.0;           // BB Deviation
+input double InpBBDeviation = 2.0;           // BB Deviation (Standard: 2.0)
 input bool InpShowBB = true;                 // Show Bollinger Bands
 
 input group "=== EMA SETTINGS ==="
@@ -193,6 +193,15 @@ input int InpATRPeriod = 14;                  // ATR Period (Breakout Volatility
 input double InpATRMultiplier = 1.5;          // ATR Multiplier (Stop Distance)
 input bool InpShowAlphaLabels = true;         // Show Alpha Edge Labels
 
+input group "=== HTF (HIGHER TIMEFRAME) ==="
+input bool InpShowHTF = true;                 // Enable HTF Analysis
+input ENUM_TIMEFRAMES InpHTFTimeframe = PERIOD_H1; // HTF Timeframe (e.g., H1 on M15)
+input bool InpShowHTFOB = true;               // Show HTF Order Blocks
+input bool InpShowHTFFVG = true;              // Show HTF Fair Value Gaps
+input int InpHTFLookback = 100;               // HTF Bars to Analyze
+input color InpHTFBullColor = C'0,150,100';   // HTF Bullish Color
+input color InpHTFBearColor = C'150,50,70';   // HTF Bearish Color
+
 //+------------------------------------------------------------------+
 //| STRUCTURES                                                        |
 //+------------------------------------------------------------------+
@@ -230,6 +239,28 @@ struct KillzoneSession
    string   sessionType;
 };
 
+// HTF (Higher Timeframe) structures
+struct HTFOrderBlock
+{
+   double   top;
+   double   bottom;
+   datetime startTime;
+   datetime endTime;
+   bool     isBullish;
+   bool     valid;
+   string   name;
+};
+
+struct HTFFairValueGap
+{
+   double   top;
+   double   bottom;
+   datetime gapTime;
+   bool     isBullish;
+   bool     valid;
+   string   name;
+};
+
 //+------------------------------------------------------------------+
 //| GLOBAL VARIABLES                                                  |
 //+------------------------------------------------------------------+
@@ -237,6 +268,10 @@ SwingPoint swingHighs[];
 SwingPoint swingLows[];
 OrderBlock orderBlocks[];
 KillzoneSession killzones[];
+
+// HTF arrays
+HTFOrderBlock htfOrderBlocks[];
+HTFFairValueGap htfFVGs[];
 
 double BBUpperBuffer[];
 double BBMiddleBuffer[];
@@ -262,9 +297,9 @@ double RSIBuffer[];
 double ATRBuffer[];
 double SMA200Buffer[];
 
-string dashboardName = "AQT_Dashboard";
-string infoName = "AQT_Info";
-string prefix = "AQT_";
+string dashboardName = "RBFX_Dashboard";
+string infoName = "RBFX_Info";
+string prefix = "RBFX_";
 int objCounter = 0;
 
 // Alert tracking
@@ -349,13 +384,26 @@ int OnInit()
    string modeName = GetModeName();
    if(InpAlphaStrategy != ALPHA_OFF)
       modeName = modeName + " | Alpha: " + GetAlphaStrategyName();
-   IndicatorSetString(INDICATOR_SHORTNAME, "RetailBeast AQT [" + modeName + "]");
+   IndicatorSetString(INDICATOR_SHORTNAME, "RetailBeastFX [" + modeName + "]");
    
    string alertStatus = InpEnableAlerts ? "ON" : "OFF";
    string repaintStatus = InpConfirmedSignalsOnly ? "Protected" : "Aggressive";
    string alphaStatus = InpAlphaStrategy != ALPHA_OFF ? GetAlphaStrategyName() : "OFF";
-   Print(StringFormat("RetailBeast AQT v7.1 initialized | GMT%+d | Alerts: %s | Alpha Edge: %s",
-                       InpGMTOffset, alertStatus, alphaStatus));
+   
+   // Initialize HTF arrays
+   ArrayResize(htfOrderBlocks, 0);
+   ArrayResize(htfFVGs, 0);
+   
+   // Process HTF zones on init
+   ProcessHTFOrderBlocks();
+   ProcessHTFFVGs();
+   
+   // Set timer to refresh HTF data every 60 seconds
+   EventSetTimer(60);
+   
+   string htfStatus = InpShowHTF ? EnumToString(InpHTFTimeframe) : "OFF";
+   Print(StringFormat("RetailBeastFX Premium v8.0 initialized | GMT%+d | Alerts: %s | Alpha: %s | HTF: %s",
+                       InpGMTOffset, alertStatus, alphaStatus, htfStatus));
    
    return(INIT_SUCCEEDED);
 }
@@ -379,7 +427,18 @@ void OnDeinit(const int reason)
    ObjectsDeleteAll(0, prefix);
    ObjectDelete(0, dashboardName);
    ObjectDelete(0, infoName);
+   EventKillTimer();
    Comment("");
+}
+
+//+------------------------------------------------------------------+
+//| Timer Event - Refresh HTF Data                                     |
+//+------------------------------------------------------------------+
+void OnTimer()
+{
+   ProcessHTFOrderBlocks();
+   ProcessHTFFVGs();
+   ChartRedraw(0);
 }
 
 //+------------------------------------------------------------------+
@@ -1372,11 +1431,233 @@ void UpdateDashboard(bool isActive, int buyCount, int sellCount)
       if(orderBlocks[i].valid) obCount++;
    
    string displayMode = (InpDisplayMode == DISPLAY_PRESENT) ? "LIVE" : "HIST";
-   string infoText = StringFormat("Coinexx GMT+2 [%s] | KZ: %d | OB: %d | Sig: %d/%d", 
-                                   displayMode, ArraySize(killzones), obCount, buyCount, sellCount);
+   string infoText = StringFormat("GMT%+d [%s] | KZ: %d | OB: %d | Sig: %d/%d", 
+                                   InpGMTOffset, displayMode, ArraySize(killzones), obCount, buyCount, sellCount);
    ObjectSetString(0, infoName, OBJPROP_TEXT, infoText);
    
    ChartRedraw(0);
+}
+
+//+------------------------------------------------------------------+
+//| Process HTF Order Blocks                                           |
+//+------------------------------------------------------------------+
+void ProcessHTFOrderBlocks()
+{
+   if(!InpShowHTF || !InpShowHTFOB) return;
+   
+   // Clean up old HTF OBs
+   for(int i = 0; i < ArraySize(htfOrderBlocks); i++)
+   {
+      ObjectDelete(0, htfOrderBlocks[i].name);
+      ObjectDelete(0, htfOrderBlocks[i].name + "_lbl");
+   }
+   ArrayResize(htfOrderBlocks, 0);
+   
+   // Get HTF data
+   double htfHigh[], htfLow[], htfOpen[], htfClose[];
+   datetime htfTime[];
+   
+   int copied = CopyHigh(_Symbol, InpHTFTimeframe, 0, InpHTFLookback, htfHigh);
+   if(copied <= 0) return;
+   
+   CopyLow(_Symbol, InpHTFTimeframe, 0, InpHTFLookback, htfLow);
+   CopyOpen(_Symbol, InpHTFTimeframe, 0, InpHTFLookback, htfOpen);
+   CopyClose(_Symbol, InpHTFTimeframe, 0, InpHTFLookback, htfClose);
+   CopyTime(_Symbol, InpHTFTimeframe, 0, InpHTFLookback, htfTime);
+   
+   ArraySetAsSeries(htfHigh, true);
+   ArraySetAsSeries(htfLow, true);
+   ArraySetAsSeries(htfOpen, true);
+   ArraySetAsSeries(htfClose, true);
+   ArraySetAsSeries(htfTime, true);
+   
+   int htfSwingStrength = 2;  // Use smaller swing detection for HTF
+   
+   // Detect HTF Order Blocks (swing point based)
+   for(int i = htfSwingStrength; i < copied - htfSwingStrength - 1; i++)
+   {
+      // Bullish OB: Swing low followed by strong move up
+      bool isSwingLow = true;
+      for(int j = 1; j <= htfSwingStrength; j++)
+      {
+         if(htfLow[i] >= htfLow[i-j] || htfLow[i] >= htfLow[i+j])
+         {
+            isSwingLow = false;
+            break;
+         }
+      }
+      
+      if(isSwingLow && htfClose[i-1] > htfOpen[i])  // Next candle bullish
+      {
+         int size = ArraySize(htfOrderBlocks);
+         if(size < 5)  // Limit HTF OBs
+         {
+            ArrayResize(htfOrderBlocks, size + 1);
+            htfOrderBlocks[size].top = htfHigh[i];
+            htfOrderBlocks[size].bottom = htfLow[i];
+            htfOrderBlocks[size].startTime = htfTime[i];
+            htfOrderBlocks[size].endTime = htfTime[0] + PeriodSeconds(InpHTFTimeframe);
+            htfOrderBlocks[size].isBullish = true;
+            htfOrderBlocks[size].valid = true;
+            htfOrderBlocks[size].name = prefix + "HTF_OB_Bull_" + IntegerToString(objCounter++);
+            DrawHTFOrderBlock(htfOrderBlocks[size]);
+         }
+      }
+      
+      // Bearish OB: Swing high followed by strong move down
+      bool isSwingHigh = true;
+      for(int j = 1; j <= htfSwingStrength; j++)
+      {
+         if(htfHigh[i] <= htfHigh[i-j] || htfHigh[i] <= htfHigh[i+j])
+         {
+            isSwingHigh = false;
+            break;
+         }
+      }
+      
+      if(isSwingHigh && htfClose[i-1] < htfOpen[i])  // Next candle bearish
+      {
+         int size = ArraySize(htfOrderBlocks);
+         if(size < 5)
+         {
+            ArrayResize(htfOrderBlocks, size + 1);
+            htfOrderBlocks[size].top = htfHigh[i];
+            htfOrderBlocks[size].bottom = htfLow[i];
+            htfOrderBlocks[size].startTime = htfTime[i];
+            htfOrderBlocks[size].endTime = htfTime[0] + PeriodSeconds(InpHTFTimeframe);
+            htfOrderBlocks[size].isBullish = false;
+            htfOrderBlocks[size].valid = true;
+            htfOrderBlocks[size].name = prefix + "HTF_OB_Bear_" + IntegerToString(objCounter++);
+            DrawHTFOrderBlock(htfOrderBlocks[size]);
+         }
+      }
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Draw HTF Order Block                                               |
+//+------------------------------------------------------------------+
+void DrawHTFOrderBlock(HTFOrderBlock &ob)
+{
+   if(!ob.valid) return;
+   
+   color obColor = ob.isBullish ? InpHTFBullColor : InpHTFBearColor;
+   
+   ObjectCreate(0, ob.name, OBJ_RECTANGLE, 0, ob.startTime, ob.top, ob.endTime, ob.bottom);
+   ObjectSetInteger(0, ob.name, OBJPROP_COLOR, obColor);
+   ObjectSetInteger(0, ob.name, OBJPROP_FILL, true);
+   ObjectSetInteger(0, ob.name, OBJPROP_WIDTH, 2);
+   ObjectSetInteger(0, ob.name, OBJPROP_BACK, true);
+   ObjectSetInteger(0, ob.name, OBJPROP_SELECTABLE, false);
+   
+   // Label
+   string lblName = ob.name + "_lbl";
+   string lblText = ob.isBullish ? "HTF Bull OB" : "HTF Bear OB";
+   ObjectCreate(0, lblName, OBJ_TEXT, 0, ob.startTime, ob.isBullish ? ob.bottom : ob.top);
+   ObjectSetString(0, lblName, OBJPROP_TEXT, lblText);
+   ObjectSetInteger(0, lblName, OBJPROP_COLOR, obColor);
+   ObjectSetInteger(0, lblName, OBJPROP_FONTSIZE, 8);
+   ObjectSetString(0, lblName, OBJPROP_FONT, "Arial Bold");
+   ObjectSetInteger(0, lblName, OBJPROP_ANCHOR, ob.isBullish ? ANCHOR_LEFT_UPPER : ANCHOR_LEFT_LOWER);
+   ObjectSetInteger(0, lblName, OBJPROP_SELECTABLE, false);
+}
+
+//+------------------------------------------------------------------+
+//| Process HTF Fair Value Gaps                                        |
+//+------------------------------------------------------------------+
+void ProcessHTFFVGs()
+{
+   if(!InpShowHTF || !InpShowHTFFVG) return;
+   
+   // Clean up old FVGs
+   for(int i = 0; i < ArraySize(htfFVGs); i++)
+   {
+      ObjectDelete(0, htfFVGs[i].name);
+      ObjectDelete(0, htfFVGs[i].name + "_lbl");
+   }
+   ArrayResize(htfFVGs, 0);
+   
+   // Get HTF data
+   double htfHigh[], htfLow[];
+   datetime htfTime[];
+   
+   int copied = CopyHigh(_Symbol, InpHTFTimeframe, 0, InpHTFLookback, htfHigh);
+   if(copied <= 0) return;
+   
+   CopyLow(_Symbol, InpHTFTimeframe, 0, InpHTFLookback, htfLow);
+   CopyTime(_Symbol, InpHTFTimeframe, 0, InpHTFLookback, htfTime);
+   
+   ArraySetAsSeries(htfHigh, true);
+   ArraySetAsSeries(htfLow, true);
+   ArraySetAsSeries(htfTime, true);
+   
+   // Detect FVGs (3-candle pattern)
+   for(int i = 1; i < copied - 1; i++)
+   {
+      // Bullish FVG: Low of candle 0 > High of candle 2,  gap between
+      if(htfLow[i-1] > htfHigh[i+1])
+      {
+         int size = ArraySize(htfFVGs);
+         if(size < 5)
+         {
+            ArrayResize(htfFVGs, size + 1);
+            htfFVGs[size].top = htfLow[i-1];
+            htfFVGs[size].bottom = htfHigh[i+1];
+            htfFVGs[size].gapTime = htfTime[i];
+            htfFVGs[size].isBullish = true;
+            htfFVGs[size].valid = true;
+            htfFVGs[size].name = prefix + "HTF_FVG_Bull_" + IntegerToString(objCounter++);
+            DrawHTFFVG(htfFVGs[size]);
+         }
+      }
+      
+      // Bearish FVG: High of candle 0 < Low of candle 2
+      if(htfHigh[i-1] < htfLow[i+1])
+      {
+         int size = ArraySize(htfFVGs);
+         if(size < 5)
+         {
+            ArrayResize(htfFVGs, size + 1);
+            htfFVGs[size].top = htfLow[i+1];
+            htfFVGs[size].bottom = htfHigh[i-1];
+            htfFVGs[size].gapTime = htfTime[i];
+            htfFVGs[size].isBullish = false;
+            htfFVGs[size].valid = true;
+            htfFVGs[size].name = prefix + "HTF_FVG_Bear_" + IntegerToString(objCounter++);
+            DrawHTFFVG(htfFVGs[size]);
+         }
+      }
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Draw HTF Fair Value Gap                                            |
+//+------------------------------------------------------------------+
+void DrawHTFFVG(HTFFairValueGap &fvg)
+{
+   if(!fvg.valid) return;
+   
+   color fvgColor = fvg.isBullish ? InpHTFBullColor : InpHTFBearColor;
+   datetime endTime = TimeCurrent() + PeriodSeconds(InpHTFTimeframe) * 5;
+   
+   ObjectCreate(0, fvg.name, OBJ_RECTANGLE, 0, fvg.gapTime, fvg.top, endTime, fvg.bottom);
+   ObjectSetInteger(0, fvg.name, OBJPROP_COLOR, fvgColor);
+   ObjectSetInteger(0, fvg.name, OBJPROP_FILL, true);
+   ObjectSetInteger(0, fvg.name, OBJPROP_WIDTH, 1);
+   ObjectSetInteger(0, fvg.name, OBJPROP_BACK, true);
+   ObjectSetInteger(0, fvg.name, OBJPROP_SELECTABLE, false);
+   ObjectSetInteger(0, fvg.name, OBJPROP_STYLE, STYLE_DOT);
+   
+   // Label
+   string lblName = fvg.name + "_lbl";
+   string lblText = fvg.isBullish ? "HTF FVG ↑" : "HTF FVG ↓";
+   ObjectCreate(0, lblName, OBJ_TEXT, 0, fvg.gapTime, (fvg.top + fvg.bottom) / 2);
+   ObjectSetString(0, lblName, OBJPROP_TEXT, lblText);
+   ObjectSetInteger(0, lblName, OBJPROP_COLOR, fvgColor);
+   ObjectSetInteger(0, lblName, OBJPROP_FONTSIZE, 7);
+   ObjectSetString(0, lblName, OBJPROP_FONT, "Arial");
+   ObjectSetInteger(0, lblName, OBJPROP_ANCHOR, ANCHOR_LEFT);
+   ObjectSetInteger(0, lblName, OBJPROP_SELECTABLE, false);
 }
 
 //+------------------------------------------------------------------+
