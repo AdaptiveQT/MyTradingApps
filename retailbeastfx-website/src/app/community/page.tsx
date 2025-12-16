@@ -141,7 +141,7 @@ export default function CommunityPage() {
                             Community <span className="text-beast-green">Wins</span>
                         </h2>
                         <p className="text-gray-400">
-                            Real results from real traders using RetailBeastFX + Journal
+                            Traders sharing their journey with the RetailBeastFX ecosystem
                         </p>
                     </div>
 

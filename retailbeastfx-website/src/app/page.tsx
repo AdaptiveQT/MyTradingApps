@@ -283,10 +283,10 @@ export default function HomePage() {
         <div className="container-wide mx-auto">
           <div className="text-center mb-12">
             <h2 className="heading-cyber text-3xl md:text-4xl text-white mb-4">
-              Real Traders. <span className="text-beast-gold">Real Results.</span>
+              Join the <span className="text-beast-gold">Beast Pack</span>
             </h2>
             <p className="text-gray-400">
-              See how RetailBeastFX is transforming trading performance worldwide.
+              See what traders are saying about RetailBeastFX.
             </p>
           </div>
 
