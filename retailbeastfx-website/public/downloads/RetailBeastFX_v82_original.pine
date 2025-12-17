@@ -5,53 +5,160 @@
 indicator("RetailBeastFX Premium [v8.3 Alpha Edge]", shorttitle="RBFX v8.3", overlay=true, max_bars_back=500, max_lines_count=500, max_boxes_count=500, max_labels_count=500, dynamic_requests=true)
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ███ MODE SELECTOR ███
+// ███ 🚀 QUICK START ███
 // ══════════════════════════════════════════════════════════════════════════════
-string modeGroup = "═══ MODE SELECTOR ═══"
-string modeTooltip = "SCALPER: London/NY killzones only\nDAY TRADER: Extended hours\nSWING: 24/7 with EMA 200 filter"
+string modeGroup = "🚀 Quick Start"
+string modeTooltip = "SCALPER: London/NY killzones only (best for beginners)\nDAY TRADER: Extended hours\nSWING: 24/7 with EMA 200 filter"
 string gameMode = input.string("SCALPER", "Trading Mode", options=["SCALPER", "DAY TRADER", "SWING"], group=modeGroup, tooltip=modeTooltip)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ ALPHA EDGE A+ STRATEGIES ███
-// ══════════════════════════════════════════════════════════════════════════════
-string alphaGroup = "═══ ALPHA EDGE ═══"
-string alphaTooltip = "Select your A+ strategy:\n• Off: Use original BB signals\n• Trend Following: 200 SMA crosses\n• Mean Reversion: RSI extremes\n• Swing Pullbacks: EMA50 zone\n• Breakout: BB squeeze expansion\n• All: Combined confluence"
-string alphaStrategy = input.string("Off", "Alpha Edge Strategy", options=["Off", "Trend Following", "Mean Reversion", "Swing Pullbacks", "Breakout", "All Signals"], group=alphaGroup, tooltip=alphaTooltip)
-int alphaRSIPeriod = input.int(2, "RSI Period", minval=1, maxval=14, group=alphaGroup, tooltip="RSI(2) is optimal for mean reversion")
-int alphaRSIOversold = input.int(15, "RSI Oversold", minval=5, maxval=30, group=alphaGroup)
-int alphaRSIOverbought = input.int(85, "RSI Overbought", minval=70, maxval=95, group=alphaGroup)
-bool showAlphaLabels = input.bool(true, "Show Alpha Labels", group=alphaGroup)
+string alphaTooltip = "Choose your strategy style:\n• Off: Classic BB signals only\n• Trend Following: Ride the 200 SMA\n• Mean Reversion: Fade RSI extremes\n• Swing Pullbacks: Enter at EMA50\n• Breakout: Catch BB squeezes\n• All: Full confluence mode"
+string alphaStrategy = input.string("Off", "Strategy Style", options=["Off", "Trend Following", "Mean Reversion", "Swing Pullbacks", "Breakout", "All Signals"], group=modeGroup, tooltip=alphaTooltip)
+
+bool showSignals = input.bool(true, "Show Buy/Sell Arrows", group=modeGroup, tooltip="Display entry signals on chart")
+bool killzoneSignalsOnly = input.bool(true, "Killzone Filter", group=modeGroup, tooltip="Only show signals during London/NY sessions (recommended)")
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ███ KILLZONE SETTINGS ███
+// ███ 📊 SIGNALS & CORE ███
 // ══════════════════════════════════════════════════════════════════════════════
-string kzGroup = "═══ KILLZONE SETTINGS ═══"
-bool showKillzones = input.bool(true, "Show Killzones", group=kzGroup, inline="kz1")
-bool showGradientKZ = input.bool(true, "Gradient Fill", group=kzGroup, inline="kz1", tooltip="Apply gradient background to killzones")
-bool showPowerHour = input.bool(true, "Show Power Hour", group=kzGroup, tooltip="Highlight London/NY overlap zone")
-bool killzoneSignalsOnly = input.bool(true, "Signals in Killzones Only", group=kzGroup, tooltip="TRINITY DEFAULT: Only fire signals during active killzones for highest probability")
+string coreGroup = "📊 Signals & Core"
+bool showBB = input.bool(true, "Show Bollinger Bands", group=coreGroup)
+int bbLengthInput = input.int(20, "BB Length", minval=5, maxval=50, group=coreGroup, inline="bb")
+float bbMult = input.float(2.0, "BB Deviation", minval=0.5, maxval=3.0, step=0.1, group=coreGroup, inline="bb")
+bool autoAdapt = input.bool(true, "Auto-Adapt to Timeframe", group=coreGroup, tooltip="Automatically adjust BB/EMA periods based on chart timeframe")
 
-string londonStart = input.session("0300-0600", "London Session", group=kzGroup, inline="london")
+bool showEMAs = input.bool(true, "Show EMAs", group=coreGroup)
+int emaFastInput = input.int(8, "Fast EMA", minval=3, maxval=50, group=coreGroup, inline="ema1")
+int emaSlowInput = input.int(21, "Slow EMA", minval=10, maxval=100, group=coreGroup, inline="ema1")
+int emaTrend = input.int(200, "Trend EMA", minval=50, maxval=500, group=coreGroup, tooltip="200 EMA for swing mode bias")
+int emaTrail = input.int(5, "Trail EMA", minval=3, maxval=20, group=coreGroup, tooltip="Visual trailing stop guide")
+bool showEMARibbon = input.bool(true, "Show EMA Ribbon", group=coreGroup, tooltip="Fill between Fast & Slow EMA")
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ ⏰ SESSIONS & TIMING ███
+// ══════════════════════════════════════════════════════════════════════════════
+string kzGroup = "⏰ Sessions & Timing"
+bool showKillzones = input.bool(true, "Show Session Boxes", group=kzGroup, tooltip="Highlight trade windows on chart")
+bool showGradientKZ = input.bool(true, "Gradient Fill", group=kzGroup, tooltip="Apply gradient background to killzones")
+bool showPowerHour = input.bool(true, "Show Power Hour", group=kzGroup, tooltip="London/NY overlap - highest volatility")
+
+string londonStart = input.session("0300-0600", "London (EST)", group=kzGroup, inline="london")
 color londonColor = input.color(color.new(#00CED1, 85), "", group=kzGroup, inline="london")
 
-string nyStart = input.session("0800-1100", "New York Session", group=kzGroup, inline="ny")
+string nyStart = input.session("0800-1100", "New York (EST)", group=kzGroup, inline="ny")
 color nyColor = input.color(color.new(#FF8C00, 85), "", group=kzGroup, inline="ny")
 
 string extendedStart = input.session("0200-1200", "Extended Hours", group=kzGroup, inline="ext")
 color extendedColor = input.color(color.new(#9370DB, 90), "", group=kzGroup, inline="ext")
-
-color powerHourColor = input.color(color.new(#1E90FF, 75), "Power Hour Color", group=kzGroup)
+color powerHourColor = input.color(color.new(#1E90FF, 75), "Power Hour", group=kzGroup)
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ███ BOLLINGER BANDS ███
+// ███ 🔲 SMC & ICT TOOLS ███
 // ══════════════════════════════════════════════════════════════════════════════
-string bbGroup = "═══ BOLLINGER BANDS ═══"
-bool showBB = input.bool(true, "Show Bollinger Bands", group=bbGroup)
-int bbLengthInput = input.int(20, "Length", minval=5, maxval=50, group=bbGroup, inline="bb")
-float bbMult = input.float(2.0, "Deviation", minval=0.5, maxval=3.0, step=0.1, group=bbGroup, inline="bb")
-color bbColor = input.color(color.new(#64B5F6, 50), "BB Color", group=bbGroup)
-bool autoAdapt = input.bool(true, "Auto-Adapt to Timeframe", group=bbGroup, tooltip="Automatically adjust BB/EMA periods based on chart timeframe")
+string smcGroup = "🔲 SMC & ICT Tools"
+bool showOB = input.bool(true, "Order Blocks", group=smcGroup, tooltip="Institutional order zones")
+bool showSwings = input.bool(true, "Swing Points", group=smcGroup)
+int maxOBCount = input.int(2, "Max OBs", minval=1, maxval=10, group=smcGroup)
+bool deleteOBOnMitigation = input.bool(true, "Auto-Remove Mitigated", group=smcGroup, tooltip="Delete OB when price fills it")
+int pivotLen = input.int(5, "Pivot Sensitivity", minval=2, maxval=20, group=smcGroup)
 
+bool showFVG = input.bool(false, "Fair Value Gaps", group=smcGroup, tooltip="Imbalance zones (toggle ON)")
+bool showIFVG = input.bool(false, "Show iFVG", group=smcGroup, tooltip="Inverse FVG when gap is filled")
+bool deleteFVGOnMitigation = input.bool(true, "Auto-Remove Filled FVGs", group=smcGroup)
+int maxFVGCount = input.int(3, "Max FVGs", minval=1, maxval=10, group=smcGroup)
+
+bool showSB = input.bool(false, "Suspension Blocks", group=smcGroup, tooltip="ICT 2025: Dual-imbalance pause zones")
+int sbLookback = input.int(50, "SB Lookback", minval=10, maxval=200, group=smcGroup)
+float sbMinGapATR = input.float(0.1, "SB Min Gap (ATR x)", minval=0.05, maxval=0.5, step=0.05, group=smcGroup)
+int maxSBCount = input.int(3, "Max SBs", minval=1, maxval=10, group=smcGroup)
+
+bool showVI = input.bool(false, "Volume Imbalance", group=smcGroup, tooltip="2-candle wick gaps")
+int maxVICount = input.int(3, "Max VIs", minval=1, maxval=10, group=smcGroup)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ 📍 KEY LEVELS ███
+// ══════════════════════════════════════════════════════════════════════════════
+string levelsGroup = "📍 Key Levels"
+bool showPDHL = input.bool(true, "Previous Day H/L", group=levelsGroup, tooltip="Major liquidity pools")
+bool showWeeklyOpen = input.bool(true, "Weekly Open", group=levelsGroup)
+bool showMidnightOpen = input.bool(true, "Midnight Open", group=levelsGroup, tooltip="ICT True Day reference (00:00 EST)")
+bool showSessionOpens = input.bool(true, "Session Opens", group=levelsGroup, tooltip="London & NY opening prices")
+bool showSilverBullet = input.bool(false, "Silver Bullet Zone", group=levelsGroup, tooltip="10-11 AM EST high probability window")
+bool showLiqSweeps = input.bool(false, "Liquidity Sweeps", group=levelsGroup, tooltip="Detect stop hunts")
+bool extendLevelLines = input.bool(false, "Extend Lines Right", group=levelsGroup)
+bool showTS = input.bool(false, "Turtle Soup", group=levelsGroup, tooltip="False breakout pattern (ICT)")
+int tsLookback = input.int(20, "TS Lookback", minval=5, maxval=50, group=levelsGroup)
+bool tsSessionFilter = input.bool(true, "TS Session Filter", group=levelsGroup)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ 🛡️ RISK MANAGEMENT ███
+// ══════════════════════════════════════════════════════════════════════════════
+string riskGroup = "🛡️ Risk Management"
+bool showATRLevels = input.bool(true, "Show SL/TP Lines", group=riskGroup, tooltip="Auto-draw SL/TP from signals")
+int atrLength = input.int(14, "ATR Length", minval=5, maxval=50, group=riskGroup)
+float atrMultSL = input.float(1.5, "SL Distance (ATR x)", minval=0.5, maxval=5.0, step=0.1, group=riskGroup)
+float atrMultTP = input.float(3.0, "TP Distance (ATR x)", minval=1.0, maxval=10.0, step=0.5, group=riskGroup)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ 🔬 ADVANCED ███
+// ══════════════════════════════════════════════════════════════════════════════
+string advGroup = "🔬 Advanced"
+string displayMode = input.string("Present", "Display Mode", options=["Present", "Historical"], group=advGroup, tooltip="Present=Recent only, Historical=Full history")
+int presentLookback = input.int(50, "Present Mode Bars", minval=10, maxval=500, group=advGroup)
+
+bool showHTFLevels = input.bool(false, "HTF Confluence", group=advGroup, tooltip="Show higher timeframe OBs/FVGs")
+string htfTimeframe = input.timeframe("60", "HTF Timeframe", group=advGroup, tooltip="60=1H, 240=4H, D=Daily")
+bool showHTFOrderBlocks = input.bool(true, "HTF Order Blocks", group=advGroup)
+bool showHTFFVG = input.bool(true, "HTF Fair Value Gaps", group=advGroup)
+int maxHTFOB = input.int(2, "Max HTF OBs", minval=1, maxval=5, group=advGroup)
+int maxHTFFVG = input.int(2, "Max HTF FVGs", minval=1, maxval=5, group=advGroup)
+bool fractalFilter = input.bool(false, "Fractal Filter", group=advGroup, tooltip="Only signals near HTF levels")
+float fractalATRMult = input.float(1.0, "Fractal Proximity (ATR x)", minval=0.5, maxval=3.0, step=0.5, group=advGroup)
+
+int alphaRSIPeriod = input.int(2, "RSI Period", minval=1, maxval=14, group=advGroup, tooltip="For Mean Reversion strategy")
+int alphaRSIOversold = input.int(15, "RSI Oversold", minval=5, maxval=30, group=advGroup)
+int alphaRSIOverbought = input.int(85, "RSI Overbought", minval=70, maxval=95, group=advGroup)
+bool showAlphaLabels = input.bool(true, "Show Strategy Labels", group=advGroup)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ 🎨 APPEARANCE ███
+// ══════════════════════════════════════════════════════════════════════════════
+string visGroup = "🎨 Appearance"
+bool showDashboard = input.bool(true, "Show Dashboard", group=visGroup)
+bool showCandleColors = input.bool(true, "Custom Candles", group=visGroup, tooltip="Gray=Neutral, Green/Red=Trend")
+bool showHTFBackground = input.bool(true, "HTF Trend Background", group=visGroup, tooltip="Tint based on 1H trend")
+
+color signalBuyColor = input.color(#00FF7F, "Buy Arrow", group=visGroup, inline="sig")
+color signalSellColor = input.color(#FF4757, "Sell Arrow", group=visGroup, inline="sig")
+color bbColor = input.color(color.new(#64B5F6, 50), "BB Color", group=visGroup)
+color emaBullColor = input.color(color.new(#00E676, 70), "Bull Ribbon", group=visGroup, inline="ribcol")
+color emaBearColor = input.color(color.new(#FF5252, 70), "Bear Ribbon", group=visGroup, inline="ribcol")
+color bullOBColor = input.color(color.new(#26A69A, 85), "Bull OB", group=visGroup, inline="obcol")
+color bearOBColor = input.color(color.new(#EF5350, 85), "Bear OB", group=visGroup, inline="obcol")
+color bullFVGColor = input.color(color.new(#00E676, 80), "Bull FVG", group=visGroup, inline="fvgcol")
+color bearFVGColor = input.color(color.new(#FF5252, 80), "Bear FVG", group=visGroup, inline="fvgcol")
+color sbColor = input.color(color.new(#FFB400, 70), "Suspension Block", group=visGroup)
+color bullVIColor = input.color(color.new(#00BCD4, 80), "Bull VI", group=visGroup, inline="vicol")
+color bearVIColor = input.color(color.new(#E91E63, 80), "Bear VI", group=visGroup, inline="vicol")
+color pdhColor = input.color(color.new(#00E676, 30), "PDH", group=visGroup, inline="pdhl")
+color pdlColor = input.color(color.new(#FF5252, 30), "PDL", group=visGroup, inline="pdhl")
+color weeklyOpenColor = input.color(color.new(#FFD700, 50), "Weekly Open", group=visGroup)
+color midnightColor = input.color(color.new(#9C27B0, 40), "Midnight Open", group=visGroup)
+color londonOpenColor = input.color(color.new(#00BCD4, 50), "London Open", group=visGroup, inline="sessopen")
+color nyOpenColor = input.color(color.new(#FF9800, 50), "NY Open", group=visGroup, inline="sessopen")
+color silverBulletColor = input.color(color.new(#00FFFF, 80), "Silver Bullet", group=visGroup)
+color tsBullColor = input.color(color.new(#00E676, 40), "Bull TS", group=visGroup, inline="tscol")
+color tsBearColor = input.color(color.new(#FF5252, 40), "Bear TS", group=visGroup, inline="tscol")
+color htfOBBullColor = input.color(color.new(#00E676, 90), "HTF Bull OB", group=visGroup, inline="htfob")
+color htfOBBearColor = input.color(color.new(#FF5252, 90), "HTF Bear OB", group=visGroup, inline="htfob")
+color htfFVGBullColor = input.color(color.new(#4CAF50, 92), "HTF Bull FVG", group=visGroup, inline="htffvg")
+color htfFVGBearColor = input.color(color.new(#F44336, 92), "HTF Bear FVG", group=visGroup, inline="htffvg")
+color slColor = input.color(color.new(#FF5252, 50), "SL Line", group=visGroup, inline="sltp")
+color tpColor = input.color(color.new(#00E676, 50), "TP Line", group=visGroup, inline="sltp")
+color ifvgColor = input.color(color.new(#FFD700, 75), "iFVG", group=visGroup)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ TIMEFRAME DETECTION & CALCULATIONS ███
+// ══════════════════════════════════════════════════════════════════════════════
 // ─── TIMEFRAME DETECTION ───
 bool isTF_1m = timeframe.period == "1" or timeframe.period == "2" or timeframe.period == "3"
 bool isTF_5m = timeframe.period == "5"
@@ -73,20 +180,6 @@ float bbDev = bbMult * ta.stdev(close, bbLength)
 float bbUpper = bbBasis + bbDev
 float bbLower = bbBasis - bbDev
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ EMA SETTINGS ███
-// ══════════════════════════════════════════════════════════════════════════════
-string emaGroup = "═══ EMA SETTINGS ═══"
-bool showEMAs = input.bool(true, "Show EMAs", group=emaGroup)
-bool showEMARibbon = input.bool(true, "Show EMA Ribbon", group=emaGroup, tooltip="Fill between Fast & Slow EMA")
-int emaFastInput = input.int(8, "Fast EMA", minval=3, maxval=50, group=emaGroup, inline="ema1")
-int emaSlowInput = input.int(21, "Slow EMA", minval=10, maxval=100, group=emaGroup, inline="ema1")
-int emaTrend = input.int(200, "Trend EMA (Swing)", minval=50, maxval=500, group=emaGroup)
-int emaTrail = input.int(5, "Trail EMA", minval=3, maxval=20, group=emaGroup, tooltip="Visual trailing stop guide")
-
-color emaBullColor = input.color(color.new(#00E676, 70), "Bullish Ribbon", group=emaGroup, inline="ribcol")
-color emaBearColor = input.color(color.new(#FF5252, 70), "Bearish Ribbon", group=emaGroup, inline="ribcol")
-
 // ─── ADAPTIVE EMA PERIODS ───
 // Higher TF = longer EMA periods
 int emaFast = autoAdapt ? (isTF_1m ? 5 : isTF_5m ? 8 : isTF_15m ? 9 : isTF_1h ? 12 : isTF_4h ? 15 : isTF_D ? 20 : emaFastInput) : emaFastInput
@@ -107,125 +200,6 @@ bool bbSqueezeActive = bbWidthPct < ta.sma(bbWidthPct, 20)
 float alphaRSI = ta.rsi(close, alphaRSIPeriod)
 bool alphaRSIOversoldActive = alphaRSI < alphaRSIOversold
 bool alphaRSIOverboughtActive = alphaRSI > alphaRSIOverbought
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ SMC SETTINGS ███
-// ══════════════════════════════════════════════════════════════════════════════
-string smcGroup = "═══ SMC OVERLAY ═══"
-bool showOB = input.bool(true, "Show Order Blocks", group=smcGroup)
-bool showSwings = input.bool(true, "Show Swing H/L", group=smcGroup)
-int pivotLen = input.int(5, "Pivot Length", minval=2, maxval=20, group=smcGroup)
-int maxOBCount = input.int(2, "Max Order Blocks", minval=1, maxval=10, group=smcGroup, tooltip="Only show most recent OBs")
-bool deleteOBOnMitigation = input.bool(true, "Remove Mitigated OBs", group=smcGroup, tooltip="Delete OB when price passes through it")
-color bullOBColor = input.color(color.new(#26A69A, 85), "Bull OB", group=smcGroup, inline="obcol")
-color bearOBColor = input.color(color.new(#EF5350, 85), "Bear OB", group=smcGroup, inline="obcol")
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ ICT LEVELS ███
-// ══════════════════════════════════════════════════════════════════════════════
-string ictGroup = "═══ ICT LEVELS ═══"
-bool showPDHL = input.bool(true, "Show PDH/PDL", group=ictGroup, tooltip="Previous Day High/Low")
-bool showWeeklyOpen = input.bool(true, "Show Weekly Open", group=ictGroup)
-bool showMidnightOpen = input.bool(true, "Show Midnight Open", group=ictGroup, tooltip="00:00 EST - ICT True Day reference")
-bool showSessionOpens = input.bool(true, "Show Session Opens", group=ictGroup, tooltip="London & NY opening prices")
-bool showSilverBullet = input.bool(false, "Show Silver Bullet", group=ictGroup, tooltip="10-11 AM EST high probability zone (toggle ON to unlock)")
-bool showLiqSweeps = input.bool(false, "Show Liquidity Sweeps", group=ictGroup, tooltip="Detect when price sweeps highs/lows (toggle ON to unlock)")
-bool extendLevelLines = input.bool(false, "Extend Lines Right", group=ictGroup, tooltip="Extend ICT level lines to the right edge of the chart")
-color pdhColor = input.color(color.new(#00E676, 30), "PDH Color", group=ictGroup, inline="pdhl")
-color pdlColor = input.color(color.new(#FF5252, 30), "PDL Color", group=ictGroup, inline="pdhl")
-color weeklyOpenColor = input.color(color.new(#FFD700, 50), "Weekly Open", group=ictGroup)
-color midnightColor = input.color(color.new(#9C27B0, 40), "Midnight Open", group=ictGroup)
-color londonOpenColor = input.color(color.new(#00BCD4, 50), "London Open", group=ictGroup, inline="sessopen")
-color nyOpenColor = input.color(color.new(#FF9800, 50), "NY Open", group=ictGroup, inline="sessopen")
-color silverBulletColor = input.color(color.new(#00FFFF, 80), "Silver Bullet", group=ictGroup)
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ TURTLE SOUP (ICT False Breakout) ███
-// ══════════════════════════════════════════════════════════════════════════════
-string tsGroup = "═══ TURTLE SOUP ═══"
-bool showTS = input.bool(false, "Show Turtle Soup", group=tsGroup, tooltip="ICT false breakout - sweep key level then reverse (visual context only)")
-int tsLookback = input.int(20, "Lookback Period", minval=5, maxval=50, group=tsGroup, tooltip="Bars to identify key highs/lows")
-bool tsSessionFilter = input.bool(true, "Session Filter", group=tsGroup, tooltip="Only detect during London/NY killzones")
-color tsBullColor = input.color(color.new(#00E676, 40), "Bull TS", group=tsGroup, inline="tscol")
-color tsBearColor = input.color(color.new(#FF5252, 40), "Bear TS", group=tsGroup, inline="tscol")
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ RISK MANAGEMENT ███
-// ══════════════════════════════════════════════════════════════════════════════
-string riskGroup = "═══ RISK MANAGEMENT ═══"
-bool showATRLevels = input.bool(true, "Show ATR SL/TP", group=riskGroup, tooltip="Auto-draw SL/TP from signals")
-int atrLength = input.int(14, "ATR Length", minval=5, maxval=50, group=riskGroup)
-float atrMultSL = input.float(1.5, "ATR x SL", minval=0.5, maxval=5.0, step=0.1, group=riskGroup, inline="atr")
-float atrMultTP = input.float(3.0, "ATR x TP", minval=1.0, maxval=10.0, step=0.5, group=riskGroup, inline="atr")
-color slColor = input.color(color.new(#FF5252, 50), "SL Line", group=riskGroup, inline="sltp")
-color tpColor = input.color(color.new(#00E676, 50), "TP Line", group=riskGroup, inline="sltp")
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ FVG SETTINGS ███
-// ══════════════════════════════════════════════════════════════════════════════
-string fvgGroup = "═══ FAIR VALUE GAPS ═══"
-bool showFVG = input.bool(false, "Show FVG", group=fvgGroup, tooltip="Fair Value Gaps (toggle ON to unlock SMC footprints)")
-bool showIFVG = input.bool(false, "Show iFVG (Inverse)", group=fvgGroup, tooltip="Highlight when FVG is mitigated")
-bool deleteFVGOnMitigation = input.bool(true, "Remove Filled FVGs", group=fvgGroup, tooltip="Delete FVG when fully filled")
-int maxFVGCount = input.int(3, "Max FVGs", minval=1, maxval=10, group=fvgGroup, tooltip="Only show most recent FVGs")
-color bullFVGColor = input.color(color.new(#00E676, 80), "Bull FVG", group=fvgGroup, inline="fvgcol")
-color bearFVGColor = input.color(color.new(#FF5252, 80), "Bear FVG", group=fvgGroup, inline="fvgcol")
-color ifvgColor = input.color(color.new(#FFD700, 75), "iFVG Color", group=fvgGroup)
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ VOLUME IMBALANCE SETTINGS ███
-// ══════════════════════════════════════════════════════════════════════════════
-string viGroup = "═══ VOLUME IMBALANCE ═══"
-bool showVI = input.bool(false, "Show Volume Imbalance", group=viGroup, tooltip="2-candle gap where wicks don't overlap (toggle ON to unlock)")
-int maxVICount = input.int(3, "Max VIs", minval=1, maxval=10, group=viGroup)
-color bullVIColor = input.color(color.new(#00BCD4, 80), "Bull VI", group=viGroup, inline="vicol")
-color bearVIColor = input.color(color.new(#E91E63, 80), "Bear VI", group=viGroup, inline="vicol")
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ SUSPENSION BLOCKS (ICT 2025) ███
-// ══════════════════════════════════════════════════════════════════════════════
-string sbGroup = "═══ SUSPENSION BLOCKS ═══"
-bool showSB = input.bool(false, "Show Suspension Blocks", group=sbGroup, tooltip="ICT 2025 concept: Dual-imbalance zone (FVG above AND below). Pause zone before major moves.")
-int sbLookback = input.int(50, "SB Detection Lookback", minval=10, maxval=200, group=sbGroup)
-float sbMinGapATR = input.float(0.1, "Min Gap Size (ATR x)", minval=0.05, maxval=0.5, step=0.05, group=sbGroup)
-int maxSBCount = input.int(3, "Max Suspension Blocks", minval=1, maxval=10, group=sbGroup)
-color sbColor = input.color(color.new(#FFB400, 70), "SB Color", group=sbGroup)
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ DISPLAY MODE ███
-// ══════════════════════════════════════════════════════════════════════════════
-string dispGroup = "═══ DISPLAY MODE ═══"
-string displayMode = input.string("Present", "Display Mode", options=["Present", "Historical"], group=dispGroup, tooltip="Present=Recent only, Historical=Full history")
-int presentLookback = input.int(50, "Present Mode Bars", minval=10, maxval=500, group=dispGroup, tooltip="How many bars to show in Present mode (adjust based on your timeframe)")
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ FRACTAL-FRIENDLY HTF LEVELS ███
-// ══════════════════════════════════════════════════════════════════════════════
-string htfGroup = "═══ FRACTAL HTF ═══"
-bool showHTFLevels = input.bool(false, "Show HTF Levels", group=htfGroup, tooltip="Display higher timeframe OBs and FVGs (toggle ON to unlock fractal confluence)")
-string htfTimeframe = input.timeframe("60", "HTF Timeframe", group=htfGroup, tooltip="Higher timeframe for OB/FVG levels (e.g., 60=1H, 240=4H, D=Daily)")
-bool showHTFOrderBlocks = input.bool(true, "Show HTF Order Blocks", group=htfGroup)
-bool showHTFFVG = input.bool(true, "Show HTF Fair Value Gaps", group=htfGroup)
-int maxHTFOB = input.int(2, "Max HTF OBs", minval=1, maxval=5, group=htfGroup)
-int maxHTFFVG = input.int(2, "Max HTF FVGs", minval=1, maxval=5, group=htfGroup)
-bool fractalFilter = input.bool(false, "Fractal Filter (Signals Near HTF Only)", group=htfGroup, tooltip="Only show LTF signals when price is within ATR distance of HTF level")
-float fractalATRMult = input.float(1.0, "Fractal Proximity (ATR x)", minval=0.5, maxval=3.0, step=0.5, group=htfGroup, tooltip="How close to HTF level for signal to be valid")
-color htfOBBullColor = input.color(color.new(#00E676, 90), "HTF Bull OB", group=htfGroup, inline="htfob")
-color htfOBBearColor = input.color(color.new(#FF5252, 90), "HTF Bear OB", group=htfGroup, inline="htfob")
-color htfFVGBullColor = input.color(color.new(#4CAF50, 92), "HTF Bull FVG", group=htfGroup, inline="htffvg")
-color htfFVGBearColor = input.color(color.new(#F44336, 92), "HTF Bear FVG", group=htfGroup, inline="htffvg")
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ███ VISUAL SETTINGS ███
-// ══════════════════════════════════════════════════════════════════════════════
-string visGroup = "═══ VISUAL SETTINGS ═══"
-bool showCandleColors = input.bool(true, "Custom Candle Colors", group=visGroup, tooltip="Gray=No trend, Green/Red=Trend aligned, Bright=Signal")
-bool showSignals = input.bool(true, "Show Signal Arrows", group=visGroup)
-bool showDashboard = input.bool(true, "Show Dashboard", group=visGroup)
-bool showHTFBackground = input.bool(true, "HTF Trend Background", group=visGroup, tooltip="Green=1H bullish, Red=1H bearish, Grey=neutral")
-
-color signalBuyColor = input.color(#00FF7F, "Buy Signal", group=visGroup, inline="sig")
-color signalSellColor = input.color(#FF4757, "Sell Signal", group=visGroup, inline="sig")
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ TIMEZONE FUNCTIONS ███
