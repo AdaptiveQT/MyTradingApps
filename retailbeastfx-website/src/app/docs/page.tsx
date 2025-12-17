@@ -49,6 +49,14 @@ const docSections = [
             { href: '#api', label: 'API Reference' },
         ],
     },
+    {
+        title: 'Downloads',
+        links: [
+            { href: '/downloads/AQT_MinimalPlan_GS_V2_1_Simple.xlsx', label: '📊 Original Trading Plan (Excel)' },
+            { href: '/downloads/RELEASE_NOTES_v84.md', label: '📝 RBFX v8.4 Release Notes' },
+            { href: '/downloads/RELEASE_NOTES_Volume_v1.md', label: '📝 Volume v1.0 Release Notes' },
+        ],
+    },
 ];
 
 export default function DocsPage() {
