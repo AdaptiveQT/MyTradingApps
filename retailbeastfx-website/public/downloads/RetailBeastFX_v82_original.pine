@@ -132,7 +132,6 @@ bool showAlphaLabels = input.bool(true, "Show Strategy Labels", group=advGroup)
 // ══════════════════════════════════════════════════════════════════════════════
 string visGroup = "🎨 Appearance"
 bool showDashboard = input.bool(true, "Show Dashboard", group=visGroup)
-bool showPriceLabels = input.bool(false, "Price Scale Labels", group=visGroup, tooltip="Show indicator values on price scale (Y-axis)")
 bool showCandleColors = input.bool(true, "Custom Candles", group=visGroup, tooltip="Gray=Neutral, Green/Red=Trend")
 bool showHTFBackground = input.bool(true, "HTF Trend Background", group=visGroup, tooltip="Tint based on 1H trend")
 
@@ -1064,20 +1063,17 @@ if showVI and bar_index > 1 and showOnChart
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ BOLLINGER BANDS PLOTTING ███
 // ══════════════════════════════════════════════════════════════════════════════
-// Display mode for price scale labels
-var priceScaleDisplay = showPriceLabels ? display.all : display.pane_only
-
-plot(showBB ? bbUpper : na, "BB Upper", bbColor, 1, display=priceScaleDisplay)
-plot(showBB ? bbBasis : na, "BB Mid", color.new(bbColor, 70), 1, plot.style_circles, display=priceScaleDisplay)
-plot(showBB ? bbLower : na, "BB Lower", bbColor, 1, display=priceScaleDisplay)
+plot(showBB ? bbUpper : na, "BB Upper", bbColor, 1)
+plot(showBB ? bbBasis : na, "BB Mid", color.new(bbColor, 70), 1, plot.style_circles)
+plot(showBB ? bbLower : na, "BB Lower", bbColor, 1)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ EMA RIBBON PLOTTING ███
 // ══════════════════════════════════════════════════════════════════════════════
-p1 = plot(showEMAs ? ema8 : na, "EMA Fast", color.new(#00E676, 0), 2, display=priceScaleDisplay)
-p2 = plot(showEMAs ? ema21 : na, "EMA Slow", color.new(#FFA726, 0), 2, display=priceScaleDisplay)
-p3 = plot(showEMAs and gameMode == "SWING" ? ema200 : na, "EMA Trend", color.new(#AB47BC, 0), 2, plot.style_line, display=priceScaleDisplay)
-p4 = plot(showEMAs ? ema5 : na, "EMA Trail", color.new(#FFD700, 50), 1, plot.style_line, display=priceScaleDisplay)
+p1 = plot(showEMAs ? ema8 : na, "EMA Fast", color.new(#00E676, 0), 2)
+p2 = plot(showEMAs ? ema21 : na, "EMA Slow", color.new(#FFA726, 0), 2)
+p3 = plot(showEMAs and gameMode == "SWING" ? ema200 : na, "EMA Trend", color.new(#AB47BC, 0), 2, plot.style_line)
+p4 = plot(showEMAs ? ema5 : na, "EMA Trail", color.new(#FFD700, 50), 1, plot.style_line)
 
 // EMA Ribbon fill
 ribbonColor = bullTrend ? emaBullColor : emaBearColor
@@ -1241,7 +1237,7 @@ if not na(activeSL)
 
 // ─── 5-EMA TRAILING STOP LINE ───
 // Trail with 5-period EMA once +1 R in profit (institutional trailing rule)
-plot(showATRLevels ? ema5 : na, "5-EMA Trail (+1R)", color.new(#FFEA00, 20), 3, plot.style_line, display=priceScaleDisplay)
+plot(showATRLevels ? ema5 : na, "5-EMA Trail (+1R)", color.new(#FFEA00, 20), 3, plot.style_line)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ SMC - TRUE ICT HIERARCHICAL SWING DETECTION ███
