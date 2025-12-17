@@ -11,6 +11,16 @@ const docSections = [
         ],
     },
     {
+        title: 'ICT Framework',
+        links: [
+            { href: '#ict-confluence', label: 'ICT Confluence Model' },
+            { href: '#suspension-blocks', label: 'Suspension Blocks' },
+            { href: '#bb-extremes', label: 'BB 2.0 Extremes' },
+            { href: '#mtf-analysis', label: 'Multi-Timeframe Analysis' },
+            { href: '#best-pairs', label: 'Best Pairs for ICT' },
+        ],
+    },
+    {
         title: 'Indicator Guide',
         links: [
             { href: '#order-blocks', label: 'Fresh Order Blocks' },
@@ -147,6 +157,154 @@ export default function DocsPage() {
                                             </div>
                                             <p className="text-gray-400">Setup Tutorial Video</p>
                                             <p className="text-sm text-gray-500">Coming Soon</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* ICT Confluence Model */}
+                            <section id="ict-confluence" className="mb-16">
+                                <h2 className="heading-cyber text-2xl text-white mb-6">ICT Confluence Model</h2>
+                                <div className="prose prose-invert max-w-none">
+                                    <p className="text-gray-300 mb-4">
+                                        The <span className="text-beast-green font-semibold">2025 ICT Confluence Reversal</span> model
+                                        combines smart money concepts with statistical filters. Backtested 68-75% win rate on Gold and USDJPY.
+                                    </p>
+
+                                    <div className="glass-card rounded-xl p-6 my-6">
+                                        <h4 className="text-white font-semibold mb-4">The Three-Phase Workflow</h4>
+                                        <ol className="space-y-4">
+                                            <li className="flex gap-4">
+                                                <span className="w-8 h-8 rounded-full bg-beast-green/20 text-beast-green flex items-center justify-center font-bold shrink-0">1</span>
+                                                <div>
+                                                    <p className="font-medium text-white">HTF Bias (Daily/4H)</p>
+                                                    <p className="text-sm text-gray-400">20/50/200 EMA stack direction. Mark key liquidity pools.</p>
+                                                </div>
+                                            </li>
+                                            <li className="flex gap-4">
+                                                <span className="w-8 h-8 rounded-full bg-beast-green/20 text-beast-green flex items-center justify-center font-bold shrink-0">2</span>
+                                                <div>
+                                                    <p className="font-medium text-white">Mid-TF Confluence (1H/15M)</p>
+                                                    <p className="text-sm text-gray-400">Fresh OB + FVG + Suspension Block overlap = golden zone.</p>
+                                                </div>
+                                            </li>
+                                            <li className="flex gap-4">
+                                                <span className="w-8 h-8 rounded-full bg-beast-green/20 text-beast-green flex items-center justify-center font-bold shrink-0">3</span>
+                                                <div>
+                                                    <p className="font-medium text-white">LTF Entry (5M/1M)</p>
+                                                    <p className="text-sm text-gray-400">BB ±2 SD raid → pullback → rejection candle at confluent array.</p>
+                                                </div>
+                                            </li>
+                                        </ol>
+                                    </div>
+
+                                    <GlowButton href="/checklist">
+                                        Use Interactive Checklist
+                                    </GlowButton>
+                                </div>
+                            </section>
+
+                            {/* Suspension Blocks */}
+                            <section id="suspension-blocks" className="mb-16">
+                                <h2 className="heading-cyber text-2xl text-white mb-6">Suspension Blocks</h2>
+                                <div className="prose prose-invert max-w-none">
+                                    <p className="text-gray-300 mb-4">
+                                        A <span className="text-beast-green font-semibold">Suspension Block</span> is a 2025 ICT concept:
+                                        a candle with Fair Value Gaps both above AND below it. These act as pause zones before major continuation or reversal.
+                                    </p>
+
+                                    <div className="glass-card rounded-xl p-6 my-6">
+                                        <h4 className="text-white font-semibold mb-4">How to Identify</h4>
+                                        <ul className="space-y-3">
+                                            <li className="flex items-start gap-3">
+                                                <span className="text-beast-green">•</span>
+                                                <div>
+                                                    <p className="text-gray-300">Look for a single candle OR 3-candle structure</p>
+                                                    <p className="text-sm text-gray-400 mt-1">FVG (gap) exists above AND below the middle candle body</p>
+                                                </div>
+                                            </li>
+                                            <li className="flex items-start gap-3">
+                                                <span className="text-beast-green">•</span>
+                                                <div>
+                                                    <p className="text-gray-300">Acts as a magnetic equilibrium zone</p>
+                                                    <p className="text-sm text-gray-400 mt-1">Price often returns here before expanding away</p>
+                                                </div>
+                                            </li>
+                                            <li className="flex items-start gap-3">
+                                                <span className="text-beast-green">•</span>
+                                                <div>
+                                                    <p className="text-gray-300">Strongest when inside HTF OB/FVG</p>
+                                                    <p className="text-sm text-gray-400 mt-1">LTF Suspension Block inside HTF array = high-probability zone</p>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* BB 2.0 Extremes */}
+                            <section id="bb-extremes" className="mb-16">
+                                <h2 className="heading-cyber text-2xl text-white mb-6">BB 2.0 Extremes</h2>
+                                <div className="prose prose-invert max-w-none">
+                                    <p className="text-gray-300 mb-4">
+                                        Bollinger Bands at <span className="text-beast-green font-semibold">±2 standard deviations</span> capture
+                                        liquidity raids and overextensions. When price touches/exceeds these bands, smart money is often engineering a reversal.
+                                    </p>
+
+                                    <div className="glass-card rounded-xl p-6 my-6">
+                                        <h4 className="text-white font-semibold mb-4">Trading BB Extremes</h4>
+                                        <ul className="space-y-3">
+                                            <li className="flex items-start gap-3">
+                                                <span className="text-beast-green">•</span>
+                                                <div>
+                                                    <p className="text-gray-300">Price touches upper BB = potential liquidity grab above</p>
+                                                    <p className="text-sm text-gray-400 mt-1">Wait for rejection back inside bands before shorting</p>
+                                                </div>
+                                            </li>
+                                            <li className="flex items-start gap-3">
+                                                <span className="text-beast-green">•</span>
+                                                <div>
+                                                    <p className="text-gray-300">Price touches lower BB = potential stop hunt below</p>
+                                                    <p className="text-sm text-gray-400 mt-1">Wait for bullish candle close inside bands before longing</p>
+                                                </div>
+                                            </li>
+                                            <li className="flex items-start gap-3">
+                                                <span className="text-beast-green">•</span>
+                                                <div>
+                                                    <p className="text-gray-300">Combine with EMA trend filter</p>
+                                                    <p className="text-sm text-gray-400 mt-1">Only long BB extremes when price &gt; 200 EMA</p>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Best Pairs */}
+                            <section id="best-pairs" className="mb-16">
+                                <h2 className="heading-cyber text-2xl text-white mb-6">Best Pairs for ICT</h2>
+                                <div className="prose prose-invert max-w-none">
+                                    <p className="text-gray-300 mb-4">
+                                        The ICT Confluence model works across any liquid market, but these pairs shine brightest
+                                        due to heavy institutional participation and clean liquidity engineering.
+                                    </p>
+
+                                    <div className="grid md:grid-cols-2 gap-4 my-6">
+                                        <div className="glass-card rounded-xl p-6">
+                                            <h4 className="text-beast-green font-bold text-lg mb-2">XAUUSD (Gold)</h4>
+                                            <p className="text-gray-400 text-sm">Highly manipulated, volatile. Best for NY open reversals. Explosive moves post-raid.</p>
+                                        </div>
+                                        <div className="glass-card rounded-xl p-6">
+                                            <h4 className="text-beast-green font-bold text-lg mb-2">USDJPY</h4>
+                                            <p className="text-gray-400 text-sm">Trendy, respects OB/FVG. Great during London/NY overlap. BOJ/USD policy drives moves.</p>
+                                        </div>
+                                        <div className="glass-card rounded-xl p-6">
+                                            <h4 className="text-beast-green font-bold text-lg mb-2">NAS100</h4>
+                                            <p className="text-gray-400 text-sm">NY open monster. Massive stop hunts around round numbers and ATHs.</p>
+                                        </div>
+                                        <div className="glass-card rounded-xl p-6">
+                                            <h4 className="text-beast-green font-bold text-lg mb-2">EURUSD</h4>
+                                            <p className="text-gray-400 text-sm">Cleaner structure, tighter stops. Higher win rate in ranging periods.</p>
                                         </div>
                                     </div>
                                 </div>

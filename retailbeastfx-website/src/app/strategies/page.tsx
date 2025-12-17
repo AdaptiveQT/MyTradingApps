@@ -180,6 +180,46 @@ const strategies = [
             bestPairs: 'Indices, BTC, High-Beta Forex',
         },
     },
+    {
+        id: 'ict-confluence',
+        name: 'ICT Confluence Reversal',
+        tagline: 'The Institutional Hunter',
+        icon: '🏆',
+        difficulty: 'Advanced',
+        winRate: '68-75%',
+        description: 'The 2025 hybrid model combining ICT smart money concepts with BB 2.0 and EMA filters. Hunt liquidity sweeps into confluent PD arrays, then enter on rejection. Backtested 70%+ win rate on Gold and USDJPY with 2.5+ RR.',
+        components: [
+            {
+                title: 'HTF Bias (Daily/4H)',
+                desc: '20/50/200 EMA stack alignment. Price above rising stack = bullish bias. Mark key liquidity pools (old highs/lows, equal H/L).',
+            },
+            {
+                title: 'Mid-TF Confluence (1H/15M)',
+                desc: 'Hunt for fresh OB/FVG/Breaker + Suspension Block overlap. The "golden zone" filters junk setups beautifully.',
+            },
+            {
+                title: 'LTF Entry + Filters (5M/1M)',
+                desc: 'Wait for liquidity sweep (raid beyond BB ±2 SD). Pullback touches BB band + holds above/below key EMA.',
+            },
+            {
+                title: 'Killzone Timing',
+                desc: 'NY open/reversal for Gold volatility. London/NY overlap for USDJPY trends. No trades outside killzones.',
+            },
+        ],
+        implementation: [
+            'Identify HTF bias: Check 20/50/200 EMA stack on Daily/4H chart',
+            'Mark liquidity pools: Recent swing highs/lows, equal highs/lows, PDH/PDL',
+            'Drop to 1H/15M: Find confluence zone (fresh OB + FVG + EMA cluster)',
+            'Wait for displacement into liquidity (price raids beyond BB ±2 SD)',
+            'Enter on rejection candle (engulfing/pin bar) at the confluent array',
+            'SL beyond sweep extreme. TP at next opposing liquidity or 1:3+ RR',
+        ],
+        stats: {
+            winRate: '68-75%',
+            avgRR: '2.5-4R',
+            bestPairs: 'XAUUSD, USDJPY, NAS100, EURUSD',
+        },
+    },
     // ========== ORIGINAL STRATEGIES ==========
     {
         id: 'retail-beast',
