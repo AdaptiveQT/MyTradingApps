@@ -195,17 +195,54 @@ export default function HomePage() {
           </p>
 
           <div className="glass-card rounded-2xl p-6 md:p-8 max-w-3xl mx-auto">
-            <div className="aspect-[16/9] bg-cyber-surface rounded-xl border border-beast-green/20 flex items-center justify-center relative overflow-hidden">
-              {/* Loading animation mockup */}
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 border-4 border-beast-green/30 border-t-beast-green rounded-full animate-spin" />
-                <p className="text-beast-green font-semibold">Loading your data...</p>
-                <p className="text-gray-500 text-sm mt-2">Your trades sync here automatically</p>
-              </div>
+            <div className="aspect-[16/9] bg-cyber-surface rounded-xl border border-beast-green/20 overflow-hidden">
+              {/* Journal Preview Mockup */}
+              <div className="h-full flex flex-col">
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-cyber-border">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-beast-green animate-pulse" />
+                    <span className="text-sm text-white font-medium">Today&apos;s Trades</span>
+                  </div>
+                  <span className="text-xs text-beast-green font-bold">Win Rate: 72%</span>
+                </div>
 
-              {/* Overlay hint */}
-              <div className="absolute bottom-4 left-4 right-4 p-3 bg-cyber-dark/80 rounded-lg border border-beast-green/20 text-sm text-gray-400">
-                💡 Connect your TradingView alerts for auto-logging
+                {/* Trade Rows */}
+                <div className="flex-1 overflow-hidden p-3 space-y-2">
+                  {[
+                    { pair: 'XAUUSD', dir: 'BUY', rr: '+2.5R', result: 'WIN', time: '9:32 AM' },
+                    { pair: 'EURUSD', dir: 'SELL', rr: '+1.8R', result: 'WIN', time: '10:15 AM' },
+                    { pair: 'NAS100', dir: 'BUY', rr: '-1R', result: 'LOSS', time: '11:02 AM' },
+                    { pair: 'USDJPY', dir: 'BUY', rr: '+3.2R', result: 'WIN', time: '2:45 PM' },
+                  ].map((trade, i) => (
+                    <div key={i} className="flex items-center justify-between bg-cyber-dark/50 rounded-lg px-3 py-2 text-sm">
+                      <div className="flex items-center gap-3">
+                        <span className="text-white font-medium">{trade.pair}</span>
+                        <span className={trade.dir === 'BUY' ? 'text-beast-green' : 'text-red-400'}>{trade.dir}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-400 text-xs">{trade.time}</span>
+                        <span className={trade.result === 'WIN' ? 'text-beast-green font-bold' : 'text-red-400'}>{trade.rr}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer Stats */}
+                <div className="flex items-center justify-around px-4 py-3 border-t border-cyber-border bg-cyber-dark/30">
+                  <div className="text-center">
+                    <p className="text-beast-green font-bold">+6.5R</p>
+                    <p className="text-xs text-gray-500">Today</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white font-bold">4</p>
+                    <p className="text-xs text-gray-500">Trades</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-beast-gold font-bold">3W / 1L</p>
+                    <p className="text-xs text-gray-500">Record</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
