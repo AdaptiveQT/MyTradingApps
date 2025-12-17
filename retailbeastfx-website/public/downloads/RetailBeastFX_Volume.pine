@@ -88,16 +88,18 @@ color gradientColor = color.from_gradient(nVol, 0, 5, color.new(candleColor, 50)
 // ███ VOLUME BUBBLES ███
 // ══════════════════════════════════════════════════════════════════════════════
 
-if showBubbles
-    // Plot bubbles with size based on volume intensity
-    plotshape(inRange and tinyVol ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.tiny)
-    plotshape(inRange and smallVol ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.small)
-    plotshape(inRange and normalVol ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.normal)
-    plotshape(inRange and largeVol ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.large)
-    plotshape(inRange and hugeVol ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.huge)
+// Display mode for bubbles
+var bubbleDisplay = showBubbles ? display.all : display.none
+
+// Plot bubbles with size based on volume intensity (must be global scope)
+plotshape(inRange and tinyVol and showBubbles ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.tiny)
+plotshape(inRange and smallVol and showBubbles ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.small)
+plotshape(inRange and normalVol and showBubbles ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.normal)
+plotshape(inRange and largeVol and showBubbles ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.large)
+plotshape(inRange and hugeVol and showBubbles ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.huge)
 
 // Label huge volume spikes
-if hugeVol and inRange and labelSpikes
+if hugeVol and inRange and labelSpikes and showBubbles
     string volText = str.tostring(volume, format.volume)
     color lblColor = inKillzone and highlightKillzones ? color.new(#FFD700, 0) : color.new(#FFFFFF, 0)
     label.new(bar_index, hlc3, volText, xloc.bar_index, yloc.price, color.new(#000000, 50), label.style_label_center, lblColor, size.small)
