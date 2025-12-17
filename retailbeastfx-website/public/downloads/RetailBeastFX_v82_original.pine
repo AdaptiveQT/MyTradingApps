@@ -777,56 +777,80 @@ if showTS and tsShortPattern and tsSessionOK and barstate.isconfirmed and showOn
     label.new(bar_index, high, "🐢", style=label.style_label_down, color=tsBearColor, textcolor=color.white, size=size.small, tooltip="Turtle Soup Short\nFalse breakout - swept " + str.tostring(tsLookback) + "-bar high")
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ███ SUSPENSION BLOCKS (ICT 2025 - Dual Imbalance Zones) ███
+// ███ SUSPENSION BLOCKS (ICT 2025 - Volume Imbalance Zones) ███
 // ══════════════════════════════════════════════════════════════════════════════
-// Suspension Block = candle with FVG gaps both ABOVE and BELOW
-// Acts as a pause zone before major continuation or reversal
+// Suspension Block = A candlestick with:
+// 1. Volume Imbalance ABOVE (gap between SB body top and left candle's low wick)
+// 2. Volume Imbalance BELOW (gap between SB body bottom and right candle's high wick)
+// 3. Left candle's wick MUST overlap SB body (no FVG can form)
+// Acts as support/resistance (PD Array) for entries
 
 var box[] suspensionBlocks = array.new_box()
 
-// Calculate minimum gap size based on ATR
-float sbMinGap = atrValue * sbMinGapATR
+// We check candle at [1] as the potential Suspension Block (confirmed on close)
+// Left candle = [2], Right candle = [0]
 
-// Detection: Look for dual imbalance patterns
-// Gap ABOVE: low > high[1] (current low higher than previous high)
-// Gap BELOW: high < low[1] (current high lower than previous low)
-// OR 3-candle pattern where candle[2].high < candle[0].low (gap through middle)
-
-bool sbGapAbove = false
-bool sbGapBelow = false
-
-// 2-candle FVG patterns
-if bar_index > 2
-    // Gap above: current low > previous high
-    if low > high[1] + sbMinGap
-        sbGapAbove := true
+if showSB and bar_index > 3 and barstate.isconfirmed and showOnChart
+    // Minimum gap size filter
+    float sbMinGap = atrValue * sbMinGapATR
     
-    // Gap below: current high < next bar low (check [1] for confirmed pattern)
-    if high[1] < low[0] - sbMinGap
-        sbGapBelow := true
+    // SB Candle values (the middle candle we're checking)
+    float sbOpen = open[1]
+    float sbClose = close[1]
+    float sbHigh = high[1]
+    float sbLow = low[1]
+    float sbBodyTop = math.max(sbOpen, sbClose)
+    float sbBodyBottom = math.min(sbOpen, sbClose)
     
-    // 3-candle pattern: gaps spanning through middle candle
-    // Bullish 3-candle gap: low[0] > high[2]
-    if low > high[2] + sbMinGap
-        sbGapAbove := true
+    // Left candle (candle before SB)
+    float leftHigh = high[2]
+    float leftLow = low[2]
+    float leftOpen = open[2]
+    float leftClose = close[2]
+    float leftBodyTop = math.max(leftOpen, leftClose)
+    float leftBodyBottom = math.min(leftOpen, leftClose)
     
-    // Bearish 3-candle gap: high[0] < low[2]  
-    if high < low[2] - sbMinGap
-        sbGapBelow := true
-
-// Alternative detection: Check if middle bar has gaps on both sides
-bool sbMiddleGapAbove = bar_index > 1 and low[0] > high[1] + sbMinGap
-bool sbMiddleGapBelow = bar_index > 1 and high[1] < low[0] - sbMinGap and bar_index > 0
-
-// Suspension Block detected when we have imbalance in both directions
-bool sbDetected = (sbGapAbove and sbGapBelow) or (sbMiddleGapAbove and sbMiddleGapBelow)
-
-// Draw Suspension Block
-if showSB and sbDetected and barstate.isconfirmed and showOnChart
-    sbBox = box.new(bar_index - 1, high[1], bar_index + 30, low[1], border_color=sbColor, border_width=2, bgcolor=sbColor, text="SB", text_color=color.new(#FFB400, 0), text_size=size.tiny, text_halign=text.align_left, text_valign=text.align_center)
-    array.push(suspensionBlocks, sbBox)
-    if array.size(suspensionBlocks) > maxSBCount
-        box.delete(array.shift(suspensionBlocks))
+    // Right candle (candle after SB = current candle)
+    float rightHigh = high[0]
+    float rightLow = low[0]
+    float rightOpen = open[0]
+    float rightClose = close[0]
+    float rightBodyTop = math.max(rightOpen, rightClose)
+    float rightBodyBottom = math.min(rightOpen, rightClose)
+    
+    // Volume Imbalance ABOVE SB:
+    // Gap between SB candle body TOP and LEFT candle's LOW (wick tip)
+    // For bullish context: left candle's low must be BELOW SB body top with a gap
+    bool viAbove = sbBodyTop < leftLow - sbMinGap
+    
+    // Volume Imbalance BELOW SB:
+    // Gap between SB candle body BOTTOM and RIGHT candle's HIGH (wick tip)
+    // For bearish context: right candle's high must be ABOVE SB body bottom with a gap
+    bool viBelow = sbBodyBottom > rightHigh + sbMinGap
+    
+    // KEY REQUIREMENT: Left candle's WICK must overlap SB body
+    // This prevents FVG formation - the wick reaches into where SB body is
+    bool leftWickOverlapsSB = leftLow < sbBodyTop and leftLow > sbBodyBottom
+    
+    // Alternative: Also check if left candle's body or wick extends through SB body range
+    bool leftCandleOverlapsSB = leftLow <= sbBodyTop or leftHigh >= sbBodyBottom
+    
+    // Determine if bullish or bearish SB
+    bool isBullishSB = sbClose > sbOpen
+    
+    // Suspension Block detected
+    bool sbDetected = viAbove and viBelow and leftWickOverlapsSB
+    
+    if sbDetected
+        // Draw the SB zone using the SB candle's body range
+        sbBox = box.new(bar_index - 1, sbBodyTop, bar_index + 30, sbBodyBottom, 
+                        border_color=sbColor, border_width=2, bgcolor=sbColor, 
+                        text="SB", text_color=color.new(#FFB400, 0), 
+                        text_size=size.tiny, text_halign=text.align_left, 
+                        text_valign=text.align_center)
+        array.push(suspensionBlocks, sbBox)
+        if array.size(suspensionBlocks) > maxSBCount
+            box.delete(array.shift(suspensionBlocks))
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ FAIR VALUE GAPS (FVG + iFVG) ███

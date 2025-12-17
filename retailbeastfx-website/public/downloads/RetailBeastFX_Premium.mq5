@@ -1122,8 +1122,11 @@ void DrawSuspensionBlock(SuspensionBlock &sb)
 }
 
 //+------------------------------------------------------------------+
-//| Detect Suspension Blocks (Dual Imbalance Zones)                    |
-//| ICT 2025 Concept: Candle with FVG both above AND below           |
+//| Detect Suspension Blocks (Volume Imbalance Zones)                |
+//| ICT 2025 Concept:                                                |
+//| - VI ABOVE: Gap between SB body top and left candle's low wick   |
+//| - VI BELOW: Gap between SB body bottom and right candle's high   |
+//| - Left candle wick MUST overlap SB body (prevents FVG)           |
 //+------------------------------------------------------------------+
 void DetectSuspensionBlocks(const double &high[], const double &low[], 
                              const double &open[], const double &close[],
@@ -1153,40 +1156,38 @@ void DetectSuspensionBlocks(const double &high[], const double &low[],
    
    for(int i = searchStart; i < rates_total - 2; i++)
    {
-      // Check for dual imbalance:
-      // Gap ABOVE: Current candle low > previous candle high (bullish FVG above)
-      // Gap BELOW: Current candle high < next candle low (bearish FVG below)
-      // OR vice versa for opposite configuration
+      // SB Candle (middle candle we're checking)
+      double sbOpen = open[i];
+      double sbClose = close[i];
+      double sbHigh = high[i];
+      double sbLow = low[i];
+      double sbBodyTop = MathMax(sbOpen, sbClose);
+      double sbBodyBottom = MathMin(sbOpen, sbClose);
       
-      bool gapAbove = false;
-      bool gapBelow = false;
+      // Left candle (candle before SB)
+      double leftHigh = high[i-1];
+      double leftLow = low[i-1];
       
-      // FVG above pattern: low[i] > high[i-1] (gap between this candle and previous)
-      if(low[i] > high[i-1] + minGap)
-         gapAbove = true;
+      // Right candle (candle after SB)
+      double rightHigh = high[i+1];
+      double rightLow = low[i+1];
       
-      // FVG below pattern: high[i] < low[i+1] (gap between this candle and next)
-      if(high[i] < low[i+1] - minGap)
-         gapBelow = true;
+      // Volume Imbalance ABOVE SB:
+      // Gap between SB body TOP and LEFT candle's LOW (wick)
+      bool viAbove = sbBodyTop < leftLow - minGap;
       
-      // Also check 3-candle pattern: gaps on both sides of middle candle body
-      // low[i-1] > high[i+1] creates gap through middle candle
-      if(!gapAbove && i > 0 && i < rates_total - 1)
-      {
-         // Three-candle FVG above: candle[i+1].low > candle[i-1].high
-         if(low[i+1] > high[i-1] + minGap)
-            gapAbove = true;
-      }
+      // Volume Imbalance BELOW SB:
+      // Gap between SB body BOTTOM and RIGHT candle's HIGH (wick)
+      bool viBelow = sbBodyBottom > rightHigh + minGap;
       
-      if(!gapBelow && i > 0 && i < rates_total - 1)
-      {
-         // Three-candle FVG below: candle[i-1].low > candle[i+1].high
-         if(low[i-1] > high[i+1] + minGap)
-            gapBelow = true;
-      }
+      // KEY REQUIREMENT: Left candle's WICK must overlap SB body
+      // This prevents FVG formation
+      bool leftWickOverlapsSB = leftLow < sbBodyTop && leftLow > sbBodyBottom;
       
-      // Suspension Block = dual imbalance (gap both directions)
-      if(gapAbove && gapBelow)
+      // Suspension Block detected
+      bool sbDetected = viAbove && viBelow && leftWickOverlapsSB;
+      
+      if(sbDetected)
       {
          // Check if we already have max SBs
          int validCount = 0;
@@ -1209,8 +1210,8 @@ void DetectSuspensionBlocks(const double &high[], const double &low[],
          }
          
          SuspensionBlock newSB;
-         newSB.top = high[i];
-         newSB.bottom = low[i];
+         newSB.top = sbBodyTop;  // Use body range, not full candle
+         newSB.bottom = sbBodyBottom;
          newSB.startTime = time[i];
          newSB.endTime = time[rates_total - 1] + PeriodSeconds() * 20;
          newSB.isBullish = close[i] > open[i];

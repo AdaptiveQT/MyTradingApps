@@ -209,34 +209,43 @@ export default function DocsPage() {
                                 <h2 className="heading-cyber text-2xl text-white mb-6">Suspension Blocks</h2>
                                 <div className="prose prose-invert max-w-none">
                                     <p className="text-gray-300 mb-4">
-                                        A <span className="text-beast-green font-semibold">Suspension Block</span> is a 2025 ICT concept:
-                                        a candle with Fair Value Gaps both above AND below it. These act as pause zones before major continuation or reversal.
+                                        A <span className="text-beast-green font-semibold">Suspension Block</span> is an ICT 2025 concept:
+                                        a candlestick with <strong>Volume Imbalance above AND below</strong> its body, while the left candle&apos;s wick overlaps the body (preventing FVG formation).
                                     </p>
 
                                     <div className="glass-card rounded-xl p-6 my-6">
-                                        <h4 className="text-white font-semibold mb-4">How to Identify</h4>
+                                        <h4 className="text-white font-semibold mb-4">How to Identify (3 Requirements)</h4>
                                         <ul className="space-y-3">
                                             <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">•</span>
+                                                <span className="text-beast-green">1.</span>
                                                 <div>
-                                                    <p className="text-gray-300">Look for a single candle OR 3-candle structure</p>
-                                                    <p className="text-sm text-gray-400 mt-1">FVG (gap) exists above AND below the middle candle body</p>
+                                                    <p className="text-gray-300">Volume Imbalance ABOVE body</p>
+                                                    <p className="text-sm text-gray-400 mt-1">Gap between SB candle&apos;s body top and left candle&apos;s low wick</p>
                                                 </div>
                                             </li>
                                             <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">•</span>
+                                                <span className="text-beast-green">2.</span>
                                                 <div>
-                                                    <p className="text-gray-300">Acts as a magnetic equilibrium zone</p>
-                                                    <p className="text-sm text-gray-400 mt-1">Price often returns here before expanding away</p>
+                                                    <p className="text-gray-300">Volume Imbalance BELOW body</p>
+                                                    <p className="text-sm text-gray-400 mt-1">Gap between SB candle&apos;s body bottom and right candle&apos;s high wick</p>
                                                 </div>
                                             </li>
                                             <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">•</span>
+                                                <span className="text-beast-green">3.</span>
                                                 <div>
-                                                    <p className="text-gray-300">Strongest when inside HTF OB/FVG</p>
-                                                    <p className="text-sm text-gray-400 mt-1">LTF Suspension Block inside HTF array = high-probability zone</p>
+                                                    <p className="text-gray-300">Left candle wick overlaps SB body</p>
+                                                    <p className="text-sm text-gray-400 mt-1">Prevents FVG formation - the candle is &quot;suspended&quot; between imbalances</p>
                                                 </div>
                                             </li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="glass-card rounded-xl p-6 my-6">
+                                        <h4 className="text-white font-semibold mb-4">How to Trade</h4>
+                                        <ul className="space-y-2 text-gray-300">
+                                            <li>• <span className="text-beast-green">Bullish SB:</span> Wait for MSS in discount zone → retrace to SB → buy on support</li>
+                                            <li>• <span className="text-red-400">Bearish SB:</span> Wait for MSS in premium zone → retrace to SB → sell on resistance</li>
+                                            <li>• SL: Beyond the SB candle or recent swing</li>
                                         </ul>
                                     </div>
                                 </div>
