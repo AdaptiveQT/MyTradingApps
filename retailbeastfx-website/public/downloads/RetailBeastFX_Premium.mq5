@@ -202,6 +202,13 @@ input int InpHTFLookback = 100;               // HTF Bars to Analyze
 input color InpHTFBullColor = C'0,150,100';   // HTF Bullish Color
 input color InpHTFBearColor = C'150,50,70';   // HTF Bearish Color
 
+input group "=== SUSPENSION BLOCKS ==="
+input bool InpShowSB = false;                 // Show Suspension Blocks (ICT 2025)
+input int InpSBLookback = 50;                 // SB Detection Lookback
+input double InpSBMinGapATR = 0.1;            // Min Gap Size (ATR Multiple)
+input color InpSBColor = C'255,180,0';        // Suspension Block Color (Amber)
+input int InpMaxSBCount = 3;                  // Max Suspension Blocks to Show
+
 //+------------------------------------------------------------------+
 //| STRUCTURES                                                        |
 //+------------------------------------------------------------------+
@@ -261,6 +268,18 @@ struct HTFFairValueGap
    string   name;
 };
 
+// Suspension Block (ICT 2025) - Dual imbalance zone
+struct SuspensionBlock
+{
+   double   top;
+   double   bottom;
+   datetime startTime;
+   datetime endTime;
+   bool     isBullish;
+   bool     valid;
+   string   name;
+};
+
 //+------------------------------------------------------------------+
 //| GLOBAL VARIABLES                                                  |
 //+------------------------------------------------------------------+
@@ -272,6 +291,9 @@ KillzoneSession killzones[];
 // HTF arrays
 HTFOrderBlock htfOrderBlocks[];
 HTFFairValueGap htfFVGs[];
+
+// Suspension Blocks array
+SuspensionBlock suspensionBlocks[];
 
 double BBUpperBuffer[];
 double BBMiddleBuffer[];
@@ -393,6 +415,9 @@ int OnInit()
    // Initialize HTF arrays
    ArrayResize(htfOrderBlocks, 0);
    ArrayResize(htfFVGs, 0);
+   
+   // Initialize Suspension Blocks array
+   ArrayResize(suspensionBlocks, 0);
    
    // Process HTF zones on init
    ProcessHTFOrderBlocks();
@@ -1064,6 +1089,144 @@ void DetectStructure(const double &high[], const double &low[],
 }
 
 //+------------------------------------------------------------------+
+//| Draw Suspension Block                                              |
+//+------------------------------------------------------------------+
+void DrawSuspensionBlock(SuspensionBlock &sb)
+{
+   if(!sb.valid) return;
+   
+   ObjectDelete(0, sb.name);
+   ObjectDelete(0, sb.name + "_lbl");
+   
+   // Main SB rectangle
+   if(!ObjectCreate(0, sb.name, OBJ_RECTANGLE, 0, sb.startTime, sb.top, sb.endTime, sb.bottom))
+      return;
+   
+   ObjectSetInteger(0, sb.name, OBJPROP_COLOR, InpSBColor);
+   ObjectSetInteger(0, sb.name, OBJPROP_FILL, true);
+   ObjectSetInteger(0, sb.name, OBJPROP_WIDTH, 2);
+   ObjectSetInteger(0, sb.name, OBJPROP_BACK, true);
+   ObjectSetInteger(0, sb.name, OBJPROP_SELECTABLE, false);
+   ObjectSetInteger(0, sb.name, OBJPROP_HIDDEN, true);
+   
+   // SB Label
+   string lblName = sb.name + "_lbl";
+   double midPrice = (sb.top + sb.bottom) / 2.0;
+   ObjectCreate(0, lblName, OBJ_TEXT, 0, sb.startTime, midPrice);
+   ObjectSetString(0, lblName, OBJPROP_TEXT, "SB");
+   ObjectSetInteger(0, lblName, OBJPROP_COLOR, InpSBColor);
+   ObjectSetInteger(0, lblName, OBJPROP_FONTSIZE, 8);
+   ObjectSetString(0, lblName, OBJPROP_FONT, "Arial Bold");
+   ObjectSetInteger(0, lblName, OBJPROP_ANCHOR, ANCHOR_LEFT);
+   ObjectSetInteger(0, lblName, OBJPROP_SELECTABLE, false);
+}
+
+//+------------------------------------------------------------------+
+//| Detect Suspension Blocks (Dual Imbalance Zones)                    |
+//| ICT 2025 Concept: Candle with FVG both above AND below           |
+//+------------------------------------------------------------------+
+void DetectSuspensionBlocks(const double &high[], const double &low[], 
+                             const double &open[], const double &close[],
+                             const datetime &time[], int rates_total)
+{
+   if(!InpShowSB) return;
+   
+   // Clear old SBs
+   for(int i = 0; i < ArraySize(suspensionBlocks); i++)
+   {
+      if(suspensionBlocks[i].valid)
+      {
+         ObjectDelete(0, suspensionBlocks[i].name);
+         ObjectDelete(0, suspensionBlocks[i].name + "_lbl");
+      }
+   }
+   ArrayResize(suspensionBlocks, 0);
+   
+   // Get ATR for minimum gap filter
+   double atrBuffer[];
+   ArraySetAsSeries(atrBuffer, true);
+   if(CopyBuffer(handleATR, 0, 0, 1, atrBuffer) <= 0) return;
+   double atr = atrBuffer[0];
+   double minGap = atr * InpSBMinGapATR;
+   
+   int searchStart = MathMax(2, rates_total - InpSBLookback);
+   
+   for(int i = searchStart; i < rates_total - 2; i++)
+   {
+      // Check for dual imbalance:
+      // Gap ABOVE: Current candle low > previous candle high (bullish FVG above)
+      // Gap BELOW: Current candle high < next candle low (bearish FVG below)
+      // OR vice versa for opposite configuration
+      
+      bool gapAbove = false;
+      bool gapBelow = false;
+      
+      // FVG above pattern: low[i] > high[i-1] (gap between this candle and previous)
+      if(low[i] > high[i-1] + minGap)
+         gapAbove = true;
+      
+      // FVG below pattern: high[i] < low[i+1] (gap between this candle and next)
+      if(high[i] < low[i+1] - minGap)
+         gapBelow = true;
+      
+      // Also check 3-candle pattern: gaps on both sides of middle candle body
+      // low[i-1] > high[i+1] creates gap through middle candle
+      if(!gapAbove && i > 0 && i < rates_total - 1)
+      {
+         // Three-candle FVG above: candle[i+1].low > candle[i-1].high
+         if(low[i+1] > high[i-1] + minGap)
+            gapAbove = true;
+      }
+      
+      if(!gapBelow && i > 0 && i < rates_total - 1)
+      {
+         // Three-candle FVG below: candle[i-1].low > candle[i+1].high
+         if(low[i-1] > high[i+1] + minGap)
+            gapBelow = true;
+      }
+      
+      // Suspension Block = dual imbalance (gap both directions)
+      if(gapAbove && gapBelow)
+      {
+         // Check if we already have max SBs
+         int validCount = 0;
+         for(int j = 0; j < ArraySize(suspensionBlocks); j++)
+            if(suspensionBlocks[j].valid) validCount++;
+         
+         if(validCount >= InpMaxSBCount)
+         {
+            // Remove oldest
+            for(int j = 0; j < ArraySize(suspensionBlocks); j++)
+            {
+               if(suspensionBlocks[j].valid)
+               {
+                  ObjectDelete(0, suspensionBlocks[j].name);
+                  ObjectDelete(0, suspensionBlocks[j].name + "_lbl");
+                  suspensionBlocks[j].valid = false;
+                  break;
+               }
+            }
+         }
+         
+         SuspensionBlock newSB;
+         newSB.top = high[i];
+         newSB.bottom = low[i];
+         newSB.startTime = time[i];
+         newSB.endTime = time[rates_total - 1] + PeriodSeconds() * 20;
+         newSB.isBullish = close[i] > open[i];
+         newSB.valid = true;
+         newSB.name = prefix + "SB_" + IntegerToString(objCounter++);
+         
+         int size = ArraySize(suspensionBlocks);
+         ArrayResize(suspensionBlocks, size + 1);
+         suspensionBlocks[size] = newSB;
+         
+         DrawSuspensionBlock(suspensionBlocks[size]);
+      }
+   }
+}
+
+//+------------------------------------------------------------------+
 //| Main Calculation                                                   |
 //+------------------------------------------------------------------+
 int OnCalculate(const int rates_total,
@@ -1112,6 +1275,9 @@ int OnCalculate(const int rates_total,
          DetectSwingPoints(high, low, time, rates_total);
          DetectStructure(high, low, open, close, time, rates_total);
       }
+      
+      // Detect Suspension Blocks (ICT 2025)
+      DetectSuspensionBlocks(high, low, open, close, time, rates_total);
       
       // Draw 5-EMA Trail Line (visual trailing stop guide)
       if(InpShowEMAs && InpEMATrail > 0)

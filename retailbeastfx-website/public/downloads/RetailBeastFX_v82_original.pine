@@ -182,6 +182,16 @@ color bullVIColor = input.color(color.new(#00BCD4, 80), "Bull VI", group=viGroup
 color bearVIColor = input.color(color.new(#E91E63, 80), "Bear VI", group=viGroup, inline="vicol")
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ███ SUSPENSION BLOCKS (ICT 2025) ███
+// ══════════════════════════════════════════════════════════════════════════════
+string sbGroup = "═══ SUSPENSION BLOCKS ═══"
+bool showSB = input.bool(false, "Show Suspension Blocks", group=sbGroup, tooltip="ICT 2025 concept: Dual-imbalance zone (FVG above AND below). Pause zone before major moves.")
+int sbLookback = input.int(50, "SB Detection Lookback", minval=10, maxval=200, group=sbGroup)
+float sbMinGapATR = input.float(0.1, "Min Gap Size (ATR x)", minval=0.05, maxval=0.5, step=0.05, group=sbGroup)
+int maxSBCount = input.int(3, "Max Suspension Blocks", minval=1, maxval=10, group=sbGroup)
+color sbColor = input.color(color.new(#FFB400, 70), "SB Color", group=sbGroup)
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ███ DISPLAY MODE ███
 // ══════════════════════════════════════════════════════════════════════════════
 string dispGroup = "═══ DISPLAY MODE ═══"
@@ -791,6 +801,58 @@ if showTS and tsLongPattern and tsSessionOK and barstate.isconfirmed and showOnC
 
 if showTS and tsShortPattern and tsSessionOK and barstate.isconfirmed and showOnChart
     label.new(bar_index, high, "🐢", style=label.style_label_down, color=tsBearColor, textcolor=color.white, size=size.small, tooltip="Turtle Soup Short\nFalse breakout - swept " + str.tostring(tsLookback) + "-bar high")
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ SUSPENSION BLOCKS (ICT 2025 - Dual Imbalance Zones) ███
+// ══════════════════════════════════════════════════════════════════════════════
+// Suspension Block = candle with FVG gaps both ABOVE and BELOW
+// Acts as a pause zone before major continuation or reversal
+
+var box[] suspensionBlocks = array.new_box()
+
+// Calculate minimum gap size based on ATR
+float sbMinGap = atrValue * sbMinGapATR
+
+// Detection: Look for dual imbalance patterns
+// Gap ABOVE: low > high[1] (current low higher than previous high)
+// Gap BELOW: high < low[1] (current high lower than previous low)
+// OR 3-candle pattern where candle[2].high < candle[0].low (gap through middle)
+
+bool sbGapAbove = false
+bool sbGapBelow = false
+
+// 2-candle FVG patterns
+if bar_index > 2
+    // Gap above: current low > previous high
+    if low > high[1] + sbMinGap
+        sbGapAbove := true
+    
+    // Gap below: current high < next bar low (check [1] for confirmed pattern)
+    if high[1] < low[0] - sbMinGap
+        sbGapBelow := true
+    
+    // 3-candle pattern: gaps spanning through middle candle
+    // Bullish 3-candle gap: low[0] > high[2]
+    if low > high[2] + sbMinGap
+        sbGapAbove := true
+    
+    // Bearish 3-candle gap: high[0] < low[2]  
+    if high < low[2] - sbMinGap
+        sbGapBelow := true
+
+// Alternative detection: Check if middle bar has gaps on both sides
+bool sbMiddleGapAbove = bar_index > 1 and low[0] > high[1] + sbMinGap
+bool sbMiddleGapBelow = bar_index > 1 and high[1] < low[0] - sbMinGap and bar_index > 0
+
+// Suspension Block detected when we have imbalance in both directions
+bool sbDetected = (sbGapAbove and sbGapBelow) or (sbMiddleGapAbove and sbMiddleGapBelow)
+
+// Draw Suspension Block
+if showSB and sbDetected and barstate.isconfirmed and showOnChart
+    sbBox = box.new(bar_index - 1, high[1], bar_index + 30, low[1], border_color=sbColor, border_width=2, bgcolor=sbColor, text="SB", text_color=color.new(#FFB400, 0), text_size=size.tiny, text_halign=text.align_left, text_valign=text.align_center)
+    array.push(suspensionBlocks, sbBox)
+    if array.size(suspensionBlocks) > maxSBCount
+        box.delete(array.shift(suspensionBlocks))
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ FAIR VALUE GAPS (FVG + iFVG) ███
