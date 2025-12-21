@@ -1,17 +1,17 @@
-// RetailBeastFX Volume Companion [v1.1 Beast Mode]
+// RetailBeastFX Volume Companion [v1.2 Quant Mode]
 // Based on BigBeluga's Liquidity Spectrum Visualizer
-// Enhanced with session-anchored profiles, delta proxy & SMC confluence
+// Enhanced with session-anchored profiles, delta proxy, Z-score thresholds & absorption detection
 // © RetailBeast 2025 | CC BY-NC-SA 4.0
 
 //@version=5
-indicator("RetailBeastFX Volume [Beast Mode]", shorttitle="RBFX Vol 1.1", overlay=true, max_boxes_count=500, max_labels_count=500, max_lines_count=500)
+indicator("RetailBeastFX Volume [Quant Mode]", shorttitle="RBFX Vol 1.2", overlay=true, max_boxes_count=500, max_labels_count=500, max_lines_count=500)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ 🚀 QUICK START ███
 // ══════════════════════════════════════════════════════════════════════════════
 string modeGroup = "🚀 Quick Start"
-string presetTooltip = "🔥 BEAST MODE: Killzone-anchored profiles\n📈 MATRIX MODE: Heavy London/SB weighting + Delta\n📊 FULL RANGE: 200-bar lookback\n✨ CLEAN: Bubbles only\n⚙️ CUSTOM: Your settings"
-string preset = input.string("🔥 Beast Mode", "Preset", options=["🔥 Beast Mode", "📈 Matrix Mode", "📊 Full Range", "✨ Clean", "⚙️ Custom"], group=modeGroup, tooltip=presetTooltip)
+string presetTooltip = "🔥 BEAST MODE: Killzone-anchored profiles\n📈 MATRIX MODE: Heavy London/SB weighting + Delta\n📊 QUANT MODE: Z-score adaptive + Absorption detection\n📊 FULL RANGE: 200-bar lookback\n✨ CLEAN: Bubbles only\n⚙️ CUSTOM: Your settings"
+string preset = input.string("🔥 Beast Mode", "Preset", options=["🔥 Beast Mode", "📈 Matrix Mode", "📊 Quant Mode", "📊 Full Range", "✨ Clean", "⚙️ Custom"], group=modeGroup, tooltip=presetTooltip)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ 📊 VOLUME PROFILE ███
@@ -62,19 +62,32 @@ float londonWeight = input.float(1.5, "London Weight", minval=1.0, maxval=3.0, s
 float sbWeight = input.float(1.5, "Silver Bullet Weight", minval=1.0, maxval=3.0, step=0.1, group=sessGroup, tooltip="Matrix Mode uses 2.5x")
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ███ 📊 QUANT MODE (Z-Score + Absorption) ███
+// ══════════════════════════════════════════════════════════════════════════════
+string quantGroup = "📊 Quant Mode"
+bool enableQuant = input.bool(false, "Enable Quant Mode", group=quantGroup, tooltip="Use Z-score adaptive thresholds instead of fixed percentage")
+float zScoreThreshold = input.float(2.0, "Surge Z-Score Threshold", minval=1.0, maxval=4.0, step=0.1, group=quantGroup, tooltip="Volume Z-score to trigger surge (adapts to volatility)")
+bool showAbsorption = input.bool(true, "Detect Absorption", group=quantGroup, tooltip="Flag hidden pressure: high volume + small body = effort vs result inefficiency")
+float absorptionBodyRatio = input.float(0.4, "Absorption Body Ratio <", minval=0.1, maxval=0.8, step=0.05, group=quantGroup, tooltip="Body size relative to range - smaller = more absorption")
+float absorptionZMin = input.float(1.5, "Absorption Min Z-Score", minval=1.0, maxval=3.0, step=0.1, group=quantGroup, tooltip="Minimum volume Z-score for absorption detection")
+bool useVWAPBubbles = input.bool(false, "VWAP Bubble Placement", group=quantGroup, tooltip="Place bubbles at VWAP instead of HLC3")
+color absorptionColor = input.color(#9C27B0, "Absorption Glow", group=quantGroup)
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ███ 🔔 ALERTS ███
 // ══════════════════════════════════════════════════════════════════════════════
 string alertGroup = "🔔 Alerts"
-float alertThreshold = input.float(150, "Surge Alert Threshold (%)", minval=100, maxval=300, group=alertGroup, tooltip="% of average volume to trigger alert")
+float alertThreshold = input.float(150, "Surge Alert Threshold (%)", minval=100, maxval=300, group=alertGroup, tooltip="% of average volume to trigger alert (ignored in Quant Mode)")
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ 🎨 APPEARANCE ███
 // ══════════════════════════════════════════════════════════════════════════════
 string visGroup = "🎨 Appearance"
-color bullColor = input.color(#22b16c, "Bull Color", group=visGroup, inline="colors")
-color bearColor = input.color(#dd7e2a, "Bear Color", group=visGroup, inline="colors")
-color pocColor = input.color(#FFD700, "POC Color", group=visGroup, inline="colors2")
-color vaColor = input.color(#9C27B0, "Value Area Color", group=visGroup, inline="colors2")
+// RETAIL BEAST BRAND COLORS
+color bullColor = input.color(#39FF14, "Bull Color (Beast Green)", group=visGroup, inline="colors")
+color bearColor = input.color(#FF3131, "Bear Color (Trap Red)", group=visGroup, inline="colors")
+color pocColor = input.color(#FFFFFF, "POC Color", group=visGroup, inline="colors2")
+color vaColor = input.color(#808080, "Value Area Color", group=visGroup, inline="colors2")
 int profileOffset = input.int(-50, "Profile Offset", minval=-200, maxval=0, group=visGroup)
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -107,6 +120,22 @@ else
     effectiveShowPOC := showPOC
     effectiveShowVA := showValueArea
 
+// Quant Mode preset overrides
+var bool effectiveQuant = enableQuant
+var bool effectiveAbsorption = showAbsorption
+var bool effectiveVWAP = useVWAPBubbles
+
+if preset == "📊 Quant Mode"
+    effectiveQuant := true
+    effectiveAbsorption := true
+    effectiveVWAP := true
+    effectiveShowDelta := true
+    effectiveShowPOC := true
+else if preset != "⚙️ Custom"
+    effectiveQuant := enableQuant
+    effectiveAbsorption := showAbsorption
+    effectiveVWAP := useVWAPBubbles
+
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ CALCULATIONS ███
 // ══════════════════════════════════════════════════════════════════════════════
@@ -132,13 +161,38 @@ bool normalVol = nVol >= 2 and nVol < 3
 bool largeVol = nVol >= 3 and nVol < 4
 bool hugeVol = nVol >= 4
 
-// Surge detection (percentage-based)
+// Surge detection (percentage-based OR Z-score based)
 float volPercent = volSma > 0 ? (volume / volSma) * 100 : 0
-bool isSurge = volPercent >= alertThreshold
+bool percentSurge = volPercent >= alertThreshold
+bool zScoreSurge = nVol >= zScoreThreshold
+bool isSurge = effectiveQuant ? zScoreSurge : percentSurge  // Quant Mode uses Z-score
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ ABSORPTION DETECTION (Quant Mode) ███
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Absorption: High volume + small body = effort vs result inefficiency
+// This flags bars where "smart money" may be absorbing aggressive orders
+float bodySize = math.abs(close - open)
+float rangeSize = high - low
+float bodyRatio = rangeSize > 0 ? bodySize / rangeSize : 0
+float avgBodyRatio = ta.sma(bodyRatio, 50)
+
+// Absorption when: volume is elevated (Z > threshold) AND body is unusually small
+bool isAbsorption = effectiveAbsorption and nVol >= absorptionZMin and bodyRatio < absorptionBodyRatio
+bool bullishAbsorption = isAbsorption and close > open  // Buying pressure absorbed selling
+bool bearishAbsorption = isAbsorption and close < open  // Selling pressure absorbed buying
+
+// VWAP for bubble placement (Quant Mode feature)
+float vwapPrice = ta.vwap(hlc3)
+float bubblePrice = effectiveVWAP ? vwapPrice : hlc3
 
 // Candle direction color
 color candleColor = close > open ? bullColor : bearColor
 color gradientColor = color.from_gradient(nVol, 0, 5, color.new(candleColor, 50), candleColor)
+
+// Absorption color (purple glow for hidden pressure)
+color absColor = bullishAbsorption ? color.new(bullColor, 70) : bearishAbsorption ? color.new(bearColor, 70) : color.new(absorptionColor, 80)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ DELTA PROXY CALCULATION ███
@@ -165,18 +219,27 @@ bool deltaPositive = barDelta > 0
 // Display mode for bubbles
 var bubbleDisplay = showBubbles ? display.all : display.none
 
-// Plot bubbles with size based on volume intensity (must be global scope)
-plotshape(inRange and tinyVol and showBubbles ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.tiny)
-plotshape(inRange and smallVol and showBubbles ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.small)
-plotshape(inRange and normalVol and showBubbles ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.normal)
-plotshape(inRange and largeVol and showBubbles ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.large)
-plotshape(inRange and hugeVol and showBubbles ? hlc3 : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.huge)
+// Plot bubbles with size based on volume intensity (using VWAP or HLC3 based on Quant Mode)
+plotshape(inRange and tinyVol and showBubbles ? bubblePrice : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.tiny)
+plotshape(inRange and smallVol and showBubbles ? bubblePrice : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.small)
+plotshape(inRange and normalVol and showBubbles ? bubblePrice : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.normal)
+plotshape(inRange and largeVol and showBubbles ? bubblePrice : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.large)
+plotshape(inRange and hugeVol and showBubbles ? bubblePrice : na, "", shape.circle, location.absolute, gradientColor, 0, size=size.huge)
+
+// Absorption glow (Quant Mode) - purple background for hidden pressure bars
+bgcolor(isAbsorption and effectiveAbsorption ? color.new(absorptionColor, 85) : na, title="Absorption Glow")
 
 // Label huge volume spikes
 if hugeVol and inRange and labelSpikes and showBubbles
     string volText = str.tostring(volume, format.volume)
     color lblColor = inKillzone and highlightKillzones ? color.new(#FFD700, 0) : color.new(#FFFFFF, 0)
-    label.new(bar_index, hlc3, volText, xloc.bar_index, yloc.price, color.new(#000000, 50), label.style_label_center, lblColor, size.small)
+    label.new(bar_index, bubblePrice, volText, xloc.bar_index, yloc.price, color.new(#000000, 50), label.style_label_center, lblColor, size.small)
+
+// Label absorption events (Quant Mode)
+if isAbsorption and inRange and effectiveAbsorption and labelSpikes
+    string absText = bullishAbsorption ? "🛡️" : "⚔️"  // Shield = buying absorbed, Sword = selling absorbed
+    color absLblColor = bullishAbsorption ? bullColor : bearColor
+    label.new(bar_index, bubblePrice * (bullishAbsorption ? 0.999 : 1.001), absText, xloc.bar_index, yloc.price, color.new(absorptionColor, 30), label.style_label_center, absLblColor, size.tiny)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ DELTA PROXY DISPLAY ███
@@ -358,3 +421,7 @@ alertcondition(londonSurge, title="London Session Surge", message="🇬🇧 RBFX
 alertcondition(nySurge, title="New York Session Surge", message="🗽 RBFX Volume: NY surge at {{close}}! Check for OB/FVG confluence.")
 alertcondition(silverBulletSurge, title="Silver Bullet Surge", message="🎯 RBFX Volume: Silver Bullet surge at {{close}}! High-probability window - LOG THIS TRADE!")
 alertcondition(isSurge, title="Volume Surge (Custom)", message="📊 RBFX Volume: {{ticker}} surged {{volume}} ({{plot_0}}% of avg)")
+alertcondition(isAbsorption, title="Absorption Detected (Quant)", message="🛡️ RBFX Volume: Absorption detected at {{close}}! Hidden pressure - check for Trinity reversal fuel.")
+alertcondition(bullishAbsorption, title="Bullish Absorption", message="🛡️ RBFX Volume: Bullish absorption at {{close}} - buying pressure absorbed selling!")
+alertcondition(bearishAbsorption, title="Bearish Absorption", message="⚔️ RBFX Volume: Bearish absorption at {{close}} - selling pressure absorbed buying!")
+alertcondition(zScoreSurge, title="Z-Score Surge (Quant)", message="📊 RBFX Volume: Z-score surge ({{plot_0}}σ) at {{close}}! Adaptive threshold triggered.")

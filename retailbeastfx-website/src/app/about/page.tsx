@@ -25,13 +25,13 @@ export default function AboutPage() {
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div>
                             <h1 className="heading-cyber text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                                <span className="text-white">The Complete</span>
+                                <span className="text-white">The Mechanical</span>
                                 <br />
                                 <span className="gradient-text">Trading Ecosystem</span>
                             </h1>
 
                             <p className="text-xl text-gray-300 mb-6">
-                                Premium indicator. Powerful journal. Thriving community. All in one.
+                                Structure detection. Volume confirmation. Edge tracking. All in one.
                             </p>
 
                             <p className="text-gray-400 mb-8">
@@ -43,18 +43,18 @@ export default function AboutPage() {
 
                             <div className="flex items-center gap-6">
                                 <div className="text-center">
-                                    <p className="text-3xl font-bold text-beast-green">2024</p>
-                                    <p className="text-sm text-gray-500">Founded</p>
+                                    <p className="text-3xl font-bold text-beast-green">v8.4</p>
+                                    <p className="text-sm text-gray-500">Premium Release</p>
                                 </div>
                                 <div className="w-px h-12 bg-cyber-border" />
                                 <div className="text-center">
-                                    <p className="text-3xl font-bold text-beast-green">2,500+</p>
-                                    <p className="text-sm text-gray-500">Traders</p>
+                                    <p className="text-3xl font-bold text-beast-green">3,000+</p>
+                                    <p className="text-sm text-gray-500">Backtested Trades</p>
                                 </div>
                                 <div className="w-px h-12 bg-cyber-border" />
                                 <div className="text-center">
-                                    <p className="text-3xl font-bold text-beast-green">50K+</p>
-                                    <p className="text-sm text-gray-500">Trades Logged</p>
+                                    <p className="text-3xl font-bold text-beast-green">Trinity</p>
+                                    <p className="text-sm text-gray-500">Strategy Core</p>
                                 </div>
                             </div>
                         </div>

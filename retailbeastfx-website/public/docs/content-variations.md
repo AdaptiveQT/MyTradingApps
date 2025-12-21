@@ -4,6 +4,105 @@ Ready-to-deploy content for different platforms and purposes.
 
 ---
 
+## ⚡ Quick Start Guide: 60-Second Setup
+
+### Discord Welcome Message
+
+*Paste this into your #start-here or #welcome channel*
+
+```markdown
+**⚡ SYSTEM INITIALIZATION: 60-SECOND SETUP**
+
+Welcome to the pack. You are here to stop guessing and start measuring. Follow this protocol to sync your chart with the Trinity algorithm.
+
+**1. DEPLOY THE TOOLS**
+
+> Open TradingView → Indicators tab → "Invite-Only Scripts"
+> Click to add:
+> 🟢 **RetailBeast Premium v8.4** (Structure & Bias)
+> 📊 **Volume Beast Mode v1.1** (Auction Truth)
+
+**2. CALIBRATE THE MATRIX**
+
+> **Timezone:** Set your TradingView bottom-right clock to **UTC-5 (New York)**. The algorithm is hard-coded to this server time for Killzones.
+> **Asset Class:** Load up **EURUSD** or **GBPUSD** (1M or 5M timeframe).
+
+**3. VISUAL CHECK**
+
+> Do you see the **Gray Boxes**? (Fresh Order Blocks)
+> Do you see the **Neon Bands**? (BB 2.0 Exhaustion)
+> Is your Volume panel showing **Green/Red Fills**? (Delta Flip)
+
+**4. THE TRINITY RULE**
+
+> We only execute when 3 lights turn green:
+> `Fresh OB` + `Band Touch` + `Volume Spike (150%)`
+
+**⚠️ FINAL INSTRUCTION:**
+Don't take a single trade until you have opened the **Pro Journal**. If you don't log it, you are just gambling.
+
+*[Link to Journal]* | *[Link to Full Manual]*
+```
+
+### Twitter/X Pinned Thread
+
+*Post this with a video or GIF of you adding the indicators to a chart*
+
+**Tweet 1/4:**
+
+```
+PROTOCOL v1: 60-Second System Setup. ⏱️
+
+Stop over-analyzing. Let the machine do the heavy lifting.
+
+Here is how to deploy the RetailBeastFX ecosystem on your chart right now.
+👇
+```
+
+**Tweet 2/4:**
+
+```
+THE LOADOUT
+
+Open TradingView. Add the "Invite-Only" scripts:
+
+1️⃣ Premium v8.4: This is your map. It highlights ONLY Fresh Order Blocks. If it's mitigated, it's invisible.
+
+2️⃣ Volume Beast v1.1: This is your fuel gauge. It flags 150% institutional volume spikes.
+```
+
+**Tweet 3/4:**
+
+```
+THE SYNC
+
+Set your chart time to UTC-5 (New York).
+The algorithm automatically weighs the "Killzones" (London/NY/Silver Bullet).
+
+• 1M/5M Timeframes ONLY.
+• Focus: EURUSD, GBPUSD, XAUUSD.
+```
+
+**Tweet 4/4:**
+
+```
+EXECUTE
+
+You are looking for ONE thing: The Trinity.
+
+Price hits a Gray Box (OB) + Touches the Band + Volume Spikes.
+
+If you don't see all three?
+Hands flat. 🛑
+
+We don't guess. We measure.
+
+Grab the tools here: retailbeastfx.vercel.app
+#RetailBeastFX #Forex #TradingView
+```
+
+---
+
 ## 🐦 Twitter/X Thread: The Trinity Revealed
 
 **Thread Hook (Tweet 1):**
@@ -85,6 +184,84 @@ The hunt is eternal.
 retailbeastfx.com
 
 🔥
+```
+
+---
+
+## 🐦 Twitter/X Thread: Origin Story Lore Drop
+
+*Use this thread to drive traffic to the About page origin story.*
+
+**Tweet 1/6 (The Hook):**
+
+```
+We tried to build the perfect trading algorithm.
+
+It was designed to generate 180,000% CAGR using atomic arbitrage and mempool sniffing.
+
+We called it "Quantum Oracle Arb."
+
+Here is why we killed it—and what we built instead. 🧵
+```
+
+**Tweet 2/6 (The Problem):**
+
+```
+The math worked. The extraction was real.
+
+But the simulation showed it would self-destruct after $30B in profit due to regulatory hammers and liquidity drying up.
+
+It was a suicide mission.
+
+So we asked: "What can a HUMAN do without a quantum computer?"
+```
+
+**Tweet 3/6 (The Pivot):**
+
+```
+We stripped the code.
+
+• Removed the HFT front-running.
+• Removed the atomic arb.
+• Kept the Mechanical Entry Logic.
+
+We replaced "Quantum Prediction" with "Statistical Exhaustion."
+```
+
+**Tweet 4/6 (The Result):**
+
+```
+The result? RetailBeastFX.
+
+No magic. No "guru" feelings.
+
+Just 3 Rules:
+1. Fresh OB
+2. BB 2.0 Exhaustion
+3. Killzone Volume
+
+If the matrix isn't green, we don't trade.
+```
+
+**Tweet 5/6 (The Philosophy):**
+
+```
+We don't sell dreams. We sell a wrench and a blueprint.
+
+Every trade logged.
+Every edge quantified.
+
+Measure or die.
+```
+
+**Tweet 6/6 (CTA):**
+
+```
+Read the full origin story of the machine that hunts liquidity.
+
+retailbeastfx.vercel.app/about
+
+The hunt is eternal. 🦾
 ```
 
 ---

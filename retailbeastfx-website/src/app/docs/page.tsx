@@ -3,6 +3,14 @@ import { GlowButton } from '@/components/Marketing';
 
 const docSections = [
     {
+        title: 'Protocol v1',
+        links: [
+            { href: '#trinity-strategy', label: '⚔️ The Trinity Strategy' },
+            { href: '#entry-protocol', label: '🎯 Entry Protocol' },
+            { href: '#risk-management', label: '🛡️ Risk Management' },
+        ],
+    },
+    {
         title: 'Getting Started',
         links: [
             { href: '#setup', label: 'Installation & Setup' },
@@ -32,29 +40,11 @@ const docSections = [
         ],
     },
     {
-        title: 'Journal Mastery',
-        links: [
-            { href: '#journal-setup', label: 'Setting Up Your Journal' },
-            { href: '#quick-entry', label: 'Quick Trade Entry' },
-            { href: '#webhooks', label: 'TradingView Webhooks' },
-            { href: '#analytics', label: 'Understanding Analytics' },
-            { href: '#export', label: 'Export & Backup' },
-        ],
-    },
-    {
-        title: 'Advanced',
-        links: [
-            { href: '#templates', label: 'Custom Templates' },
-            { href: '#mt4-import', label: 'MT4/MT5 Import' },
-            { href: '#api', label: 'API Reference' },
-        ],
-    },
-    {
         title: 'Downloads',
         links: [
             { href: '/downloads/AQT_MinimalPlan_GS_V2_1_Simple.xlsx', label: '📊 Original Trading Plan (Excel)' },
             { href: '/downloads/RELEASE_NOTES_v84.md', label: '📝 RBFX v8.4 Release Notes' },
-            { href: '/downloads/RELEASE_NOTES_Volume_v1.md', label: '📝 Volume v1.0 Release Notes' },
+            { href: '/downloads/RELEASE_NOTES_Volume_v1.1.md', label: '📝 Volume v1.1 Release Notes' },
         ],
     },
 ];
@@ -68,27 +58,16 @@ export default function DocsPage() {
 
                 <div className="container-wide mx-auto relative z-10">
                     <div className="text-center mb-12">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-beast-green/10 border border-beast-green/30 mb-6">
+                            <span className="text-sm text-beast-green font-medium">📋 Operational Manual</span>
+                        </div>
                         <h1 className="heading-cyber text-4xl md:text-5xl font-bold mb-4">
-                            <span className="text-white">Documentation &</span>
-                            <span className="text-beast-green"> User Guide</span>
+                            <span className="text-white">Protocol</span>
+                            <span className="text-beast-green"> v1</span>
                         </h1>
                         <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-                            Everything you need to master RetailBeastFX. From setup to advanced strategies.
+                            DO NOT DEVIATE. The system works if you remain mechanical.
                         </p>
-                    </div>
-
-                    {/* Search */}
-                    <div className="max-w-xl mx-auto">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="Search documentation..."
-                                className="w-full px-6 py-4 bg-cyber-card border border-cyber-border rounded-xl text-white placeholder-gray-500 focus:border-beast-green focus:outline-none"
-                            />
-                            <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
                     </div>
                 </div>
             </section>
@@ -124,6 +103,137 @@ export default function DocsPage() {
 
                         {/* Main Content */}
                         <main className="lg:col-span-3">
+                            {/* THE TRINITY STRATEGY */}
+                            <section id="trinity-strategy" className="mb-16">
+                                <div className="border-l-4 border-beast-green pl-6 mb-6">
+                                    <h2 className="heading-cyber text-2xl text-white">Section 1: The Trinity Strategy</h2>
+                                    <p className="text-gray-400 italic">Core Logic — The system works if you remain mechanical.</p>
+                                </div>
+
+                                <div className="glass-card rounded-xl p-8 mb-8 border border-beast-green/30">
+                                    <h3 className="text-lg font-semibold text-beast-green mb-6 uppercase tracking-wider">⚔️ The Setup Condition</h3>
+
+                                    <div className="space-y-6">
+                                        <div className="flex gap-4">
+                                            <span className="w-10 h-10 rounded-full bg-beast-green/20 text-beast-green flex items-center justify-center font-bold shrink-0 text-lg">1</span>
+                                            <div>
+                                                <p className="font-semibold text-white text-lg">Structure</p>
+                                                <p className="text-gray-400">Price must tap a <span className="text-beast-green font-semibold">Fresh OB</span> (Gray Box on Chart). Unmitigated, no prior sweeps in 4+ hours.</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-4">
+                                            <span className="w-10 h-10 rounded-full bg-beast-green/20 text-beast-green flex items-center justify-center font-bold shrink-0 text-lg">2</span>
+                                            <div>
+                                                <p className="font-semibold text-white text-lg">Exhaustion</p>
+                                                <p className="text-gray-400">Price must pierce or touch the <span className="text-beast-green font-semibold">BB 2.0 Outer Band</span> (±2 SD).</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-4">
+                                            <span className="w-10 h-10 rounded-full bg-beast-green/20 text-beast-green flex items-center justify-center font-bold shrink-0 text-lg">3</span>
+                                            <div>
+                                                <p className="font-semibold text-white text-lg">Confirmation</p>
+                                                <p className="text-gray-400"><span className="text-beast-green font-semibold">Volume Beast</span> must show a Delta Flip (Color Change) + 150% Volume Spike.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-8 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                                        <p className="text-red-400 font-semibold text-center">
+                                            ⚠️ ALL THREE CONDITIONS MUST ALIGN — No exceptions.
+                                        </p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* ENTRY PROTOCOL */}
+                            <section id="entry-protocol" className="mb-16">
+                                <div className="border-l-4 border-beast-green pl-6 mb-6">
+                                    <h2 className="heading-cyber text-2xl text-white">Entry Protocol</h2>
+                                    <p className="text-gray-400 italic">Mechanical execution rules.</p>
+                                </div>
+
+                                <div className="glass-card rounded-xl p-8 mb-6">
+                                    <h3 className="text-lg font-semibold text-white mb-4">🎯 Trigger</h3>
+                                    <p className="text-gray-300">
+                                        Enter <span className="text-beast-green font-semibold">Market Execution</span> on the close of the 1M or 5M candle that confirms the Volume Spike.
+                                    </p>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                                    <div className="glass-card rounded-xl p-6">
+                                        <h3 className="text-lg font-semibold text-red-400 mb-4">🛑 Stop Loss</h3>
+                                        <p className="text-gray-300">
+                                            Fixed at <span className="text-white font-semibold">1x ATR(14)</span> below the OB body (longs) or above the OB body (shorts).
+                                        </p>
+                                    </div>
+
+                                    <div className="glass-card rounded-xl p-6">
+                                        <h3 className="text-lg font-semibold text-beast-green mb-4">🎯 Take Profit</h3>
+                                        <p className="text-gray-300">
+                                            Target the opposite BB Band or the next unmitigated OB. <span className="text-white font-semibold">Trail SL to Breakeven after +1R.</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="glass-card rounded-xl p-8 border border-red-500/30">
+                                    <h3 className="text-lg font-semibold text-red-400 mb-4">❌ Invalidation (Hard Rules)</h3>
+                                    <ul className="space-y-3 text-gray-300">
+                                        <li className="flex gap-3">
+                                            <span className="text-red-400">•</span>
+                                            <span>If the 1M candle closes <span className="text-red-400 font-semibold">through</span> the OB body → <span className="text-white">Setup Invalid. Cut immediately.</span></span>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span className="text-red-400">•</span>
+                                            <span>If the setup occurs <span className="text-red-400 font-semibold">5 minutes before Red Folder News</span> → <span className="text-white">Stand Down.</span></span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </section>
+
+                            {/* RISK MANAGEMENT */}
+                            <section id="risk-management" className="mb-16">
+                                <div className="border-l-4 border-beast-green pl-6 mb-6">
+                                    <h2 className="heading-cyber text-2xl text-white">Section 2: Risk Management</h2>
+                                    <p className="text-gray-400 italic">The Shield — Survive first, profit second.</p>
+                                </div>
+
+                                <div className="grid md:grid-cols-3 gap-6 mb-6">
+                                    <div className="glass-card rounded-xl p-6 text-center">
+                                        <div className="w-16 h-16 rounded-full bg-beast-green/20 flex items-center justify-center mx-auto mb-4">
+                                            <span className="text-2xl">🎲</span>
+                                        </div>
+                                        <h3 className="text-white font-semibold mb-2">Quarter-Kelly Rule</h3>
+                                        <p className="text-gray-400 text-sm">Never risk more than <span className="text-beast-green font-semibold">2-3.5%</span> on a regulated account.</p>
+                                    </div>
+
+                                    <div className="glass-card rounded-xl p-6 text-center">
+                                        <div className="w-16 h-16 rounded-full bg-beast-green/20 flex items-center justify-center mx-auto mb-4">
+                                            <span className="text-2xl">📈</span>
+                                        </div>
+                                        <h3 className="text-white font-semibold mb-2">The Staircase</h3>
+                                        <p className="text-gray-400 text-sm">Only increase risk after a <span className="text-beast-green font-semibold">+20% equity gain</span>.</p>
+                                    </div>
+
+                                    <div className="glass-card rounded-xl p-6 text-center">
+                                        <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+                                            <span className="text-2xl">🔌</span>
+                                        </div>
+                                        <h3 className="text-white font-semibold mb-2">Daily Circuit Breaker</h3>
+                                        <p className="text-gray-400 text-sm">If Daily DD &gt; <span className="text-red-400 font-semibold">5%</span>, terminal is closed. <span className="text-gray-500 italic">Go outside.</span></p>
+                                    </div>
+                                </div>
+
+                                <div className="glass-card rounded-xl p-8 bg-gradient-to-r from-beast-green/10 to-transparent border border-beast-green/30">
+                                    <p className="text-center text-lg text-gray-300">
+                                        &ldquo;If the matrix isn&apos;t green, hands stay flat. <span className="text-beast-green font-semibold">Measure or die.</span>&rdquo;
+                                    </p>
+                                </div>
+                            </section>
+
+                            <hr className="border-beast-green/20 my-12" />
+
                             {/* Quick Start */}
                             <section id="setup" className="mb-16">
                                 <h2 className="heading-cyber text-2xl text-white mb-6">Getting Started</h2>
@@ -153,187 +263,6 @@ export default function DocsPage() {
                                             </div>
                                         </li>
                                     </ol>
-                                </div>
-
-                                {/* Video Embed Placeholder */}
-                                <div className="glass-card rounded-xl p-4 overflow-hidden">
-                                    <div className="aspect-video bg-cyber-surface rounded-lg flex items-center justify-center">
-                                        <div className="text-center">
-                                            <div className="w-16 h-16 rounded-full bg-beast-green/20 flex items-center justify-center mx-auto mb-4">
-                                                <svg className="w-8 h-8 text-beast-green" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M8 5v14l11-7z" />
-                                                </svg>
-                                            </div>
-                                            <p className="text-gray-400">Setup Tutorial Video</p>
-                                            <p className="text-sm text-gray-500">Coming Soon</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* ICT Confluence Model */}
-                            <section id="ict-confluence" className="mb-16">
-                                <h2 className="heading-cyber text-2xl text-white mb-6">ICT Confluence Model</h2>
-                                <div className="prose prose-invert max-w-none">
-                                    <p className="text-gray-300 mb-4">
-                                        The <span className="text-beast-green font-semibold">2025 ICT Confluence Reversal</span> model
-                                        combines smart money concepts with statistical filters. Backtested 68-75% win rate on Gold and USDJPY.
-                                    </p>
-
-                                    <div className="glass-card rounded-xl p-6 my-6">
-                                        <h4 className="text-white font-semibold mb-4">The Three-Phase Workflow</h4>
-                                        <ol className="space-y-4">
-                                            <li className="flex gap-4">
-                                                <span className="w-8 h-8 rounded-full bg-beast-green/20 text-beast-green flex items-center justify-center font-bold shrink-0">1</span>
-                                                <div>
-                                                    <p className="font-medium text-white">HTF Bias (Daily/4H)</p>
-                                                    <p className="text-sm text-gray-400">20/50/200 EMA stack direction. Mark key liquidity pools.</p>
-                                                </div>
-                                            </li>
-                                            <li className="flex gap-4">
-                                                <span className="w-8 h-8 rounded-full bg-beast-green/20 text-beast-green flex items-center justify-center font-bold shrink-0">2</span>
-                                                <div>
-                                                    <p className="font-medium text-white">Mid-TF Confluence (1H/15M)</p>
-                                                    <p className="text-sm text-gray-400">Fresh OB + FVG + Suspension Block overlap = golden zone.</p>
-                                                </div>
-                                            </li>
-                                            <li className="flex gap-4">
-                                                <span className="w-8 h-8 rounded-full bg-beast-green/20 text-beast-green flex items-center justify-center font-bold shrink-0">3</span>
-                                                <div>
-                                                    <p className="font-medium text-white">LTF Entry (5M/1M)</p>
-                                                    <p className="text-sm text-gray-400">BB ±2 SD raid → pullback → rejection candle at confluent array.</p>
-                                                </div>
-                                            </li>
-                                        </ol>
-                                    </div>
-
-                                    <GlowButton href="/checklist">
-                                        Use Interactive Checklist
-                                    </GlowButton>
-                                </div>
-                            </section>
-
-                            {/* Suspension Blocks */}
-                            <section id="suspension-blocks" className="mb-16">
-                                <h2 className="heading-cyber text-2xl text-white mb-6">Suspension Blocks</h2>
-                                <div className="prose prose-invert max-w-none">
-                                    <p className="text-gray-300 mb-4">
-                                        A <span className="text-beast-green font-semibold">Suspension Block</span> is an ICT 2025 concept:
-                                        a candlestick with <strong>Volume Imbalance above AND below</strong> its body, while the left candle&apos;s wick overlaps the body (preventing FVG formation).
-                                    </p>
-
-                                    <div className="glass-card rounded-xl p-6 my-6">
-                                        <h4 className="text-white font-semibold mb-4">How to Identify (3 Requirements)</h4>
-                                        <ul className="space-y-3">
-                                            <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">1.</span>
-                                                <div>
-                                                    <p className="text-gray-300">Volume Imbalance ABOVE body</p>
-                                                    <p className="text-sm text-gray-400 mt-1">Gap between SB candle&apos;s body top and left candle&apos;s low wick</p>
-                                                </div>
-                                            </li>
-                                            <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">2.</span>
-                                                <div>
-                                                    <p className="text-gray-300">Volume Imbalance BELOW body</p>
-                                                    <p className="text-sm text-gray-400 mt-1">Gap between SB candle&apos;s body bottom and right candle&apos;s high wick</p>
-                                                </div>
-                                            </li>
-                                            <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">3.</span>
-                                                <div>
-                                                    <p className="text-gray-300">Left candle wick overlaps SB body</p>
-                                                    <p className="text-sm text-gray-400 mt-1">Prevents FVG formation - the candle is &quot;suspended&quot; between imbalances</p>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    <div className="glass-card rounded-xl p-6 my-6">
-                                        <h4 className="text-white font-semibold mb-4">How to Trade</h4>
-                                        <ul className="space-y-2 text-gray-300">
-                                            <li>• <span className="text-beast-green">Bullish SB:</span> Wait for MSS in discount zone → retrace to SB → buy on support</li>
-                                            <li>• <span className="text-red-400">Bearish SB:</span> Wait for MSS in premium zone → retrace to SB → sell on resistance</li>
-                                            <li>• SL: Beyond the SB candle or recent swing</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* 1st Presented FVG */}
-                            <section id="first-presented-fvg" className="mb-16">
-                                <h2 className="heading-cyber text-2xl text-white mb-6">1st Presented FVG</h2>
-                                <div className="prose prose-invert max-w-none">
-                                    <p className="text-gray-300 mb-4">
-                                        The <span className="text-beast-green font-semibold">1st Presented FVG</span> is the first Fair Value Gap that forms after the NY market opens at 9:30 AM within the Opening Range (until 10:00 AM). It acts as a key daily reference level.
-                                    </p>
-
-                                    <div className="glass-card rounded-xl p-6 my-6">
-                                        <h4 className="text-white font-semibold mb-4">Time Window</h4>
-                                        <ul className="space-y-2 text-gray-300">
-                                            <li>• <span className="text-beast-green">Start:</span> 9:30 AM NY (market open)</li>
-                                            <li>• <span className="text-beast-green">End:</span> 10:00 AM NY (Opening Range closes)</li>
-                                            <li>• <span className="text-beast-green">Earliest FVG:</span> 9:31 AM candle</li>
-                                            <li>• <span className="text-beast-green">Display Until:</span> 3:45 PM NY</li>
-                                        </ul>
-                                    </div>
-
-                                    <div className="glass-card rounded-xl p-6 my-6">
-                                        <h4 className="text-white font-semibold mb-4">Validation Rule</h4>
-                                        <p className="text-gray-300 mb-3">The FVG candle must <strong>break the range</strong> of previous candles to qualify:</p>
-                                        <ul className="space-y-2 text-gray-300">
-                                            <li>• <span className="text-beast-green">Bullish:</span> FVG candle high &gt; previous candles high</li>
-                                            <li>• <span className="text-red-400">Bearish:</span> FVG candle low &lt; previous candles low</li>
-                                        </ul>
-                                    </div>
-
-                                    <div className="glass-card rounded-xl p-6 my-6">
-                                        <h4 className="text-white font-semibold mb-4">How to Trade</h4>
-                                        <ul className="space-y-2 text-gray-300">
-                                            <li>• Use as a <span className="text-beast-green">PD-Array</span> for trade execution</li>
-                                            <li>• Watch for price to retrace and react to the zone</li>
-                                            <li>• Can become an <span className="text-beast-green">iFVG</span> (inverse) if mitigated</li>
-                                            <li>• Strongest when aligned with HTF bias</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* BB 2.0 Extremes */}
-                            <section id="bb-extremes" className="mb-16">
-                                <h2 className="heading-cyber text-2xl text-white mb-6">BB 2.0 Extremes</h2>
-                                <div className="prose prose-invert max-w-none">
-                                    <p className="text-gray-300 mb-4">
-                                        Bollinger Bands at <span className="text-beast-green font-semibold">±2 standard deviations</span> capture
-                                        liquidity raids and overextensions. When price touches/exceeds these bands, smart money is often engineering a reversal.
-                                    </p>
-
-                                    <div className="glass-card rounded-xl p-6 my-6">
-                                        <h4 className="text-white font-semibold mb-4">Trading BB Extremes</h4>
-                                        <ul className="space-y-3">
-                                            <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">•</span>
-                                                <div>
-                                                    <p className="text-gray-300">Price touches upper BB = potential liquidity grab above</p>
-                                                    <p className="text-sm text-gray-400 mt-1">Wait for rejection back inside bands before shorting</p>
-                                                </div>
-                                            </li>
-                                            <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">•</span>
-                                                <div>
-                                                    <p className="text-gray-300">Price touches lower BB = potential stop hunt below</p>
-                                                    <p className="text-sm text-gray-400 mt-1">Wait for bullish candle close inside bands before longing</p>
-                                                </div>
-                                            </li>
-                                            <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">•</span>
-                                                <div>
-                                                    <p className="text-gray-300">Combine with EMA trend filter</p>
-                                                    <p className="text-sm text-gray-400 mt-1">Only long BB extremes when price &gt; 200 EMA</p>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </section>
 
@@ -367,46 +296,7 @@ export default function DocsPage() {
                                 </div>
                             </section>
 
-                            {/* Order Blocks */}
-                            <section id="order-blocks" className="mb-16">
-                                <h2 className="heading-cyber text-2xl text-white mb-6">Fresh Order Blocks</h2>
-                                <div className="prose prose-invert max-w-none">
-                                    <p className="text-gray-300 mb-4">
-                                        Order Blocks are areas where institutional traders have placed significant orders.
-                                        RetailBeastFX identifies <span className="text-beast-green font-semibold">unmitigated (fresh)</span> order blocks
-                                        that price is likely to return to.
-                                    </p>
-
-                                    <div className="glass-card rounded-xl p-6 my-6">
-                                        <h4 className="text-white font-semibold mb-4">Key Settings</h4>
-                                        <ul className="space-y-3">
-                                            <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">•</span>
-                                                <div>
-                                                    <code className="text-beast-green bg-cyber-dark px-2 py-1 rounded">Show Fresh OBs Only</code>
-                                                    <p className="text-sm text-gray-400 mt-1">Toggle to hide mitigated blocks</p>
-                                                </div>
-                                            </li>
-                                            <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">•</span>
-                                                <div>
-                                                    <code className="text-beast-green bg-cyber-dark px-2 py-1 rounded">OB Lookback</code>
-                                                    <p className="text-sm text-gray-400 mt-1">Number of candles to scan (default: 50)</p>
-                                                </div>
-                                            </li>
-                                            <li className="flex items-start gap-3">
-                                                <span className="text-beast-green">•</span>
-                                                <div>
-                                                    <code className="text-beast-green bg-cyber-dark px-2 py-1 rounded">Min OB Size</code>
-                                                    <p className="text-sm text-gray-400 mt-1">Filter small OBs by ATR percentage</p>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* More sections would continue here */}
+                            {/* More sections placeholder */}
                             <div className="glass-card rounded-xl p-8 text-center">
                                 <p className="text-gray-400 mb-4">
                                     📚 Full documentation is being expanded. Check back soon for more guides.
@@ -424,26 +314,24 @@ export default function DocsPage() {
             <section className="section-padding bg-cyber-dark">
                 <div className="container-narrow mx-auto">
                     <h2 className="heading-cyber text-2xl text-white text-center mb-8">
-                        Downloadable <span className="text-beast-green">Templates</span>
+                        Downloadable <span className="text-beast-green">Resources</span>
                     </h2>
 
                     <div className="grid md:grid-cols-3 gap-6">
                         {[
-                            { name: 'Scalper Journal Template', format: 'CSV', size: '12KB' },
-                            { name: 'Swing Trader Template', format: 'CSV', size: '14KB' },
-                            { name: 'Trade Review Checklist', format: 'PDF', size: '45KB' },
+                            { name: 'Trading Plan Template', format: 'XLSX', size: '24KB', href: '/downloads/AQT_MinimalPlan_GS_V2_1_Simple.xlsx' },
+                            { name: 'Premium v8.4 Release Notes', format: 'MD', size: '12KB', href: '/downloads/RELEASE_NOTES_v84.md' },
+                            { name: 'Volume v1.1 Release Notes', format: 'MD', size: '8KB', href: '/downloads/RELEASE_NOTES_Volume_v1.1.md' },
                         ].map((file, i) => (
-                            <div key={i} className="glass-card rounded-xl p-6 flex items-center justify-between">
+                            <Link key={i} href={file.href} className="glass-card rounded-xl p-6 flex items-center justify-between hover:border-beast-green/50 transition-colors">
                                 <div>
                                     <p className="font-medium text-white">{file.name}</p>
                                     <p className="text-sm text-gray-500">{file.format} • {file.size}</p>
                                 </div>
-                                <button className="text-beast-green hover:text-beast-green-300 transition-colors">
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                    </svg>
-                                </button>
-                            </div>
+                                <svg className="w-6 h-6 text-beast-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </Link>
                         ))}
                     </div>
                 </div>
