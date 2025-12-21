@@ -81,18 +81,55 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Mission */}
+            {/* Origin Story */}
             <section className="section-padding bg-cyber-dark">
+                <div className="container-narrow mx-auto">
+                    <h2 className="heading-cyber text-3xl md:text-4xl text-white text-center mb-8">
+                        From <span className="text-beast-green">Quantum Theory</span> to Retail Reality
+                    </h2>
+
+                    <div className="glass-card rounded-2xl p-8 md:p-12 space-y-6">
+                        <p className="text-gray-300 leading-relaxed">
+                            RetailBeastFX started as a thought experiment: <span className="text-beast-green font-semibold">What if we built the most aggressive trading system imaginable?</span>
+                        </p>
+
+                        <p className="text-gray-400 leading-relaxed">
+                            The result was &ldquo;Quantum Oracle Arb&rdquo; — a theoretical monster stacking cross-venue atomic arbitrage,
+                            predictive mempool access, and quantum-aided price prediction. Back-of-envelope math: 180,000% to 1.2 million% CAGR.
+                            One problem: it would self-destruct after extracting $15-30B as markets and regulators adapted.
+                        </p>
+
+                        <p className="text-gray-400 leading-relaxed">
+                            That &ldquo;suicide mission&rdquo; sparked the real question: <span className="text-white font-semibold">What actually works for retail traders without colocation, without quantum computers, without $100M?</span>
+                        </p>
+
+                        <p className="text-gray-300 leading-relaxed">
+                            We stripped the theoretical beast down to its core: a mechanical three-condition confluence system
+                            that runs on TradingView. No narratives, no guru energy — just <span className="text-beast-green font-semibold">Fresh Order Blocks + BB 2.0 Exhaustion + Killzone Volume Confirmation</span>.
+                        </p>
+
+                        <div className="border-l-4 border-beast-green pl-6 mt-8">
+                            <p className="text-xl text-white italic">
+                                &ldquo;We built a god-tier algo that would break the market. Then we stripped it down so you wouldn&apos;t blow your account.&rdquo;
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Philosophy */}
+            <section className="section-padding">
                 <div className="container-narrow mx-auto text-center">
                     <h2 className="heading-cyber text-3xl md:text-4xl text-white mb-8">
-                        Our <span className="text-beast-green">Mission</span>
+                        <span className="text-beast-green">Measure</span> or Die
                     </h2>
 
                     <div className="glass-card rounded-2xl p-8 md:p-12">
                         <p className="text-xl md:text-2xl text-gray-300 leading-relaxed">
-                            &ldquo;We give retail traders the same edge the institutions have –
-                            <span className="text-beast-green font-semibold">precision entries, automated analysis, and the discipline tools</span> to
-                            stop leaving money on the table. No more guessing. No more revenge trading. Just clean, mechanical execution.&rdquo;
+                            &ldquo;We don&apos;t care about narratives. We don&apos;t care &apos;where the banks are.&apos;
+                            We care about <span className="text-beast-green font-semibold">Fresh OBs, Killzone surges, and positive delta flips</span>.
+                            If the matrix isn&apos;t green, hands stay flat. Every trade logged, every edge quantified.
+                            Green cells or graveyard.&rdquo;
                         </p>
                     </div>
                 </div>
