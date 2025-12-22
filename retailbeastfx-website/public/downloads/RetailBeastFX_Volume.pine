@@ -159,7 +159,6 @@ color gradCol = isAbsorption ? absGlowColor : color.from_gradient(zScore, 0, 5, 
 
 // VWAP Placement Logic (Snaps bubble to HLC3 if enabled, otherwise floats)
 float bubbleY = vwapPlacement ? hlc3 : (close > open ? high : low)
-string bubbleLoc = vwapPlacement ? location.absolute : (close > open ? location.abovebar : location.belowbar)
 
 // Only plot if: 1. In Range, 2. Bubbles Enabled, 3. Quant Filter Passed
 bool showThisBubble = inRange and showBubbles and quantFilterPassed
@@ -167,12 +166,25 @@ bool showThisBubble = inRange and showBubbles and quantFilterPassed
 // Absorption Glow (Background)
 bgcolor(isAbsorption and showThisBubble ? color.new(absGlowColor, 80) : na, title="Absorption Highlight")
 
-// Bubbles
-plotshape(showThisBubble and tinyVol ? (vwapPlacement ? bubbleY : na) : na, "", shape.circle, vwapPlacement ? location.absolute : bubbleLoc, gradCol, 0, size=size.tiny)
-plotshape(showThisBubble and smallVol ? (vwapPlacement ? bubbleY : na) : na, "", shape.circle, vwapPlacement ? location.absolute : bubbleLoc, gradCol, 0, size=size.small)
-plotshape(showThisBubble and normalVol ? (vwapPlacement ? bubbleY : na) : na, "", shape.circle, vwapPlacement ? location.absolute : bubbleLoc, gradCol, 0, size=size.normal)
-plotshape(showThisBubble and largeVol ? (vwapPlacement ? bubbleY : na) : na, "", shape.circle, vwapPlacement ? location.absolute : bubbleLoc, gradCol, 0, size=size.large)
-plotshape(showThisBubble and hugeVol ? (vwapPlacement ? bubbleY : na) : na, "", shape.circle, vwapPlacement ? location.absolute : bubbleLoc, gradCol, 0, size=size.huge)
+// Bubbles - VWAP Placement (location.absolute at HLC3)
+plotshape(showThisBubble and tinyVol and vwapPlacement ? bubbleY : na, "", shape.circle, location.absolute, gradCol, 0, size=size.tiny)
+plotshape(showThisBubble and smallVol and vwapPlacement ? bubbleY : na, "", shape.circle, location.absolute, gradCol, 0, size=size.small)
+plotshape(showThisBubble and normalVol and vwapPlacement ? bubbleY : na, "", shape.circle, location.absolute, gradCol, 0, size=size.normal)
+plotshape(showThisBubble and largeVol and vwapPlacement ? bubbleY : na, "", shape.circle, location.absolute, gradCol, 0, size=size.large)
+plotshape(showThisBubble and hugeVol and vwapPlacement ? bubbleY : na, "", shape.circle, location.absolute, gradCol, 0, size=size.huge)
+
+// Bubbles - Standard Placement (above bullish / below bearish)
+plotshape(showThisBubble and tinyVol and not vwapPlacement and close > open ? high : na, "", shape.circle, location.abovebar, gradCol, 0, size=size.tiny)
+plotshape(showThisBubble and smallVol and not vwapPlacement and close > open ? high : na, "", shape.circle, location.abovebar, gradCol, 0, size=size.small)
+plotshape(showThisBubble and normalVol and not vwapPlacement and close > open ? high : na, "", shape.circle, location.abovebar, gradCol, 0, size=size.normal)
+plotshape(showThisBubble and largeVol and not vwapPlacement and close > open ? high : na, "", shape.circle, location.abovebar, gradCol, 0, size=size.large)
+plotshape(showThisBubble and hugeVol and not vwapPlacement and close > open ? high : na, "", shape.circle, location.abovebar, gradCol, 0, size=size.huge)
+
+plotshape(showThisBubble and tinyVol and not vwapPlacement and close <= open ? low : na, "", shape.circle, location.belowbar, gradCol, 0, size=size.tiny)
+plotshape(showThisBubble and smallVol and not vwapPlacement and close <= open ? low : na, "", shape.circle, location.belowbar, gradCol, 0, size=size.small)
+plotshape(showThisBubble and normalVol and not vwapPlacement and close <= open ? low : na, "", shape.circle, location.belowbar, gradCol, 0, size=size.normal)
+plotshape(showThisBubble and largeVol and not vwapPlacement and close <= open ? low : na, "", shape.circle, location.belowbar, gradCol, 0, size=size.large)
+plotshape(showThisBubble and hugeVol and not vwapPlacement and close <= open ? low : na, "", shape.circle, location.belowbar, gradCol, 0, size=size.huge)
 
 // Text Labels for Huge Spikes
 if hugeVol and inRange and labelSpikes and showBubbles and quantFilterPassed
