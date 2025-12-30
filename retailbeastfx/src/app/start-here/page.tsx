@@ -1,141 +1,130 @@
 'use client';
-import Image from 'next/image';
 import { GlowButton } from '@/components/Marketing';
 
 export default function StartHerePage() {
     return (
-        <div className="relative pt-24 pb-12">
+        <div className="relative pt-24 pb-12 min-h-screen">
             {/* Background Effects */}
-            <div className="absolute inset-0 bg-grid opacity-30 fixed pointer-events-none" />
+            <div className="absolute inset-0 bg-grid opacity-20 fixed pointer-events-none" />
             <div className="absolute inset-0 bg-radial-glow fixed pointer-events-none" />
 
             <div className="container-narrow mx-auto px-4 relative z-10">
 
                 {/* HERO */}
                 <div className="text-center mb-16 animate-fade-in">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-beast-green/10 border border-beast-green/30 mb-6">
-                        <span className="w-2 h-2 rounded-full bg-beast-green animate-pulse" />
-                        <span className="text-sm text-beast-green font-medium">Field Notes: Entry #001</span>
+                    <div className="inline-block border border-beast-green/30 bg-beast-green/10 rounded-full px-4 py-1 mb-6">
+                        <span className="text-beast-green text-sm font-bold tracking-wider">MANDATORY READING</span>
                     </div>
-                    <h1 className="heading-cyber text-4xl md:text-6xl text-white mb-6">
-                        START HERE. <span className="text-red-400">STOP GUESSING.</span>
+                    <h1 className="heading-cyber text-4xl md:text-6xl text-white mb-6 leading-tight">
+                        START HERE.<br />
+                        <span className="text-gray-500">READ THIS BEFORE TRADING.</span>
                     </h1>
-                    <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-                        You don't need another strategy. You need an execution trigger.
-                    </p>
                 </div>
 
-                {/* SECTION 1: THE PROBLEM (Post 1) */}
-                <section className="mb-24 animate-slide-up">
-                    <div className="glass-card rounded-2xl p-8 md:p-12 border border-beast-green/20 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <span className="text-9xl font-bold font-mono text-white">01</span>
-                        </div>
-
-                        <h2 className="heading-cyber text-2xl md:text-3xl text-white mb-6">
-                            Why You Freeze When It's Time to Click
+                {/* 1. WHO THIS IS FOR */}
+                <section className="mb-12 animate-slide-up">
+                    <div className="glass-card rounded-2xl p-8 border-l-4 border-l-beast-green border-y border-r border-beast-green/20">
+                        <h2 className="text-xl md:text-2xl text-white font-bold mb-6 flex items-center gap-3">
+                            <span className="bg-beast-green text-black w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
+                            WHO THIS IS FOR
                         </h2>
-
-                        <div className="prose prose-invert max-w-none text-gray-300 space-y-4">
-                            <p>
-                                If you know what an Order Block is, understand Fair Value Gaps, and can spot a Break of Structure—but you
-                                still hesitate when price hits your zone—you are not stupid.
-                            </p>
-                            <p>
-                                You are suffering from <span className="text-white font-bold">Execution Paralysis</span>.
-                            </p>
-                            <p>
-                                Most ICT traders are taught <em>Structure Literacy</em> (reading the map), but not <em>Execution Timing</em> (pulling the trigger).
-                                You stare at a zone waiting for "confirmation," but you don't actually know what that looks like.
-                            </p>
-                            <ul className="list-disc pl-5 space-y-2 text-gray-400">
-                                <li>So you enter late.</li>
-                                <li>You widen your stops to "be safe."</li>
-                                <li>You cut winners early because you're scared.</li>
-                            </ul>
-                            <div className="border-l-4 border-beast-green pl-6 py-2 my-6 bg-beast-green/5 rounded-r-lg">
-                                <p className="text-white font-bold text-lg italic">
-                                    "The market does not reward understanding.<br />It rewards decisive reaction to failure."
-                                </p>
-                            </div>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            {['Small accounts ($20–$100 welcome)', 'Scalpers / Intraday traders', 'ICT-literate but execution-confused', 'People who want rules, not opinions'].map((item, i) => (
+                                <div key={i} className="flex items-center gap-3">
+                                    <span className="text-beast-green font-bold">✓</span>
+                                    <span className="text-gray-300">{item}</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </section>
 
-                {/* SECTION 2: THE SOLUTION (Post 2) */}
-                <section className="mb-24">
-                    <div className="flex flex-col md:flex-row gap-8 items-center">
-                        <div className="w-full md:w-1/2">
-                            <h2 className="heading-cyber text-3xl text-white mb-6">
-                                The One Candle That Matters
-                            </h2>
-                            <p className="text-gray-300 mb-6">
-                                Stop trying to predict where price will go. Start waiting for price to prove everyone else wrong.
-                            </p>
-                            <div className="space-y-4">
-                                <div className="flex items-start gap-4">
-                                    <div className="w-8 h-8 rounded-full bg-beast-green flex items-center justify-center text-black font-bold flex-shrink-0">1</div>
-                                    <div>
-                                        <h4 className="text-white font-bold">Liquidity Sweep</h4>
-                                        <p className="text-sm text-gray-400">Price grabs a high or low. Retail traders get trapped.</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-8 h-8 rounded-full bg-beast-green flex items-center justify-center text-black font-bold flex-shrink-0">2</div>
-                                    <div>
-                                        <h4 className="text-white font-bold">The Engulfing Rejection</h4>
-                                        <p className="text-sm text-gray-400">Price forcefully closes back inside the range. This is EVIDENCE.</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-8 h-8 rounded-full bg-beast-green flex items-center justify-center text-black font-bold flex-shrink-0">3</div>
-                                    <div>
-                                        <h4 className="text-white font-bold">The Entry</h4>
-                                        <p className="text-sm text-gray-400">Market execution on the close. Stop loss above the wick.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="w-full md:w-1/2">
-                            <div className="aspect-square bg-cyber-dark rounded-xl border border-gray-700 flex items-center justify-center relative overflow-hidden group">
-                                <div className="absolute inset-0 bg-beast-green/5 group-hover:bg-beast-green/10 transition-all border border-beast-green/30 m-4 rounded-lg flex flex-col items-center justify-center p-8 text-center">
-                                    <p className="text-beast-green font-mono text-sm mb-2">[ VISUAL MODEL ]</p>
-                                    <div className="w-full h-1/2 relative mb-4">
-                                        {/* CSS Drawing of the setup */}
-                                        <div className="absolute bottom-1/4 left-1/4 w-4 h-16 bg-red-400 opacity-50"></div>
-                                        <div className="absolute bottom-1/4 left-1/4 ml-6 w-4 h-24 bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.6)]"></div>
-                                        <div className="absolute bottom-[calc(25%+6rem)] left-[calc(25%+1.5rem)] w-0.5 h-8 bg-green-500"></div>
-
-                                        {/* Sweep Line */}
-                                        <div className="absolute bottom-[calc(25%+4rem)] left-0 right-0 h-px bg-gray-500 border-t border-dashed"></div>
-                                        <div className="absolute right-0 bottom-[calc(25%+4.5rem)] text-xs text-gray-500">LIQUIDITY</div>
-                                    </div>
-                                    <p className="text-white font-bold">The Sweep + Engolf</p>
-                                    <p className="text-xs text-gray-400 mt-2">"I don't trade direction. I trade failure."</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* SECTION 3: THE ENFORCER (Journal) */}
-                <section className="mb-16 text-center">
-                    <div className="glass-card rounded-2xl p-8 md:p-12 border border-beast-gold/20 bg-gradient-to-b from-beast-gold/5 to-transparent">
-                        <h2 className="heading-cyber text-2xl md:text-4xl text-white mb-6">
-                            Knowledge is Worthless Without Discipline
+                {/* 2. WHO THIS IS NOT FOR (FILTER) */}
+                <section className="mb-12">
+                    <div className="glass-card rounded-2xl p-8 border-l-4 border-l-red-500 border-y border-r border-red-500/20 bg-red-500/5">
+                        <h2 className="text-xl md:text-2xl text-white font-bold mb-6 flex items-center gap-3">
+                            <span className="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
+                            WHO THIS IS <span className="text-red-500 underline decoration-2 underline-offset-4">NOT</span> FOR
                         </h2>
-                        <p className="text-gray-300 max-w-2xl mx-auto mb-8">
-                            You now have the trigger. But do you have the patience to wait for it?
-                            The RetailBeastFX Journal doesn't just track your P&L. It tracks your compliance.
+                        <div className="grid md:grid-cols-2 gap-4">
+                            {['Swing traders', 'HTF narrative traders', 'Signal seekers', '“Tell me where price is going” mindset'].map((item, i) => (
+                                <div key={i} className="flex items-center gap-3">
+                                    <span className="text-red-500 font-bold text-xl">×</span>
+                                    <span className="text-gray-300">{item}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <p className="mt-6 text-sm text-gray-500 italic border-t border-red-500/20 pt-4">
+                            If you fall into this category, close this tab. You will hate this system.
                         </p>
+                    </div>
+                </section>
 
-                        <div className="flex flex-col sm:flex-row justify-center gap-4">
-                            <GlowButton href="/journal" size="lg">
-                                Open The Enforcer (Journal)
+                {/* 3. THE PROBLEM IT SOLVES */}
+                <section className="mb-12">
+                    <div className="glass-card rounded-2xl p-8 border border-gray-700">
+                        <h2 className="text-xl md:text-2xl text-white font-bold mb-6 flex items-center gap-3">
+                            <span className="bg-gray-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">3</span>
+                            THE PROBLEM IT SOLVES
+                        </h2>
+                        <div className="space-y-4 text-gray-300 text-lg">
+                            <p>“I understand ICT concepts, but I don't know <strong>when</strong> to enter.”</p>
+                            <p>“I keep hesitating and missing the move, or entering late and getting stopped out.”</p>
+                            <p>“Everything makes sense on the chart until it’s time to actually click the button.”</p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 4. WHAT THE FRAMEWORK ACTUALLY DOES */}
+                <section className="mb-12">
+                    <div className="glass-card rounded-2xl p-8 border border-beast-gold/30 bg-beast-gold/5">
+                        <h2 className="text-xl md:text-2xl text-white font-bold mb-6 flex items-center gap-3">
+                            <span className="bg-beast-gold text-black w-8 h-8 rounded-full flex items-center justify-center text-sm">4</span>
+                            WHAT THIS SYSTEM DOES
+                        </h2>
+                        <div className="text-center py-6">
+                            <p className="text-2xl md:text-3xl text-white font-bold leading-relaxed">
+                                RetailBeastFX does not predict direction.<br />
+                                It gives <span className="text-beast-green">permission to execute</span> when price fails.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 5. WHAT TO DO NEXT */}
+                <section className="mb-16">
+                    <h2 className="text-xl md:text-2xl text-white font-bold mb-8 text-center">
+                        5. WHAT TO DO NEXT
+                    </h2>
+
+                    <div className="grid md:grid-cols-3 gap-6">
+                        {/* Step 1 */}
+                        <div className="glass-card p-6 rounded-xl border border-gray-700 hover:border-beast-green transition-colors group">
+                            <div className="text-4xl font-bold text-gray-700 group-hover:text-beast-green mb-4 transition-colors">01</div>
+                            <h3 className="text-white font-bold text-lg mb-2">Learn The Setup</h3>
+                            <p className="text-sm text-gray-400 mb-6">See the ONE candle pattern that validates an entry. No other pattern matters.</p>
+                            <GlowButton href="/mental-model" variant="outline" className="w-full">
+                                The One Candle →
                             </GlowButton>
-                            <GlowButton href="/field-notes" variant="secondary">
-                                Read All Field Notes
+                        </div>
+
+                        {/* Step 2 */}
+                        <div className="glass-card p-6 rounded-xl border border-gray-700 hover:border-beast-green transition-colors group">
+                            <div className="text-4xl font-bold text-gray-700 group-hover:text-beast-green mb-4 transition-colors">02</div>
+                            <h3 className="text-white font-bold text-lg mb-2">Respect The Risk</h3>
+                            <p className="text-sm text-gray-400 mb-6">Small account? Good. Learn the $20-$100 Survival Ruleset before you deposit.</p>
+                            <GlowButton href="/survival-mode" variant="outline" className="w-full">
+                                Survival Rules →
+                            </GlowButton>
+                        </div>
+
+                        {/* Step 3 */}
+                        <div className="glass-card p-6 rounded-xl border border-gray-700 hover:border-beast-green transition-colors group">
+                            <div className="text-4xl font-bold text-gray-700 group-hover:text-beast-green mb-4 transition-colors">03</div>
+                            <h3 className="text-white font-bold text-lg mb-2">Enforce Execution</h3>
+                            <p className="text-sm text-gray-400 mb-6">Open the journal. Paper trade 5 sessions. Prove you can follow instructions.</p>
+                            <GlowButton href="/journal" className="w-full">
+                                Open Journal →
                             </GlowButton>
                         </div>
                     </div>
