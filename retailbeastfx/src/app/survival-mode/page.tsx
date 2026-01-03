@@ -56,7 +56,8 @@ export default function SurvivalModePage() {
                             <div>
                                 <h3 className="text-white font-bold text-lg">Stop Loss Cap</h3>
                                 <p className="text-red-400 text-2xl font-bold font-mono">TIGHT STOPS ONLY</p>
-                                <p className="text-sm text-gray-500 mt-1">If the stop requires &gt;15 pips, skip the trade. Confluence is tight.</p>
+                                <p className="text-sm text-gray-500 mt-1">If the stop requires &gt;15 pips, skip the trade.</p>
+                                <p className="text-xs text-red-400 mt-2 font-bold uppercase">⚠️ Warning: High leverage with wide stops = Instant Death.</p>
                             </div>
                         </div>
 

@@ -362,8 +362,11 @@ export default function HomePage() {
             <h2 className="heading-cyber text-3xl md:text-4xl text-white mb-4">
               The Complete <span className="text-beast-green">Trading Ecosystem</span>
             </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              From signal detection to journal analysis – everything you need to become a consistently profitable trader.
+            <p className="text-gray-400 max-w-2xl mx-auto mb-6">
+              From setup validation to journal analysis – everything you need to become a consistently profitable trader.
+            </p>
+            <p className="text-beast-gold font-bold italic text-lg">
+              &quot;RetailBeastFX gives traders eyes, not hands.&quot;
             </p>
           </div>
 
