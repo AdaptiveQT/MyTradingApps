@@ -52,19 +52,45 @@ export default function HomePage() {
 
               {/* Headline - HARD GATE */}
               <h1 className="heading-cyber text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                <span className="text-white">ONE SETUP. TWO SESSIONS.</span>
+                <span className="text-white">RETAIL BEAST FX</span>
                 <br />
-                <span className="gradient-text">ZERO FLEXIBILITY.</span>
+                <span className="gradient-text">THE SYSTEM.</span>
               </h1>
-              {/* Promise Line */}
-              <p className="text-lg text-beast-green mb-6 font-medium">
-                You don't predict direction. You execute failure during killzones.
-              </p>
 
               {/* Subheadline - AUTHORITY */}
-              <p className="text-xl md:text-2xl text-gray-300 mb-6">
-                Retail Beast is a Tier-3 execution framework for traders who accept they cannot beat institutions on speed — and stop trying.
+              <p className="text-xl md:text-2xl text-gray-300 mb-8">
+                Hunt Liquidity with <span className="text-beast-green font-bold">Mechanical Precision</span>.
               </p>
+
+              {/* CHOOSE YOUR PATH - MODE SELECTOR */}
+              <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto lg:mx-0 mb-8">
+                {/* Strict Mode Card */}
+                <div className="bg-cyber-dark/80 p-4 rounded-xl border border-beast-green/30 hover:border-beast-green transition-colors text-left group cursor-default">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-beast-green rounded-full animate-pulse"></div>
+                    <h3 className="text-white font-bold group-hover:text-beast-green transition-colors">STRICT MODE</h3>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-2">Locked Trinity. Zero Flexibility.</p>
+                  <p className="text-xs text-beast-green uppercase font-bold tracking-wider">For Enforcers</p>
+                </div>
+
+                {/* Discretion Mode Card */}
+                <div className="bg-cyber-dark/80 p-4 rounded-xl border border-beast-gold/30 hover:border-beast-gold transition-colors text-left group cursor-default">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-beast-gold rounded-full animate-pulse"></div>
+                    <h3 className="text-white font-bold group-hover:text-beast-gold transition-colors">DISCRETION MODE</h3>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-2">ICT Fallure Execution. Anticipatory.</p>
+                  <p className="text-xs text-beast-gold uppercase font-bold tracking-wider">For Hunters</p>
+                </div>
+              </div>
+
+              {/* Protocol Line */}
+              <div className="mb-8 border-l-2 border-red-500 pl-4 py-1">
+                <p className="text-white font-medium italic">
+                  "No Setup. No Shot. No Cope. Accept or Exit."
+                </p>
+              </div>
 
               {/* SCOPE LOCK BOX */}
               <div className="bg-cyber-dark p-6 rounded-xl border border-gray-700 mb-8 max-w-xl mx-auto lg:mx-0">
@@ -155,12 +181,12 @@ export default function HomePage() {
                 {/* Bottom Stats */}
                 <div className="relative z-10 grid grid-cols-2 gap-4 text-center">
                   <div className="bg-cyber-dark/30 rounded-lg p-3">
-                    <p className="text-beast-green text-lg font-bold">Any Market</p>
-                    <p className="text-xs text-gray-500">Forex, Crypto, Indices</p>
+                    <p className="text-beast-green text-lg font-bold">Strict</p>
+                    <p className="text-xs text-gray-500">Mechanical Trinity</p>
                   </div>
                   <div className="bg-cyber-dark/30 rounded-lg p-3">
-                    <p className="text-beast-gold text-lg font-bold">Any TF</p>
-                    <p className="text-xs text-gray-500">1m to Monthly</p>
+                    <p className="text-beast-gold text-lg font-bold">Hunter</p>
+                    <p className="text-xs text-gray-500">Anticipatory ICT</p>
                   </div>
                 </div>
               </div>
@@ -231,10 +257,23 @@ export default function HomePage() {
             </div>
 
             <div className="border-t border-gray-700 pt-6">
-              <p className="text-lg text-white text-center max-w-xl mx-auto">
+              <p className="text-lg text-white text-center max-w-xl mx-auto mb-6">
                 Retail Beast doesn&apos;t teach confidence.<br />
                 <span className="text-beast-green font-medium">It exposes whether you already have discipline.</span>
               </p>
+
+              {/* WHY WE DON'T PREDICT */}
+              <div className="bg-black/40 p-6 rounded-xl border border-gray-700 max-w-2xl mx-auto text-left">
+                <h3 className="text-beast-gold font-bold mb-3">Why We Don&apos;t Predict</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Prediction is ego. Execution is submission.
+                  <br /><br />
+                  Markets move to liquidity. We do not guess where. We wait for the trap, see the failure, and act on permission.
+                </p>
+                <p className="text-white font-medium italic text-sm border-l-2 border-beast-gold pl-3">
+                  "Price action explains WHY a level exists. The system decides IF you act."
+                </p>
+              </div>
             </div>
           </div>
         </div>
