@@ -1,0 +1,210 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © RetailBeast 2026
+
+//@version=6
+indicator("RetailBeastFX Volume Sentinel", shorttitle="🐻 SENTINEL", overlay=true, max_bars_back=5000)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ VOLUME SENTINEL — INSTITUTIONAL PARTICIPATION PROOF ███
+// ══════════════════════════════════════════════════════════════════════════════
+// Standalone or paired with RetailBeastFX Premium v9.0 Institutional
+// Detects: Z-Score Surges, Absorption Zones, Delta Proxy, Session VA
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ INPUTS ███
+// ══════════════════════════════════════════════════════════════════════════════
+string volGroup = "═══ 🐻 VOLUME ANALYSIS ═══"
+int length = input.int(20, "Z-Score Lookback", minval=10, maxval=50, group=volGroup)
+float zThreshHigh = input.float(2.0, "Surge Threshold (High σ)", minval=1.0, maxval=3.5, step=0.1, group=volGroup, tooltip="Volume > 2.0σ = institutional surge")
+float zThreshAbsorb = input.float(1.5, "Absorption Min Z-Score", minval=1.0, maxval=2.5, step=0.1, group=volGroup)
+float bodyRatio = input.float(0.3, "Absorption Body Ratio", minval=0.1, maxval=0.5, step=0.05, group=volGroup, tooltip="Body < 30% of range = absorption")
+
+string visGroup = "═══ VISUAL SETTINGS ═══"
+bool showDelta = input.bool(true, "Show Cumulative Delta Proxy", group=visGroup)
+bool showSessionVA = input.bool(true, "Show Session POC/VAH/VAL", group=visGroup)
+bool showGlow = input.bool(true, "Absorption Glow Background", group=visGroup)
+bool showSurgeMarkers = input.bool(true, "Show Surge Markers", group=visGroup)
+bool showDashboard = input.bool(true, "Show Dashboard", group=visGroup)
+color surgeColor = input.color(color.new(#E040FB, 0), "Surge Color", group=visGroup)
+color absorbColor = input.color(color.new(#9C27B0, 85), "Absorption Color", group=visGroup)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ VOLUME CALCULATIONS ███
+// ══════════════════════════════════════════════════════════════════════════════
+float vol = volume
+float avgVol = ta.sma(vol, length)
+float stdVol = ta.stdev(vol, length)
+float zScore = stdVol != 0 ? (vol - avgVol) / stdVol : 0
+
+// Relative Volume
+float relVol = avgVol != 0 ? vol / avgVol : 1
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ CUMULATIVE DELTA PROXY ███
+// ══════════════════════════════════════════════════════════════════════════════
+// Estimate buying vs selling pressure from candle direction
+float deltaProxy = close > open ? vol : close < open ? -vol : 0
+float cumDelta = ta.cum(deltaProxy)
+float deltaMA = ta.ema(cumDelta, 20)
+bool deltaBullish = cumDelta > deltaMA
+bool deltaBearish = cumDelta < deltaMA
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ ABSORPTION DETECTION ███
+// ══════════════════════════════════════════════════════════════════════════════
+// Absorption = High volume but small body (institutional hiding intent)
+float body = math.abs(close - open)
+float candleRange = high - low
+float avgBody = ta.sma(body, length)
+bool isHighVol = zScore >= zThreshAbsorb
+bool isSmallBody = candleRange > 0 ? body < candleRange * bodyRatio : false
+bool isAbsorption = isHighVol and isSmallBody
+
+// Absorption Type
+bool bullAbsorption = isAbsorption and close > open
+bool bearAbsorption = isAbsorption and close < open
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ SURGE DETECTION ███
+// ══════════════════════════════════════════════════════════════════════════════
+bool isSurge = zScore >= zThreshHigh
+bool bullSurge = isSurge and close > open
+bool bearSurge = isSurge and close < open
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ PARTICIPATION SCORE (0-10) ███
+// ══════════════════════════════════════════════════════════════════════════════
+float participationScore = 0.0
+participationScore += isSurge ? 5.0 : 0.0
+participationScore += isAbsorption ? 3.0 : 0.0
+participationScore += zScore >= 1.0 ? 1.0 : 0.0
+participationScore += relVol >= 1.5 ? 1.0 : 0.0
+participationScore := math.min(participationScore, 10.0)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ SESSION VALUE AREA (POC/VAH/VAL) ███
+// ══════════════════════════════════════════════════════════════════════════════
+var float sessionPOC = na
+var float sessionVAH = na
+var float sessionVAL = na
+var float sessionVolTotal = 0.0
+
+bool newDay = ta.change(time("D")) != 0
+if newDay
+    sessionPOC := close
+    sessionVAH := high
+    sessionVAL := low
+    sessionVolTotal := vol
+else
+    // Volume-weighted POC approximation
+    if sessionVolTotal > 0
+        sessionPOC := (sessionPOC * (sessionVolTotal - vol) + close * vol) / sessionVolTotal
+    sessionVAH := math.max(nz(sessionVAH, high), high)
+    sessionVAL := math.min(nz(sessionVAL, low), low)
+    sessionVolTotal += vol
+
+// Plot Session VA
+plot(showSessionVA ? sessionPOC : na, "Session POC", color.new(#FF9800, 30), 2, plot.style_linebr)
+plot(showSessionVA ? sessionVAH : na, "VAH", color.new(#FF5252, 60), 1, plot.style_circles)
+plot(showSessionVA ? sessionVAL : na, "VAL", color.new(#00E676, 60), 1, plot.style_circles)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ VISUALS ███
+// ══════════════════════════════════════════════════════════════════════════════
+// Surge Markers
+plotshape(showSurgeMarkers and bullSurge ? low : na, "Bull Surge", shape.triangleup, location.belowbar, surgeColor, size=size.small, text="⚡")
+plotshape(showSurgeMarkers and bearSurge ? high : na, "Bear Surge", shape.triangledown, location.abovebar, surgeColor, size=size.small, text="⚡")
+
+// Absorption Glow
+bgcolor(showGlow and isAbsorption ? absorbColor : na, title="Absorption Zone")
+
+// Absorption Diamonds (separate bull/bear)
+plotshape(bullAbsorption ? low : na, "Bull Absorption", shape.diamond, location.belowbar, color.new(#9C27B0, 20), size=size.tiny)
+plotshape(bearAbsorption ? high : na, "Bear Absorption", shape.diamond, location.abovebar, color.new(#9C27B0, 20), size=size.tiny)
+
+// Delta Proxy (overlay mode - normalized)
+// Since overlay=true, we can't plot delta directly. Show via color on price bars instead.
+barcolor(showDelta ? (deltaBullish ? color.new(#00E676, 50) : deltaBearish ? color.new(#FF5252, 50) : na) : na, title="Delta Bias")
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ VWAP DEVIATION BUBBLES ███
+// ══════════════════════════════════════════════════════════════════════════════
+bool showVWAP = input.bool(true, "Show VWAP & Deviation", group=visGroup)
+float vwapVal = ta.vwap(hlc3)
+float vwapDev = vwapVal != 0 ? (close - vwapVal) / vwapVal * 100 : 0
+float atrBubble = ta.atr(14)
+
+// Plot VWAP
+plot(showVWAP ? vwapVal : na, "VWAP", color.new(#FFD700, 30), 2, plot.style_linebr)
+
+// Bubble labels at close price (only on elevated volume)
+if showVWAP and zScore >= 1.5 and barstate.isconfirmed
+    // Bubble color based on deviation direction
+    color bubbleCol = vwapDev > 0 ? color.new(#00BCD4, 30) : color.new(#B71C1C, 30)
+    // Bubble size based on Z-Score
+    string bubbleSize = zScore >= 3.0 ? size.normal : zScore >= 2.0 ? size.small : size.tiny
+    // Position offset from close
+    float yOffset = vwapDev > 0 ? atrBubble * 0.3 : -atrBubble * 0.3
+    float yPos = close + yOffset
+    // Label text shows deviation %
+    string devText = str.tostring(math.abs(vwapDev), "#.#") + "%"
+    label.new(bar_index, yPos, devText, style=label.style_circle, color=bubbleCol, textcolor=color.white, size=bubbleSize)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ DASHBOARD ███
+// ══════════════════════════════════════════════════════════════════════════════
+if showDashboard
+    var table volTable = table.new(position.top_right, 2, 7, bgcolor=color.new(#000000, 30), border_width=1, border_color=color.new(#9C27B0, 50))
+    
+    // Header
+    table.cell(volTable, 0, 0, "🐻", text_color=color.new(#9C27B0, 0), text_size=size.normal, text_halign=text.align_center)
+    table.cell(volTable, 1, 0, "VOLUME SENTINEL", text_color=color.new(#9C27B0, 0), text_size=size.small, text_halign=text.align_left)
+    
+    // Z-Score
+    table.cell(volTable, 0, 1, "Z-SCORE", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
+    string zText = str.tostring(zScore, "#.##") + "σ"
+    color zColor = isSurge ? color.new(#E040FB, 0) : zScore >= 1.0 ? color.new(#00E676, 0) : color.gray
+    table.cell(volTable, 1, 1, zText, text_color=zColor, text_size=size.tiny, text_halign=text.align_left)
+    
+    // Relative Volume
+    table.cell(volTable, 0, 2, "REL VOL", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
+    string rvolText = str.tostring(relVol, "#.##") + "x"
+    color rvolColor = relVol >= 1.5 ? color.new(#00E676, 0) : color.gray
+    table.cell(volTable, 1, 2, rvolText, text_color=rvolColor, text_size=size.tiny, text_halign=text.align_left)
+    
+    // Participation Score
+    table.cell(volTable, 0, 3, "SCORE", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
+    string scoreText = str.tostring(participationScore, "#") + "/10"
+    color scoreColor = participationScore >= 8 ? color.new(#00FF00, 0) : participationScore >= 5 ? color.new(#FFD700, 0) : participationScore >= 3 ? color.new(#FF8C00, 0) : color.gray
+    table.cell(volTable, 1, 3, scoreText, text_color=scoreColor, text_size=size.tiny, text_halign=text.align_left)
+    
+    // VWAP Deviation
+    table.cell(volTable, 0, 4, "VWAP DEV", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
+    string vwapText = (vwapDev >= 0 ? "+" : "") + str.tostring(vwapDev, "#.##") + "%"
+    color vwapColor = vwapDev > 0.5 ? color.new(#00BCD4, 0) : vwapDev < -0.5 ? color.new(#B71C1C, 0) : color.gray
+    table.cell(volTable, 1, 4, vwapText, text_color=vwapColor, text_size=size.tiny, text_halign=text.align_left)
+    
+    // Status
+    table.cell(volTable, 0, 5, "STATUS", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
+    string statusText = isSurge ? "⚡ SURGE" : isAbsorption ? "🛡️ ABSORB" : "NORMAL"
+    color statusColor = isSurge ? surgeColor : isAbsorption ? color.new(#9C27B0, 0) : color.gray
+    table.cell(volTable, 1, 5, statusText, text_color=statusColor, text_size=size.tiny, text_halign=text.align_left)
+    
+    // Delta Bias
+    table.cell(volTable, 0, 6, "DELTA", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
+    string deltaText = deltaBullish ? "📈 BUYERS" : deltaBearish ? "📉 SELLERS" : "NEUTRAL"
+    color deltaColor = deltaBullish ? color.new(#00E676, 0) : deltaBearish ? color.new(#FF5252, 0) : color.gray
+    table.cell(volTable, 1, 6, deltaText, text_color=deltaColor, text_size=size.tiny, text_halign=text.align_left)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ ALERTS ███
+// ══════════════════════════════════════════════════════════════════════════════
+alertcondition(isSurge, title="Volume Surge", message="⚡ Volume Sentinel: Z-Score Surge Detected on {{ticker}}")
+alertcondition(isAbsorption, title="Institutional Absorption", message="🛡️ Volume Sentinel: Absorption Zone – Institutional Defense on {{ticker}}")
+alertcondition(participationScore >= 8, title="Apex Participation", message="🔥 Volume Sentinel: High Institutional Participation (Score ≥8) on {{ticker}}")
+alertcondition(bullSurge, title="Bullish Volume Surge", message="⚡📈 Volume Sentinel: BULLISH Surge on {{ticker}}")
+alertcondition(bearSurge, title="Bearish Volume Surge", message="⚡📉 Volume Sentinel: BEARISH Surge on {{ticker}}")
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ███ END OF SCRIPT ███
+// ══════════════════════════════════════════════════════════════════════════════
