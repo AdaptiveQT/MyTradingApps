@@ -52,10 +52,10 @@ export default function Header() {
 
                     {/* Right Actions */}
                     <div className="flex items-center gap-3">
-                        {/* Win Rate Badge - Hidden on mobile */}
+                        {/* Version Badge - Hidden on mobile */}
                         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-beast-green/10 border border-beast-green/20">
                             <span className="w-2 h-2 rounded-full bg-beast-green animate-pulse" />
-                            <span className="text-xs text-beast-green font-semibold">Win Rate: 72%</span>
+                            <span className="text-xs text-beast-green font-semibold">v9.0 FREE</span>
                         </div>
 
                         {/* Journal Button */}

@@ -18,9 +18,8 @@ const testimonials: Testimonial[] = [
         name: 'Marcus T.',
         role: 'Day Trader',
         avatar: '👨‍💻',
-        quote: 'Journal turned my 55% win rate to 78% – forced discipline! The Fresh OB alerts combined with tracking puts everything in perspective.',
+        quote: 'The journal forced me to actually track my trades instead of guessing how I was doing. Seeing the data changed how I approach risk.',
         rating: 5,
-        winRate: '78%',
     },
     {
         id: 2,
@@ -29,25 +28,22 @@ const testimonials: Testimonial[] = [
         avatar: '👩‍💼',
         quote: 'RetailBeastFX killed my revenge trading. Seeing my stats in real-time after each trade makes me think twice before breaking rules.',
         rating: 5,
-        winRate: '72%',
     },
     {
         id: 3,
         name: 'David L.',
         role: 'Crypto Trader',
         avatar: '🧑‍🚀',
-        quote: 'The Killzone overlays are chef\'s kiss. Combined with the journal expectancy tracking, I finally found my edge on BTC.',
+        quote: 'The Killzone overlays are chef\'s kiss. Combined with the journal expectancy tracking, I finally understand where my edge actually is.',
         rating: 5,
-        winRate: '68%',
     },
     {
         id: 4,
         name: 'Aisha M.',
         role: 'Forex Trader',
         avatar: '👩‍🔬',
-        quote: 'Ghost Tape + Journal review sessions = pure gold. I review my trades every weekend and my account has grown 40% in 3 months.',
+        quote: 'Weekly journal reviews are now part of my routine. I can actually see which setups work for me and which ones I should avoid.',
         rating: 5,
-        winRate: '81%',
     },
 ];
 
@@ -86,8 +82,8 @@ export default function TestimonialCarousel() {
                         <div
                             key={testimonial.id}
                             className={`transition-all duration-500 ${index === current
-                                    ? 'opacity-100 translate-y-0'
-                                    : 'opacity-0 absolute translate-y-4'
+                                ? 'opacity-100 translate-y-0'
+                                : 'opacity-0 absolute translate-y-4'
                                 }`}
                         >
                             {index === current && (
@@ -143,8 +139,8 @@ export default function TestimonialCarousel() {
                         key={index}
                         onClick={() => handleDotClick(index)}
                         className={`w-2 h-2 rounded-full transition-all duration-300 ${index === current
-                                ? 'bg-beast-green w-8'
-                                : 'bg-gray-600 hover:bg-gray-500'
+                            ? 'bg-beast-green w-8'
+                            : 'bg-gray-600 hover:bg-gray-500'
                             }`}
                         aria-label={`Go to testimonial ${index + 1}`}
                     />
