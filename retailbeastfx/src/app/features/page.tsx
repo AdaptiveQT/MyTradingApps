@@ -68,9 +68,9 @@ export default function FeaturesPage() {
                             </p>
 
                             <p className="text-gray-400 mb-8">
-                                Most indicators repaint the past to look like heroes. Ours predicts the future to make you a killer.
-                                We stripped the code from our original &ldquo;Quantum Oracle&rdquo; tests to focus on one thing:
-                                <span className="text-white font-semibold"> High-Probability Reaction Points.</span>
+                                Most indicators repaint the past to look good on backtests. We don&apos;t.
+                                Every signal you see on a live candle stays exactly where it was plotted.
+                                <span className="text-white font-semibold"> No repainting. No hindsight edits.</span>
                             </p>
 
                             <ul className="space-y-4 mb-8">
@@ -239,8 +239,8 @@ export default function FeaturesPage() {
                                 <li className="flex gap-3">
                                     <span className="text-beast-green mt-1">✓</span>
                                     <div>
-                                        <span className="text-white font-semibold">Risk-First Compounding:</span>
-                                        <span className="text-gray-400"> Built-in Quarter-Kelly calculator. Tells you exactly what lot size to use to stay within the &ldquo;Retail Safe&rdquo; growth curve (180-450% CAGR).</span>
+                                        <span className="text-white font-semibold">Risk-First Position Sizing:</span>
+                                        <span className="text-gray-400"> Built-in lot size calculator based on your account balance and risk tolerance. Protects you from over-leveraging.</span>
                                     </div>
                                 </li>
                                 <li className="flex gap-3">

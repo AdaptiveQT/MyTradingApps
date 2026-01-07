@@ -73,7 +73,7 @@ export default function AboutPage() {
                                 {/* Brand Label */}
                                 <div className="text-center mt-4 relative z-10">
                                     <p className="text-beast-green font-semibold heading-cyber">The Beast</p>
-                                    <p className="text-gray-400 text-sm">Discipline. Execution. Profits.</p>
+                                    <p className="text-gray-400 text-sm">Discipline. Execution. Data.</p>
                                 </div>
                             </div>
                         </div>
@@ -94,9 +94,9 @@ export default function AboutPage() {
                         </p>
 
                         <p className="text-gray-400 leading-relaxed">
-                            The result was &ldquo;Quantum Oracle Arb&rdquo; — a theoretical monster stacking cross-venue atomic arbitrage,
-                            predictive mempool access, and quantum-aided price prediction. Back-of-envelope math: 180,000% to 1.2 million% CAGR.
-                            One problem: it would self-destruct after extracting $15-30B as markets and regulators adapted.
+                            We started with a theoretical experiment: what if we built the most aggressive trading system possible?
+                            The result was a monster that looked great on paper but would never work in reality.
+                            <span className="text-white font-semibold">That failure taught us something important.</span>
                         </p>
 
                         <p className="text-gray-400 leading-relaxed">
@@ -278,7 +278,7 @@ export default function AboutPage() {
                         Ready to Join the <span className="text-beast-green">Beast Pack?</span>
                     </h2>
                     <p className="text-gray-400 mb-8">
-                        Start your journey to consistent profitability today.
+                        Start building your trading edge with data, not hope.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <GlowButton href="/pricing" size="lg">
