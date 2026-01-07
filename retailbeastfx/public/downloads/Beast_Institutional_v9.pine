@@ -158,9 +158,17 @@ if showKillzones
 bgcolor(showKillzones and inPowerHour ? color.new(#1E90FF, 90) : na, title="Power Hour")
 bgcolor(showKillzones and inSilverBullet ? color.new(#00FFFF, 92) : na, title="Silver Bullet")
 
+// Silver Bullet PREP (5 min before - 9:55-10:00 ET)
+bool inSilverBulletPrep = isInSession("0955-1000")
+bgcolor(showKillzones and inSilverBulletPrep ? color.new(#FFD700, 90) : na, title="SB Prep")
+
 // Session Labels
 if showKillzones and inPowerHour and not inPowerHour[1]
     label.new(bar_index, high, "⚡ POWER HOUR", style=label.style_label_down, color=color.new(#1E90FF, 50), textcolor=color.white, size=size.tiny)
+
+// Silver Bullet PREP Label (fires 5 min before)
+if showKillzones and inSilverBulletPrep and not inSilverBulletPrep[1]
+    label.new(bar_index, high, "⏰ SB IN 5 MIN", style=label.style_label_down, color=color.new(#FFD700, 0), textcolor=color.black, size=size.normal)
 
 if showKillzones and inSilverBullet and not inSilverBullet[1]
     label.new(bar_index, high, "🎯 SILVER BULLET", style=label.style_label_down, color=color.new(#00FFFF, 50), textcolor=color.white, size=size.tiny)
@@ -710,6 +718,7 @@ alertcondition(volSurge, title="Volume Surge", message="🐻 Volume Z-Score Surg
 alertcondition(carryFragile and not carryFragile[1], title="Carry Unwind Warning", message="⚠️ INTER-MARKET: USD/JPY Carry Fragility Alert")
 alertcondition(riskOn and not riskOn[1], title="Risk-On Regime", message="🟢 INTER-MARKET: Risk-On (Silver outperforming)")
 alertcondition(riskOff and not riskOff[1], title="Risk-Off Regime", message="🔴 INTER-MARKET: Risk-Off (Gold dominance)")
+alertcondition(inSilverBulletPrep and not inSilverBulletPrep[1], title="⏰ Silver Bullet PREP", message="⏰ SILVER BULLET in 5 minutes! Get ready on {{ticker}}")
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ END OF SCRIPT ███
