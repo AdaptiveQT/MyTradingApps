@@ -362,9 +362,7 @@ bool pdlSweep = low < pdl and close > pdl   // Swept PDL, closed above
 bool pwhSweep = high > pwh and close < pwh  // Swept PWH
 bool pwlSweep = low < pwl and close > pwl   // Swept PWL
 
-// Liquidity grab labels
-plotshape(pdhSweep and inKillzone, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 20), text="LIQ GRAB ↓", textcolor=color.white, size=size.tiny)
-plotshape(pdlSweep and inKillzone, style=shape.labelup, location=location.belowbar, color=color.new(color.green, 20), text="LIQ GRAB ↑", textcolor=color.white, size=size.tiny)
+// Note: Liquidity sweep labels plotted in signals section after inKillzone is defined
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 5. FVG DETECTION (INTELLIGENT SCORING + iFVG) ░░░
@@ -898,7 +896,7 @@ if (pdhSweep or pdlSweep) and inKillzone
     color liqCol = pdhSweep ? color.red : color.green
     popupLiqGrab := label.new(bar_index, pdhSweep ? high : low, liqText, color=liqCol, textcolor=color.white, style=pdhSweep ? label.style_label_down : label.style_label_up, size=size.normal, yloc=pdhSweep ? yloc.abovebar : yloc.belowbar)
 
-// ═══ FADE ANIMATION (runs every bar) ═══
+// ═══ FADE ANIMATION (simplified - delete after duration) ═══
 fadePopup(lbl, duration) =>
     if not na(lbl)
         int age = bar_index - label.get_x(lbl)
@@ -906,9 +904,6 @@ fadePopup(lbl, duration) =>
             label.delete(lbl)
             label(na)
         else
-            float opacity = 100.0 * (1.0 - age / duration)
-            label.set_color(lbl, color.new(label.get_color(lbl), math.round(100 - opacity)))
-            label.set_textcolor(lbl, color.new(label.get_textcolor(lbl), math.round(100 - opacity)))
             lbl
     else
         lbl
@@ -918,6 +913,10 @@ popupNuclearShort := fadePopup(popupNuclearShort, fadeDuration)
 popupKZLong := fadePopup(popupKZLong, 8)
 popupKZShort := fadePopup(popupKZShort, 8)
 popupLiqGrab := fadePopup(popupLiqGrab, 6)
+
+// ═══ LIQUIDITY GRAB LABELS (plotshape after inKillzone defined) ═══
+plotshape(pdhSweep and inKillzone, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 20), text="LIQ GRAB ↓", textcolor=color.white, size=size.tiny)
+plotshape(pdlSweep and inKillzone, style=shape.labelup, location=location.belowbar, color=color.new(color.green, 20), text="LIQ GRAB ↑", textcolor=color.white, size=size.tiny)
 
 // ═══ BACKGROUND FLASH ON NUCLEAR ═══
 var color flashBg = na
