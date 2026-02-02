@@ -92,6 +92,15 @@ color bullObCol = input.color(color.new(#00bcd4, 80), "Bull OB", group=grpICT)
 color bearObCol = input.color(color.new(#ff5252, 80), "Bear OB", group=grpICT)
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ░░░ ORDER BLOCK SCORING ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpOBScore = "OB Scoring"
+int obScoreThreshold = input.int(5, "Min OB Score (0-10)", minval=0, maxval=10, group=grpOBScore, tooltip="Only show OBs scoring above this")
+float obATRMult = input.float(2.0, "Displacement ATR Mult", minval=1.0, step=0.5, group=grpOBScore, tooltip="Move away must exceed this * ATR")
+bool showOBScore = input.bool(true, "Show OB Score", group=grpOBScore)
+bool hideWeakOBs = input.bool(false, "Hide Weak OBs", group=grpOBScore, tooltip="Hide OBs below threshold instead of graying out")
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ░░░ ZODIAC SETTINGS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 grpAstro = "Zodiac"
@@ -408,7 +417,7 @@ if presentMode and array.size(bearFVGs) > 0
                 array.remove(bearFVGBots, i)
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 6. ORDER BLOCKS (WITH MITIGATION) ░░░
+// ░░░ 6. ORDER BLOCKS (INTELLIGENT SCORING) ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 float sh = ta.pivothigh(high, structLen, structLen)
 float sl = ta.pivotlow(low, structLen, structLen)
@@ -428,12 +437,74 @@ if showBOS and bosUp
 if showBOS and bosDn
     label.new(bar_index, low, "BOS↓", color=color.new(color.red, 100), style=label.style_label_up, textcolor=color.red, size=size.tiny)
 
+// OB Tracking Arrays
 var box[] bullOBs = array.new_box()
 var box[] bearOBs = array.new_box()
 var float[] bullOBBots = array.new_float()
 var float[] bearOBTops = array.new_float()
+var int[] bullOBScores = array.new_int()
+var int[] bearOBScores = array.new_int()
 
-// Create Bull OB (Strong vs Weak)
+// ATR & Avg Body for scoring
+float atrVal = ta.atr(14)
+float bodySize = math.abs(close - open)
+float avgBody = ta.sma(bodySize, 14)
+
+// HTF Trend Detection (Fast EMA > Slow EMA = bullish)
+float htfFastEMA = ta.ema(close, fastLen)
+float htfSlowEMA = ta.ema(close, slowLen)
+bool htfBullTrend = htfFastEMA > htfSlowEMA
+bool htfBearTrend = htfFastEMA < htfSlowEMA
+
+// FVG Confluence Check Function
+fvgNearOB(obTop, obBot, isBull) =>
+    bool hasConfluence = false
+    if isBull and array.size(bullFVGTops) > 0
+        for i = 0 to array.size(bullFVGTops) - 1
+            fvgTop = array.get(bullFVGTops, i)
+            fvgBot = array.get(bullFVGBots, i)
+            if (fvgBot <= obTop and fvgTop >= obBot)
+                hasConfluence := true
+    if not isBull and array.size(bearFVGTops) > 0
+        for i = 0 to array.size(bearFVGTops) - 1
+            fvgTop = array.get(bearFVGTops, i)
+            fvgBot = array.get(bearFVGBots, i)
+            if (fvgBot <= obTop and fvgTop >= obBot)
+                hasConfluence := true
+    hasConfluence
+
+// OB Scoring Function (0-10)
+calcOBScore(obBody, displacement, inKZ, htfAligned, hasFVG) =>
+    int score = 0
+    // +3 Strong displacement (move > 2x ATR)
+    if displacement > atrVal * obATRMult
+        score += 3
+    // +2 First test (unmitigated - all new OBs are unmitigated)
+    score += 2
+    // +2 HTF trend aligned
+    if htfAligned
+        score += 2
+    // +1 In killzone
+    if inKZ
+        score += 1
+    // +1 FVG confluence
+    if hasFVG
+        score += 1
+    // +1 Strong body
+    if obBody > avgBody * 1.3
+        score += 1
+    math.min(score, 10)
+
+// OB Color by Score
+obColorByScore(score, isBull) =>
+    if score >= 8
+        isBull ? color.new(#00ff88, 60) : color.new(#ff4444, 60)  // Green/Red - High
+    else if score >= 5
+        isBull ? color.new(#00bcd4, 70) : color.new(#ff5252, 70)  // Cyan/Pink - Medium
+    else
+        color.new(color.gray, 80)  // Gray - Weak
+
+// Create Bull OB with Scoring
 if showOB and bosUp
     int idx = na
     for i = 1 to 10
@@ -444,18 +515,29 @@ if showOB and bosUp
         float obTop = high[idx]
         float obBot = low[idx]
         float obBody = math.abs(close[idx] - open[idx])
-        bool strongOB = obBody > avgBody * 1.3 and inKillzone
-        string obLabel = strongOB ? "▮ OB ★" : "▮ OB"
-        int obWidth = strongOB ? 3 : 1
-        color obBgCol = strongOB ? color.new(#00bcd4, 70) : bullObCol
-        box b = box.new(bar_index - idx, obTop, bar_index + 60, obBot, border_color=color.new(#00bcd4, 20), bgcolor=obBgCol, border_width=obWidth, text=obLabel, text_color=#00bcd4, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
-        array.push(bullOBs, b)
-        array.push(bullOBBots, obBot)
-        if array.size(bullOBs) > maxOB
-            box.delete(array.shift(bullOBs))
-            array.shift(bullOBBots)
+        float displacement = math.abs(close - close[idx])
+        bool hasFVG = fvgNearOB(obTop, obBot, true)
+        int obScore = calcOBScore(obBody, displacement, inKillzone, htfBullTrend, hasFVG)
+        
+        // Apply threshold filter
+        if obScore >= obScoreThreshold or not hideWeakOBs
+            string obLabel = showOBScore ? "▮ OB " + str.tostring(obScore) + "/10" : "▮ OB"
+            if obScore >= 8
+                obLabel := obLabel + " ★"
+            int obWidth = obScore >= 8 ? 3 : obScore >= 5 ? 2 : 1
+            color obBgCol = obColorByScore(obScore, true)
+            color obBorderCol = obScore >= 5 ? color.new(#00bcd4, 20) : color.new(color.gray, 40)
+            
+            box b = box.new(bar_index - idx, obTop, bar_index + 60, obBot, border_color=obBorderCol, bgcolor=obBgCol, border_width=obWidth, text=obLabel, text_color=#00bcd4, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+            array.push(bullOBs, b)
+            array.push(bullOBBots, obBot)
+            array.push(bullOBScores, obScore)
+            if array.size(bullOBs) > maxOB
+                box.delete(array.shift(bullOBs))
+                array.shift(bullOBBots)
+                array.shift(bullOBScores)
 
-// Create Bear OB (Strong vs Weak)
+// Create Bear OB with Scoring
 if showOB and bosDn
     int idx = na
     for i = 1 to 10
@@ -466,16 +548,27 @@ if showOB and bosDn
         float obTop = high[idx]
         float obBot = low[idx]
         float obBody = math.abs(close[idx] - open[idx])
-        bool strongOB = obBody > avgBody * 1.3 and inKillzone
-        string obLabel = strongOB ? "▮ OB ★" : "▮ OB"
-        int obWidth = strongOB ? 3 : 1
-        color obBgCol = strongOB ? color.new(#ff5252, 70) : bearObCol
-        box b = box.new(bar_index - idx, obTop, bar_index + 60, obBot, border_color=color.new(#ff5252, 20), bgcolor=obBgCol, border_width=obWidth, text=obLabel, text_color=#ff5252, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
-        array.push(bearOBs, b)
-        array.push(bearOBTops, obTop)
-        if array.size(bearOBs) > maxOB
-            box.delete(array.shift(bearOBs))
-            array.shift(bearOBTops)
+        float displacement = math.abs(close - close[idx])
+        bool hasFVG = fvgNearOB(obTop, obBot, false)
+        int obScore = calcOBScore(obBody, displacement, inKillzone, htfBearTrend, hasFVG)
+        
+        // Apply threshold filter
+        if obScore >= obScoreThreshold or not hideWeakOBs
+            string obLabel = showOBScore ? "▮ OB " + str.tostring(obScore) + "/10" : "▮ OB"
+            if obScore >= 8
+                obLabel := obLabel + " ★"
+            int obWidth = obScore >= 8 ? 3 : obScore >= 5 ? 2 : 1
+            color obBgCol = obColorByScore(obScore, false)
+            color obBorderCol = obScore >= 5 ? color.new(#ff5252, 20) : color.new(color.gray, 40)
+            
+            box b = box.new(bar_index - idx, obTop, bar_index + 60, obBot, border_color=obBorderCol, bgcolor=obBgCol, border_width=obWidth, text=obLabel, text_color=#ff5252, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+            array.push(bearOBs, b)
+            array.push(bearOBTops, obTop)
+            array.push(bearOBScores, obScore)
+            if array.size(bearOBs) > maxOB
+                box.delete(array.shift(bearOBs))
+                array.shift(bearOBTops)
+                array.shift(bearOBScores)
 
 // ═══ ORDER BLOCK MITIGATION (Present Mode) ═══
 if presentMode and array.size(bullOBs) > 0
@@ -487,6 +580,8 @@ if presentMode and array.size(bullOBs) > 0
                 box.delete(array.get(bullOBs, i))
                 array.remove(bullOBs, i)
                 array.remove(bullOBBots, i)
+                if i < array.size(bullOBScores)
+                    array.remove(bullOBScores, i)
 
 if presentMode and array.size(bearOBs) > 0
     for i = array.size(bearOBs) - 1 to 0
@@ -497,6 +592,8 @@ if presentMode and array.size(bearOBs) > 0
                 box.delete(array.get(bearOBs, i))
                 array.remove(bearOBs, i)
                 array.remove(bearOBTops, i)
+                if i < array.size(bearOBScores)
+                    array.remove(bearOBScores, i)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 7. KILLZONE SIGNALS (ZODIAC FILTERED) ░░░
