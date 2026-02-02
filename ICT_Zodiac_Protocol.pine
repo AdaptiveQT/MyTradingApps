@@ -813,6 +813,71 @@ plotshape(conflictLong, style=shape.xcross, location=location.belowbar, color=co
 plotshape(conflictShort, style=shape.xcross, location=location.abovebar, color=color.new(color.orange, 0), text="⚠ CONFLICT", textcolor=color.orange, size=size.small)
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ░░░ POWER OF 3 (PO3) – AMD CYCLE ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// Accumulation → Manipulation → Distribution (core ICT cycle)
+
+// PO3 EMAs for trend context
+float po3Fast = ta.ema(close, 9)
+float po3Slow = ta.ema(close, 21)
+bool po3Uptrend = po3Fast > po3Slow
+
+// Swing High/Low for structure (use existing structLen)
+float swingHigh = ta.highest(high, structLen)
+float swingLow = ta.lowest(low, structLen)
+
+// Phase detection based on price action + trend
+var string po3Phase = "NEUTRAL"
+var string prevPO3Phase = "NEUTRAL"
+
+// Accumulation: Price consolidating below resistance in uptrend (smart money loading)
+bool isAccumulation = po3Uptrend and close < po3Slow and close > swingLow * 0.995
+
+// Manipulation: False move / Judas swing (wick beyond structure then reversal)
+bool isManipulation = (high > swingHigh[1] and close < open) or (low < swingLow[1] and close > open)
+
+// Distribution: Price extended from MAs in trend (smart money offloading)
+bool isDistribution = (po3Uptrend and close > po3Fast * 1.005) or (not po3Uptrend and close < po3Fast * 0.995)
+
+// Assign phase (priority: Manipulation > Accumulation > Distribution)
+if isManipulation and inKillzone
+    po3Phase := "MANIPULATION"
+else if isAccumulation
+    po3Phase := "ACCUMULATION"
+else if isDistribution
+    po3Phase := "DISTRIBUTION"
+else
+    po3Phase := "NEUTRAL"
+
+// Phase change label
+bool po3Changed = po3Phase != prevPO3Phase and po3Phase != "NEUTRAL"
+prevPO3Phase := po3Phase
+
+if po3Changed and showKillzones
+    color po3Col = po3Phase == "ACCUMULATION" ? color.green : po3Phase == "MANIPULATION" ? color.orange : color.red
+    label.new(bar_index, po3Phase == "DISTRIBUTION" ? high : low, "AMD: " + po3Phase, color=po3Col, textcolor=color.white, style=po3Phase == "DISTRIBUTION" ? label.style_label_down : label.style_label_up, size=size.tiny)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ JUDAS SWING DETECTION ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// Classic ICT fakeout: False breakout in opposite direction of true trend
+
+// Detect false breakout + immediate reversal (within killzone for higher probability)
+bool judasBearTrap = low < swingLow[1] and close > swingLow[1] and close > open and inKillzone  // Swept low, closed bullish
+bool judasBullTrap = high > swingHigh[1] and close < swingHigh[1] and close < open and inKillzone  // Swept high, closed bearish
+
+// Visual markers
+plotshape(judasBullTrap, style=shape.xcross, location=location.abovebar, color=color.new(#FF00FF, 0), text="JUDAS ↓", textcolor=#FF00FF, size=size.small)
+plotshape(judasBearTrap, style=shape.xcross, location=location.belowbar, color=color.new(#00FFFF, 0), text="JUDAS ↑", textcolor=#00FFFF, size=size.small)
+
+// Judas alerts
+if judasBullTrap and not judasBullTrap[1]
+    alert("⚠️ JUDAS SWING ↓ – False bullish breakout! Potential bearish trap.", alert.freq_once_per_bar_close)
+
+if judasBearTrap and not judasBearTrap[1]
+    alert("⚠️ JUDAS SWING ↑ – False bearish breakout! Potential bullish trap.", alert.freq_once_per_bar_close)
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 8. DASHBOARD ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 var table dash = table.new(position.top_right, 2, 9, bgcolor=color.new(color.black, 60), border_width=1, border_color=color.gray)
@@ -846,6 +911,13 @@ if showZodiac and barstate.islast
     
     table.cell(dash, 0, 8, "PDL", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 8, str.tostring(pdl, format.mintick), text_color=color.green, text_size=size.tiny)
+
+// Expand dashboard for PO3 (separate table to avoid row limit issues)
+var table po3Dash = table.new(position.top_right, 2, 1, bgcolor=color.new(color.black, 70), border_width=1)
+if showZodiac and barstate.islast
+    color po3DashCol = po3Phase == "ACCUMULATION" ? color.green : po3Phase == "MANIPULATION" ? color.orange : po3Phase == "DISTRIBUTION" ? color.red : color.gray
+    table.cell(po3Dash, 0, 0, "AMD", text_color=color.white, text_size=size.tiny)
+    table.cell(po3Dash, 1, 0, po3Phase, text_color=po3DashCol, text_size=size.tiny)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ DYNAMIC POP-UP LABELS – FADE ANIMATION ░░░
@@ -947,4 +1019,8 @@ alertcondition(sbSessionStart, title="Silver Bullet", message="⏰ Silver Bullet
 alertcondition(pdhSweep and inKillzone, title="PDH Liquidity Sweep", message="💧 PDH Swept - Potential Reversal")
 alertcondition(pdlSweep and inKillzone, title="PDL Liquidity Sweep", message="💧 PDL Swept - Potential Reversal")
 alertcondition(conflictLong or conflictShort, title="⚠ AEP vs ICT Conflict", message="⚠ Signal Conflict - AEP and ICT disagree!")
+alertcondition(judasBullTrap, title="⚠️ JUDAS ↓", message="⚠️ JUDAS SWING ↓ – False bullish breakout! Bearish trap.")
+alertcondition(judasBearTrap, title="⚠️ JUDAS ↑", message="⚠️ JUDAS SWING ↑ – False bearish breakout! Bullish trap.")
+alertcondition(po3Phase == "MANIPULATION", title="🎭 AMD Manipulation", message="🎭 Manipulation phase detected – Watch for Judas swing!")
+
 
