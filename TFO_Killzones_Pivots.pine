@@ -1,0 +1,296 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0
+// © TFO-Style Killzones + Pivots
+
+//@version=5
+indicator("TFO Killzones + Pivots", overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ KILLZONE SETTINGS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpKZ = "Killzones"
+bool showAsiaKZ = input.bool(true, "Asia (8PM-12AM NY)", group=grpKZ)
+bool showLondonKZ = input.bool(true, "London (2AM-5AM NY)", group=grpKZ)
+bool showNYKZ = input.bool(true, "NY AM (7AM-10AM NY)", group=grpKZ)
+bool showLunchKZ = input.bool(false, "NY Lunch (12PM-1PM NY)", group=grpKZ)
+bool showPMKZ = input.bool(false, "NY PM (1:30PM-4PM NY)", group=grpKZ)
+
+color asiaCol = input.color(color.new(color.yellow, 85), "Asia Color", group=grpKZ)
+color londonCol = input.color(color.new(color.blue, 85), "London Color", group=grpKZ)
+color nyCol = input.color(color.new(color.green, 85), "NY Color", group=grpKZ)
+color lunchCol = input.color(color.new(color.gray, 85), "Lunch Color", group=grpKZ)
+color pmCol = input.color(color.new(color.purple, 85), "PM Color", group=grpKZ)
+
+bool showKZLabels = input.bool(true, "Show KZ Labels", group=grpKZ)
+bool showKZOpenLine = input.bool(true, "Show KZ Open Line", group=grpKZ)
+bool showKZHighLow = input.bool(true, "Show KZ High/Low", group=grpKZ)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ PIVOT SETTINGS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpPivot = "Pivots"
+bool showDailyPivots = input.bool(true, "Daily Pivots", group=grpPivot)
+bool showWeeklyPivots = input.bool(true, "Weekly Pivots", group=grpPivot)
+bool showMonthlyPivots = input.bool(false, "Monthly Pivots", group=grpPivot)
+string pivotType = input.string("Traditional", "Pivot Type", options=["Traditional", "Fibonacci", "Camarilla"], group=grpPivot)
+
+color pivotCol = input.color(color.orange, "Pivot (P)", group=grpPivot)
+color r1Col = input.color(color.red, "R1/S1", group=grpPivot)
+color r2Col = input.color(color.maroon, "R2/S2", group=grpPivot)
+color r3Col = input.color(color.purple, "R3/S3", group=grpPivot)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ PREVIOUS DAY LEVELS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpPD = "Previous Day"
+bool showPDH = input.bool(true, "Previous Day High", group=grpPD)
+bool showPDL = input.bool(true, "Previous Day Low", group=grpPD)
+bool showPWH = input.bool(true, "Previous Week High", group=grpPD)
+bool showPWL = input.bool(true, "Previous Week Low", group=grpPD)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ KILLZONE DETECTION ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+bool inAsia = not na(time(timeframe.period, "2000-0000", "America/New_York"))
+bool inLondon = not na(time(timeframe.period, "0200-0500", "America/New_York"))
+bool inNY = not na(time(timeframe.period, "0700-1000", "America/New_York"))
+bool inLunch = not na(time(timeframe.period, "1200-1300", "America/New_York"))
+bool inPM = not na(time(timeframe.period, "1330-1600", "America/New_York"))
+
+// Detect session starts
+bool asiaStart = inAsia and not inAsia[1]
+bool londonStart = inLondon and not inLondon[1]
+bool nyStart = inNY and not inNY[1]
+bool lunchStart = inLunch and not inLunch[1]
+bool pmStart = inPM and not inPM[1]
+
+// Session tracking variables
+var float asiaOpen = na
+var float asiaHigh = na
+var float asiaLow = na
+var int asiaStartBar = na
+
+var float londonOpen = na
+var float londonHigh = na
+var float londonLow = na
+var int londonStartBar = na
+
+var float nyOpen = na
+var float nyHigh = na
+var float nyLow = na
+var int nyStartBar = na
+
+var float lunchOpen = na
+var float lunchHigh = na
+var float lunchLow = na
+var int lunchStartBar = na
+
+var float pmOpen = na
+var float pmHigh = na
+var float pmLow = na
+var int pmStartBar = na
+
+// Asia Session
+if asiaStart
+    asiaOpen := open
+    asiaHigh := high
+    asiaLow := low
+    asiaStartBar := bar_index
+if inAsia
+    asiaHigh := math.max(asiaHigh, high)
+    asiaLow := math.min(asiaLow, low)
+
+// London Session
+if londonStart
+    londonOpen := open
+    londonHigh := high
+    londonLow := low
+    londonStartBar := bar_index
+if inLondon
+    londonHigh := math.max(londonHigh, high)
+    londonLow := math.min(londonLow, low)
+
+// NY Session
+if nyStart
+    nyOpen := open
+    nyHigh := high
+    nyLow := low
+    nyStartBar := bar_index
+if inNY
+    nyHigh := math.max(nyHigh, high)
+    nyLow := math.min(nyLow, low)
+
+// Lunch Session
+if lunchStart
+    lunchOpen := open
+    lunchHigh := high
+    lunchLow := low
+    lunchStartBar := bar_index
+if inLunch
+    lunchHigh := math.max(lunchHigh, high)
+    lunchLow := math.min(lunchLow, low)
+
+// PM Session
+if pmStart
+    pmOpen := open
+    pmHigh := high
+    pmLow := low
+    pmStartBar := bar_index
+if inPM
+    pmHigh := math.max(pmHigh, high)
+    pmLow := math.min(pmLow, low)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ KILLZONE BACKGROUNDS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+bgcolor(showAsiaKZ and inAsia ? asiaCol : na, title="Asia BG")
+bgcolor(showLondonKZ and inLondon ? londonCol : na, title="London BG")
+bgcolor(showNYKZ and inNY ? nyCol : na, title="NY BG")
+bgcolor(showLunchKZ and inLunch ? lunchCol : na, title="Lunch BG")
+bgcolor(showPMKZ and inPM ? pmCol : na, title="PM BG")
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ KILLZONE OPEN LINES ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// Plot session open lines that extend through the session
+plot(showKZOpenLine and showAsiaKZ and inAsia ? asiaOpen : na, "Asia Open", color=color.new(color.yellow, 40), style=plot.style_linebr, linewidth=1)
+plot(showKZOpenLine and showLondonKZ and inLondon ? londonOpen : na, "London Open", color=color.new(color.blue, 40), style=plot.style_linebr, linewidth=1)
+plot(showKZOpenLine and showNYKZ and inNY ? nyOpen : na, "NY Open", color=color.new(color.green, 40), style=plot.style_linebr, linewidth=1)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ KILLZONE HIGH/LOW LABELS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// Show labels at session end with H/L values
+bool asiaEnd = not inAsia and inAsia[1]
+bool londonEnd = not inLondon and inLondon[1]
+bool nyEnd = not inNY and inNY[1]
+
+if showKZLabels and showAsiaKZ and asiaEnd
+    label.new(bar_index, asiaHigh, "Asia H: " + str.tostring(asiaHigh, format.mintick), style=label.style_none, textcolor=color.yellow, size=size.tiny)
+    label.new(bar_index, asiaLow, "Asia L: " + str.tostring(asiaLow, format.mintick), style=label.style_none, textcolor=color.yellow, size=size.tiny)
+
+if showKZLabels and showLondonKZ and londonEnd
+    label.new(bar_index, londonHigh, "LDN H: " + str.tostring(londonHigh, format.mintick), style=label.style_none, textcolor=color.blue, size=size.tiny)
+    label.new(bar_index, londonLow, "LDN L: " + str.tostring(londonLow, format.mintick), style=label.style_none, textcolor=color.blue, size=size.tiny)
+
+if showKZLabels and showNYKZ and nyEnd
+    label.new(bar_index, nyHigh, "NY H: " + str.tostring(nyHigh, format.mintick), style=label.style_none, textcolor=color.green, size=size.tiny)
+    label.new(bar_index, nyLow, "NY L: " + str.tostring(nyLow, format.mintick), style=label.style_none, textcolor=color.green, size=size.tiny)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ PIVOT CALCULATIONS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// Daily Pivots
+[dHigh, dLow, dClose] = request.security(syminfo.tickerid, "D", [high[1], low[1], close[1]], lookahead=barmerge.lookahead_on)
+
+calcPivots(h, l, c, pType) =>
+    float p = (h + l + c) / 3
+    float r1 = 0.0
+    float r2 = 0.0
+    float r3 = 0.0
+    float s1 = 0.0
+    float s2 = 0.0
+    float s3 = 0.0
+    
+    if pType == "Traditional"
+        r1 := (2 * p) - l
+        s1 := (2 * p) - h
+        r2 := p + (h - l)
+        s2 := p - (h - l)
+        r3 := h + 2 * (p - l)
+        s3 := l - 2 * (h - p)
+    else if pType == "Fibonacci"
+        r1 := p + 0.382 * (h - l)
+        s1 := p - 0.382 * (h - l)
+        r2 := p + 0.618 * (h - l)
+        s2 := p - 0.618 * (h - l)
+        r3 := p + 1.000 * (h - l)
+        s3 := p - 1.000 * (h - l)
+    else if pType == "Camarilla"
+        r1 := c + (h - l) * 1.1 / 12
+        s1 := c - (h - l) * 1.1 / 12
+        r2 := c + (h - l) * 1.1 / 6
+        s2 := c - (h - l) * 1.1 / 6
+        r3 := c + (h - l) * 1.1 / 4
+        s3 := c - (h - l) * 1.1 / 4
+    [p, r1, r2, r3, s1, s2, s3]
+
+[dP, dR1, dR2, dR3, dS1, dS2, dS3] = calcPivots(dHigh, dLow, dClose, pivotType)
+
+// Weekly Pivots
+[wHigh, wLow, wClose] = request.security(syminfo.tickerid, "W", [high[1], low[1], close[1]], lookahead=barmerge.lookahead_on)
+[wP, wR1, wR2, wR3, wS1, wS2, wS3] = calcPivots(wHigh, wLow, wClose, pivotType)
+
+// Monthly Pivots
+[mHigh, mLow, mClose] = request.security(syminfo.tickerid, "M", [high[1], low[1], close[1]], lookahead=barmerge.lookahead_on)
+[mP, mR1, mR2, mR3, mS1, mS2, mS3] = calcPivots(mHigh, mLow, mClose, pivotType)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ PIVOT PLOTS - DAILY ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+plot(showDailyPivots ? dP : na, "D-Pivot", color=pivotCol, style=plot.style_circles, linewidth=2)
+plot(showDailyPivots ? dR1 : na, "D-R1", color=r1Col, style=plot.style_cross, linewidth=1)
+plot(showDailyPivots ? dR2 : na, "D-R2", color=r2Col, style=plot.style_cross, linewidth=1)
+plot(showDailyPivots ? dR3 : na, "D-R3", color=r3Col, style=plot.style_cross, linewidth=1)
+plot(showDailyPivots ? dS1 : na, "D-S1", color=r1Col, style=plot.style_cross, linewidth=1)
+plot(showDailyPivots ? dS2 : na, "D-S2", color=r2Col, style=plot.style_cross, linewidth=1)
+plot(showDailyPivots ? dS3 : na, "D-S3", color=r3Col, style=plot.style_cross, linewidth=1)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ PIVOT PLOTS - WEEKLY ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+plot(showWeeklyPivots ? wP : na, "W-Pivot", color=color.new(pivotCol, 30), style=plot.style_line, linewidth=2)
+plot(showWeeklyPivots ? wR1 : na, "W-R1", color=color.new(r1Col, 50), style=plot.style_line, linewidth=1)
+plot(showWeeklyPivots ? wS1 : na, "W-S1", color=color.new(r1Col, 50), style=plot.style_line, linewidth=1)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ PREVIOUS DAY/WEEK LEVELS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+float pdh = request.security(syminfo.tickerid, "D", high[1], lookahead=barmerge.lookahead_on)
+float pdl = request.security(syminfo.tickerid, "D", low[1], lookahead=barmerge.lookahead_on)
+float pwh = request.security(syminfo.tickerid, "W", high[1], lookahead=barmerge.lookahead_on)
+float pwl = request.security(syminfo.tickerid, "W", low[1], lookahead=barmerge.lookahead_on)
+
+plot(showPDH ? pdh : na, "PDH", color=color.new(color.red, 30), style=plot.style_linebr, linewidth=2)
+plot(showPDL ? pdl : na, "PDL", color=color.new(color.green, 30), style=plot.style_linebr, linewidth=2)
+plot(showPWH ? pwh : na, "PWH", color=color.new(color.fuchsia, 30), style=plot.style_linebr, linewidth=2)
+plot(showPWL ? pwl : na, "PWL", color=color.new(color.aqua, 30), style=plot.style_linebr, linewidth=2)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ DASHBOARD ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+var table dash = table.new(position.top_right, 2, 6, bgcolor=color.new(color.black, 70), border_width=1, border_color=color.gray)
+if barstate.islast
+    table.cell(dash, 0, 0, "TFO KILLZONES", text_color=color.white, text_size=size.small, bgcolor=color.new(color.purple, 50))
+    table.merge_cells(dash, 0, 0, 1, 0)
+    
+    // Current Session
+    string sess = inNY ? "🟢 NY AM" : inLondon ? "🔵 LONDON" : inAsia ? "🟡 ASIA" : inLunch ? "⚪ LUNCH" : inPM ? "🟣 NY PM" : "⏸️ OFF"
+    color sessCol = inNY ? color.green : inLondon ? color.blue : inAsia ? color.yellow : inLunch ? color.gray : inPM ? color.purple : color.gray
+    table.cell(dash, 0, 1, "Session", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 1, sess, text_color=sessCol, text_size=size.tiny)
+    
+    // Daily Pivot
+    table.cell(dash, 0, 2, "Daily P", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 2, str.tostring(dP, format.mintick), text_color=pivotCol, text_size=size.tiny)
+    
+    // PDH/PDL
+    table.cell(dash, 0, 3, "PDH", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 3, str.tostring(pdh, format.mintick), text_color=color.red, text_size=size.tiny)
+    
+    table.cell(dash, 0, 4, "PDL", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 4, str.tostring(pdl, format.mintick), text_color=color.green, text_size=size.tiny)
+    
+    // Current Range
+    string rangeInfo = inNY ? str.tostring(nyHigh - nyLow, format.mintick) : inLondon ? str.tostring(londonHigh - londonLow, format.mintick) : inAsia ? str.tostring(asiaHigh - asiaLow, format.mintick) : "—"
+    table.cell(dash, 0, 5, "KZ Range", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 5, rangeInfo, text_color=color.white, text_size=size.tiny)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ ALERTS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+alertcondition(asiaStart, title="Asia Open", message="Asia Session Started")
+alertcondition(londonStart, title="London Open", message="London Session Started")
+alertcondition(nyStart, title="NY Open", message="NY AM Session Started")
+alertcondition(ta.cross(close, dP), title="Daily Pivot Cross", message="Price crossed Daily Pivot")
+alertcondition(ta.cross(close, pdh), title="PDH Cross", message="Price crossed Previous Day High")
+alertcondition(ta.cross(close, pdl), title="PDL Cross", message="Price crossed Previous Day Low")

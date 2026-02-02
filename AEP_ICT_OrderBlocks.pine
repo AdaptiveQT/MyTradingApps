@@ -1,0 +1,202 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0
+// © AEP Protocol [ORDER BLOCK MODULE]
+
+//@version=5
+indicator("AEP x ICT [Order Blocks]", overlay=true, max_boxes_count=500, max_lines_count=500)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ SETTINGS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpOB = "Order Blocks"
+int obLookback = input.int(5, "Structure Lookback (Bars)", minval=3, group=grpOB)
+int maxOBBoxes = input.int(20, "Max Order Blocks", minval=5, group=grpOB)
+bool showMeanThreshold = input.bool(true, "Show 50% Mean Threshold", group=grpOB)
+bool autoCleanup = input.bool(true, "Auto-Delete Invalid OBs", group=grpOB)
+color bullObCol = input.color(color.new(color.green, 60), "Bullish OB", group=grpOB)
+color bearObCol = input.color(color.new(color.red, 60), "Bearish OB", group=grpOB)
+
+grpBOS = "Break of Structure"
+bool showBOS = input.bool(true, "Show BOS Labels", group=grpBOS)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ STRUCTURE DETECTION ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// Identify Swings
+float ph = ta.pivothigh(high, obLookback, obLookback)
+float pl = ta.pivotlow(low, obLookback, obLookback)
+
+// Store swing levels
+var float lastSwingHigh = na
+var float lastSwingLow = na
+
+if not na(ph)
+    lastSwingHigh := ph
+if not na(pl)
+    lastSwingLow := pl
+
+// Pre-calculate crossover/crossunder for consistency
+bool crossAboveSwingHigh = ta.crossover(close, lastSwingHigh)
+bool crossBelowSwingLow = ta.crossunder(close, lastSwingLow)
+
+// Detect Structure Break (BOS)
+bool bosUp = not na(lastSwingHigh) and crossAboveSwingHigh
+bool bosDn = not na(lastSwingLow) and crossBelowSwingLow
+
+// Plot BOS labels
+plotshape(showBOS and bosUp, style=shape.triangleup, location=location.belowbar, color=color.lime, text="BOS↑", textcolor=color.lime, size=size.tiny)
+plotshape(showBOS and bosDn, style=shape.triangledown, location=location.abovebar, color=color.red, text="BOS↓", textcolor=color.red, size=size.tiny)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ ORDER BLOCK DETECTION ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+var box[] bullOBBoxes = array.new_box()
+var box[] bearOBBoxes = array.new_box()
+var line[] bullOBLines = array.new_line()
+var line[] bearOBLines = array.new_line()
+
+// --- BULLISH OB CREATION ---
+// After Bullish BOS, find the last bearish candle (the "order block")
+if bosUp
+    int obIndex = na
+    float lowestLow = high * 100000
+    
+    // Look back to find the lowest DOWN candle before the breakout
+    for i = 1 to 20
+        if close[i] < open[i]  // Red candle
+            if low[i] < lowestLow
+                lowestLow := low[i]
+                obIndex := i
+    
+    if not na(obIndex)
+        float obTop = high[obIndex]
+        float obBot = low[obIndex]
+        float obMid = (obTop + obBot) / 2
+        
+        // Create box
+        box newBox = box.new(bar_index - obIndex, obTop, bar_index + 50, obBot, border_color=color.new(color.green, 30), bgcolor=bullObCol, border_width=1)
+        array.push(bullOBBoxes, newBox)
+        
+        // Create 50% mean threshold line
+        if showMeanThreshold
+            line newLine = line.new(bar_index - obIndex, obMid, bar_index + 50, obMid, color=color.new(color.white, 40), style=line.style_dotted, width=1)
+            array.push(bullOBLines, newLine)
+        
+        // Limit boxes
+        if array.size(bullOBBoxes) > maxOBBoxes
+            box.delete(array.shift(bullOBBoxes))
+            if array.size(bullOBLines) > 0
+                line.delete(array.shift(bullOBLines))
+
+// --- BEARISH OB CREATION ---
+// After Bearish BOS, find the last bullish candle (the "order block")
+if bosDn
+    int obIndex = na
+    float highestHigh = 0.0
+    
+    // Look back to find the highest UP candle before the breakdown
+    for i = 1 to 20
+        if close[i] > open[i]  // Green candle
+            if high[i] > highestHigh
+                highestHigh := high[i]
+                obIndex := i
+    
+    if not na(obIndex)
+        float obTop = high[obIndex]
+        float obBot = low[obIndex]
+        float obMid = (obTop + obBot) / 2
+        
+        // Create box
+        box newBox = box.new(bar_index - obIndex, obTop, bar_index + 50, obBot, border_color=color.new(color.red, 30), bgcolor=bearObCol, border_width=1)
+        array.push(bearOBBoxes, newBox)
+        
+        // Create 50% mean threshold line
+        if showMeanThreshold
+            line newLine = line.new(bar_index - obIndex, obMid, bar_index + 50, obMid, color=color.new(color.white, 40), style=line.style_dotted, width=1)
+            array.push(bearOBLines, newLine)
+        
+        // Limit boxes
+        if array.size(bearOBBoxes) > maxOBBoxes
+            box.delete(array.shift(bearOBBoxes))
+            if array.size(bearOBLines) > 0
+                line.delete(array.shift(bearOBLines))
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ AUTO-INVALIDATION ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// Delete OBs when price closes through them (invalidated)
+if autoCleanup
+    // Check Bullish OBs
+    if array.size(bullOBBoxes) > 0
+        for i = array.size(bullOBBoxes) - 1 to 0
+            box b = array.get(bullOBBoxes, i)
+            float bBot = box.get_bottom(b)
+            // Bullish OB invalid if price closes below
+            if close < bBot
+                box.delete(b)
+                array.remove(bullOBBoxes, i)
+                if i < array.size(bullOBLines)
+                    line.delete(array.get(bullOBLines, i))
+                    array.remove(bullOBLines, i)
+    
+    // Check Bearish OBs
+    if array.size(bearOBBoxes) > 0
+        for i = array.size(bearOBBoxes) - 1 to 0
+            box b = array.get(bearOBBoxes, i)
+            float bTop = box.get_top(b)
+            // Bearish OB invalid if price closes above
+            if close > bTop
+                box.delete(b)
+                array.remove(bearOBBoxes, i)
+                if i < array.size(bearOBLines)
+                    line.delete(array.get(bearOBLines, i))
+                    array.remove(bearOBLines, i)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ OB TOUCH SIGNALS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// Signal when price touches an active Order Block
+bool bullOBTouch = false
+bool bearOBTouch = false
+
+// Check for touch on Bullish OBs
+for i = 0 to math.min(array.size(bullOBBoxes) - 1, 10)
+    if array.size(bullOBBoxes) > i
+        box b = array.get(bullOBBoxes, i)
+        float bTop = box.get_top(b)
+        float bBot = box.get_bottom(b)
+        if low <= bTop and low >= bBot
+            bullOBTouch := true
+
+// Check for touch on Bearish OBs
+for i = 0 to math.min(array.size(bearOBBoxes) - 1, 10)
+    if array.size(bearOBBoxes) > i
+        box b = array.get(bearOBBoxes, i)
+        float bTop = box.get_top(b)
+        float bBot = box.get_bottom(b)
+        if high >= bBot and high <= bTop
+            bearOBTouch := true
+
+plotshape(bullOBTouch, style=shape.circle, location=location.belowbar, color=color.lime, size=size.tiny, title="Bull OB Touch")
+plotshape(bearOBTouch, style=shape.circle, location=location.abovebar, color=color.red, size=size.tiny, title="Bear OB Touch")
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ DASHBOARD ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+var table dash = table.new(position.bottom_right, 2, 3, bgcolor=color.new(color.black, 70), border_width=1, border_color=color.gray)
+if barstate.islast
+    table.cell(dash, 0, 0, "ORDER BLOCKS", text_color=color.white, text_size=size.small, bgcolor=color.new(color.blue, 50))
+    table.merge_cells(dash, 0, 0, 1, 0)
+    
+    table.cell(dash, 0, 1, "Bull OBs", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 1, str.tostring(array.size(bullOBBoxes)), text_color=color.green, text_size=size.tiny)
+    
+    table.cell(dash, 0, 2, "Bear OBs", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 2, str.tostring(array.size(bearOBBoxes)), text_color=color.red, text_size=size.tiny)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ ALERTS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+alertcondition(bullOBTouch, title="Bullish OB Touch", message="Price touched Bullish Order Block on {{ticker}}")
+alertcondition(bearOBTouch, title="Bearish OB Touch", message="Price touched Bearish Order Block on {{ticker}}")
+alertcondition(bosUp, title="Bullish BOS", message="Bullish Break of Structure on {{ticker}}")
+alertcondition(bosDn, title="Bearish BOS", message="Bearish Break of Structure on {{ticker}}")

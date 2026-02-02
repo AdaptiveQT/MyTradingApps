@@ -1,0 +1,237 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © AEP Protocol v3 - SESSION FILTER (Golden Hours Only)
+
+//@version=5
+strategy("AEP Protocol v3 [SESSION FILTER]", overlay=true, initial_capital=10000, default_qty_type=strategy.fixed, default_qty_value=1, currency=currency.USD, max_bars_back=1000)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ SESSION FILTER STRATEGY ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// Gold volume dies after 1PM EST. Most fakeouts happen during:
+// - Asia Session (low volume chop)
+// - Late Afternoon (2PM-4PM algos just churn)
+// This version trades ONLY during London+NY overlap (the "Golden Hours")
+// ══════════════════════════════════════════════════════════════════════════════
+
+// --- VISUAL ---
+grpVis = "Visual"
+bool showSignals = input.bool(true, "Show Signals", group=grpVis)
+bool drawMAs = input.bool(true, "Draw MAs", group=grpVis)
+bool fillBackground = input.bool(true, "Fill Background", group=grpVis)
+
+// --- SESSION FILTER (THE FIX) ---
+grpFilter = "Session Filter"
+bool useSessionFilter = input.bool(true, "Trade Only During Golden Hours?", group=grpFilter)
+string tradeSession = input.session("0300-1300", "Trading Session (NY Time)", group=grpFilter)
+
+// --- CORE ---
+grpCore = "Core"
+string maType = input.string("EMA", "MA Type", options=["EMA", "SMA", "WMA", "VWMA"], group=grpCore)
+int fastLen = input.int(9, "Fast MA", minval=1, group=grpCore)
+int slowLen = input.int(30, "Slow MA", minval=1, group=grpCore)
+int rsiLen = input.int(14, "RSI Length", minval=2, group=grpCore)
+int rsiOB = input.int(70, "RSI Overbought", minval=50, group=grpCore)
+int rsiOS = input.int(25, "RSI Oversold", minval=0, group=grpCore)
+bool enableMomentumLongs = input.bool(true, "Enable Momentum Longs", group=grpCore)
+bool enableMomentumShorts = input.bool(true, "Enable Momentum Shorts", group=grpCore)
+
+// --- CHOP ---
+grpChop = "Consolidation"
+float consolEMAPct = input.float(0.4, "Consolidation EMA %", minval=0.1, step=0.1, group=grpChop)
+float consolMaxMovePct = input.float(0.6, "Consolidation Max Price Move %", minval=0.1, step=0.1, group=grpChop)
+int rangeBarCount = input.int(20, "Range Bar Count", minval=5, group=grpChop)
+
+// --- ORB ---
+grpORB = "Breakouts"
+bool orbEnabled = input.bool(true, "Enable ORB", group=grpORB)
+string orbSession = input.session("0930-0945", "ORB Session (NY time)", group=grpORB)
+int orbHoldBars = input.int(15, "ORB Breakout Hold Bars", minval=1, group=grpORB)
+bool blockCounterTrend = input.bool(true, "Block counter-trend during ORB breakout", group=grpORB)
+float orbRetestTol = input.float(30.0, "ORB Retest Tolerance %", minval=1.0, group=grpORB)
+int maxBarsRetest = input.int(25, "Max Bars After ORB For Retest", minval=5, group=grpORB)
+
+// --- ADVANCED ---
+grpAdv = "Advanced"
+int volumePeriod = input.int(10, "Volume Period", minval=1, group=grpAdv)
+float momentumBodyMult = input.float(1.1, "Momentum Body Multiplier", minval=0.5, step=0.1, group=grpAdv)
+
+// --- RISK ---
+grpRisk = "Risk"
+float profitFactor = input.float(2.0, "Profit Factor", minval=0.5, step=0.5, group=grpRisk)
+float stopFactor = input.float(1.0, "Stop Factor", minval=0.5, step=0.5, group=grpRisk)
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ SESSION CHECK ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+bool inTradeWindow = not useSessionFilter or time(timeframe.period, tradeSession, "America/New_York")
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ CALCULATIONS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+
+ma(src, len, t) =>
+    switch t
+        "EMA" => ta.ema(src, len)
+        "SMA" => ta.sma(src, len)
+        "WMA" => ta.wma(src, len)
+        "VWMA" => ta.vwma(src, len)
+        => ta.ema(src, len)
+
+float fastMA = ma(close, fastLen, maType)
+float slowMA = ma(close, slowLen, maType)
+float rsiVal = ta.rsi(close, rsiLen)
+
+// Alignment
+bool fastUp = fastMA > fastMA[3]
+bool slowUp = slowMA > slowMA[3]
+bool fastDn = fastMA < fastMA[3]
+bool slowDn = slowMA < slowMA[3]
+bool bullAlign = fastMA > slowMA and fastUp and slowUp
+bool bearAlign = fastMA < slowMA and fastDn and slowDn
+
+// Chop
+float maDistPct = (math.abs(fastMA - slowMA) / close) * 100
+float rangeHi = ta.highest(high, rangeBarCount)
+float rangeLo = ta.lowest(low, rangeBarCount)
+float rangeMovePct = ((rangeHi - rangeLo) / rangeLo) * 100
+bool isChop = maDistPct < consolEMAPct or rangeMovePct < consolMaxMovePct
+
+// Momentum Logic
+float avgVol = ta.sma(volume, volumePeriod)
+bool volConfirm = volume > avgVol
+float bodySize = math.abs(close - open)
+float avgBody = ta.sma(bodySize, 3)
+bool strongBody = bodySize > avgBody * momentumBodyMult
+bool breakPrevHigh = close > high[1]
+bool breakPrevLow = close < low[1]
+
+bool pullbackLong = bullAlign and close < fastMA and close > slowMA
+bool pullbackShort = bearAlign and close > fastMA and close < slowMA
+
+// ORB Logic
+bool inORB = time(timeframe.period, orbSession, "America/New_York")
+var float orbHigh = na
+var float orbLow = na
+var bool orbComplete = false
+var int orbBarStart = na
+var int orbDayKey = na
+
+if dayofweek != orbDayKey
+    orbHigh := na
+    orbLow := na
+    orbComplete := false
+    orbBarStart := na
+    orbDayKey := dayofweek
+
+if inORB and orbEnabled
+    orbHigh := na(orbHigh) ? high : math.max(orbHigh, high)
+    orbLow := na(orbLow) ? low : math.min(orbLow, low)
+    if na(orbBarStart)
+        orbBarStart := bar_index
+    if not na(orbHigh) and not na(orbLow)
+        orbComplete := true
+
+var int orbBreakDir = 0
+var int orbBreakBar = na
+
+if orbComplete and not inORB and orbEnabled
+    if ta.crossover(close, orbHigh) and orbBreakDir == 0
+        orbBreakDir := 1
+        orbBreakBar := bar_index
+    if ta.crossunder(close, orbLow) and orbBreakDir == 0
+        orbBreakDir := -1
+        orbBreakBar := bar_index
+
+if dayofweek != dayofweek[1]
+    orbBreakDir := 0
+    orbBreakBar := na
+
+int barsSinceBreak = na(orbBreakBar) ? 999 : bar_index - orbBreakBar
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ SIGNALS (SESSION FILTERED) ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+
+bool longBase = bullAlign and not isChop and close > fastMA and volConfirm and strongBody
+bool longMomo = bullAlign and close > fastMA and strongBody and breakPrevHigh and not isChop and enableMomentumLongs
+bool longPullbackExit = pullbackLong[1] and close > fastMA and not isChop
+// SESSION FILTER APPLIED
+bool longSignal = (longBase or longMomo or longPullbackExit) and inTradeWindow
+
+bool shortBase = bearAlign and not isChop and close < fastMA and volConfirm and strongBody
+bool shortMomo = bearAlign and close < fastMA and strongBody and breakPrevLow and not isChop and enableMomentumShorts
+bool shortPullbackExit = pullbackShort[1] and close < fastMA and not isChop
+// SESSION FILTER APPLIED
+bool shortSignal = (shortBase or shortMomo or shortPullbackExit) and inTradeWindow
+
+// ORB Gate
+if blockCounterTrend and orbEnabled and orbComplete and barsSinceBreak <= orbHoldBars
+    if orbBreakDir == 1
+        shortSignal := false
+    if orbBreakDir == -1
+        longSignal := false
+
+// Chop Block
+if isChop
+    longSignal := false
+    shortSignal := false
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ STRATEGY EXECUTION ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+
+float atrVal = ta.atr(14)
+
+if longSignal and strategy.position_size == 0
+    strategy.entry("Long", strategy.long, comment="AEP L")
+    
+if shortSignal and strategy.position_size == 0
+    strategy.entry("Short", strategy.short, comment="AEP S")
+
+if strategy.position_size > 0
+    float entryPrice = strategy.opentrades.entry_price(strategy.opentrades - 1)
+    float lStop = entryPrice - (atrVal * stopFactor)
+    float lTarget = entryPrice + (atrVal * profitFactor)
+    strategy.exit("Exit Long", "Long", stop=lStop, limit=lTarget, comment_loss="SL", comment_profit="TP")
+
+if strategy.position_size < 0
+    float entryPrice = strategy.opentrades.entry_price(strategy.opentrades - 1)
+    float sStop = entryPrice + (atrVal * stopFactor)
+    float sTarget = entryPrice - (atrVal * profitFactor)
+    strategy.exit("Exit Short", "Short", stop=sStop, limit=sTarget, comment_loss="SL", comment_profit="TP")
+
+if longSignal and strategy.position_size < 0
+    strategy.close("Short", comment="Flip L")
+    strategy.entry("Long", strategy.long, comment="AEP L (Flip)")
+
+if shortSignal and strategy.position_size > 0
+    strategy.close("Long", comment="Flip S")
+    strategy.entry("Short", strategy.short, comment="AEP S (Flip)")
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ VISUALS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+plot(drawMAs ? fastMA : na, "Fast MA", color=color.blue)
+plot(drawMAs ? slowMA : na, "Slow MA", color=color.orange)
+
+// Session Background (red when outside trading hours)
+bgcolor(useSessionFilter and not inTradeWindow ? color.new(color.maroon, 90) : na, title="Outside Golden Hours")
+
+// Trend Background
+bgcolor(fillBackground and inTradeWindow ? (isChop ? color.new(color.gray, 90) : bullAlign ? color.new(color.green, 92) : bearAlign ? color.new(color.red, 92) : na) : na)
+
+// Session Status Table
+var table sessTable = table.new(position.top_right, 2, 2, bgcolor=color.new(color.black, 70), border_width=1, border_color=color.gray)
+if barstate.islast
+    table.cell(sessTable, 0, 0, "SESSION", text_color=color.white, text_size=size.small, bgcolor=color.new(color.purple, 50))
+    table.merge_cells(sessTable, 0, 0, 1, 0)
+    
+    string sessTxt = inTradeWindow ? "🟢 ACTIVE (3AM-1PM)" : "🔴 CLOSED"
+    color sessCol = inTradeWindow ? color.lime : color.red
+    table.cell(sessTable, 0, 1, "Status", text_color=color.white, text_size=size.tiny)
+    table.cell(sessTable, 1, 1, sessTxt, text_color=sessCol, text_size=size.tiny)

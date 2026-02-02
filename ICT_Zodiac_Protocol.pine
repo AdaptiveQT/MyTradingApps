@@ -1,0 +1,463 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0
+// © ICT x Zodiac Protocol [ULTIMATE] - TFO Killzones + Pivots + FVG + OB + Astro
+
+//@version=5
+indicator("ICT x Zodiac [ULTIMATE]", overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ MASTER TOGGLES ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpMaster = "Master Toggles"
+bool showKillzones = input.bool(true, "Show Killzones", group=grpMaster)
+bool showPivots = input.bool(true, "Show Pivots", group=grpMaster)
+bool showPDLevels = input.bool(true, "Show PDH/PDL/PWH/PWL", group=grpMaster)
+bool showFVG = input.bool(true, "Show FVGs", group=grpMaster)
+bool showOB = input.bool(true, "Show Order Blocks", group=grpMaster)
+bool showBOS = input.bool(true, "Show Break of Structure", group=grpMaster)
+bool showZodiac = input.bool(true, "Show Zodiac Dashboard", group=grpMaster)
+bool presentMode = input.bool(true, "Present Mode (Fresh Zones Only)", group=grpMaster, tooltip="When ON, removes FVGs/OBs when price fills them")
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ KILLZONE SETTINGS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpKZ = "Killzones (TFO Style)"
+bool showAsiaKZ = input.bool(true, "Asia (8PM-12AM)", group=grpKZ)
+bool showLondonKZ = input.bool(true, "London (2AM-5AM)", group=grpKZ)
+bool showNYKZ = input.bool(true, "NY AM (7AM-10AM)", group=grpKZ)
+bool showSilverBullet = input.bool(true, "Silver Bullet (10-11AM)", group=grpKZ)
+bool showKZOpen = input.bool(true, "Show KZ Open Lines", group=grpKZ)
+
+color asiaCol = input.color(color.new(color.yellow, 88), "Asia", group=grpKZ)
+color londonCol = input.color(color.new(color.blue, 88), "London", group=grpKZ)
+color nyCol = input.color(color.new(color.green, 88), "NY", group=grpKZ)
+color sbCol = input.color(color.new(color.orange, 85), "Silver Bullet", group=grpKZ)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ PIVOT SETTINGS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpPivot = "Pivots"
+bool showDailyPivots = input.bool(true, "Daily Pivots", group=grpPivot)
+bool showWeeklyPivots = input.bool(false, "Weekly Pivots", group=grpPivot)
+string pivotType = input.string("Traditional", "Type", options=["Traditional", "Fibonacci", "Camarilla"], group=grpPivot)
+color pivotCol = input.color(color.orange, "Pivot (P)", group=grpPivot)
+color rCol = input.color(color.red, "R Levels", group=grpPivot)
+color sCol = input.color(color.green, "S Levels", group=grpPivot)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ ICT STRUCTURE SETTINGS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpICT = "ICT Structure"
+int structLen = input.int(5, "Structure Lookback", minval=3, group=grpICT)
+int maxFVG = input.int(20, "Max FVGs", minval=5, group=grpICT)
+int maxOB = input.int(10, "Max Order Blocks", minval=3, group=grpICT)
+color bullFvgCol = input.color(color.new(#089981, 85), "Bull FVG", group=grpICT)
+color bearFvgCol = input.color(color.new(#f23645, 85), "Bear FVG", group=grpICT)
+color bullObCol = input.color(color.new(#00bcd4, 80), "Bull OB", group=grpICT)
+color bearObCol = input.color(color.new(#ff5252, 80), "Bear OB", group=grpICT)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ ZODIAC SETTINGS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpAstro = "Zodiac"
+int moonOffset = input.int(10, "Moon Degree Offset", group=grpAstro)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ 1. ZODIAC CALCULATION ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+lunarAge() =>
+    int y = year
+    int m = month
+    int d = dayofmonth
+    if m <= 2
+        y := y - 1
+        m := m + 12
+    int A = math.floor(y / 100)
+    int B = 2 - A + math.floor(A / 4)
+    float JD = math.floor(365.25 * (y + 4716)) + math.floor(30.6001 * (m + 1)) + d + B - 1524.5
+    float age = (JD - 2451550.1 + moonOffset) % 29.53058867
+    if age < 0
+        age := age + 29.53058867
+    age
+
+float moonAge = lunarAge()
+string[] zodiacSigns = array.from("Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces")
+int zodiacIdx = math.floor((moonAge / 29.53) * 12) % 12
+string currentZodiac = array.get(zodiacSigns, zodiacIdx)
+
+string moonPhase = moonAge < 1.85 ? "🌑 New" : moonAge < 7.38 ? "🌒 Wax Cres" : moonAge < 11.07 ? "🌓 1st Qtr" : moonAge < 14.76 ? "🌔 Wax Gib" : moonAge < 16.61 ? "🌕 Full" : moonAge < 22.14 ? "🌖 Wan Gib" : moonAge < 25.83 ? "🌗 3rd Qtr" : "🌘 Wan Cres"
+
+string element = "Neutral"
+string ictBias = "Balanced"
+string ictFocus = "Standard"
+color elemCol = color.gray
+
+string[] fireSigns = array.from("Aries", "Leo", "Sagittarius")
+string[] earthSigns = array.from("Taurus", "Virgo", "Capricorn")
+string[] airSigns = array.from("Gemini", "Libra", "Aquarius")
+string[] waterSigns = array.from("Cancer", "Scorpio", "Pisces")
+
+if array.includes(fireSigns, currentZodiac)
+    element := "🔥 FIRE"
+    ictBias := "EXPANSION"
+    ictFocus := "Trust BOS & FVGs"
+    elemCol := color.orange
+else if array.includes(waterSigns, currentZodiac)
+    element := "💧 WATER"
+    ictBias := "MANIPULATION"
+    ictFocus := "Fade Liq Grabs"
+    elemCol := color.aqua
+else if array.includes(airSigns, currentZodiac)
+    element := "🌪️ AIR"
+    ictBias := "CONSOLIDATION"
+    ictFocus := "Scalp IRL"
+    elemCol := color.silver
+else if array.includes(earthSigns, currentZodiac)
+    element := "🌍 EARTH"
+    ictBias := "STRUCTURE"
+    ictFocus := "Deep OTE"
+    elemCol := color.green
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ 2. KILLZONE DETECTION (TFO STYLE) ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+bool inAsia = not na(time(timeframe.period, "2000-0000", "America/New_York"))
+bool inLondon = not na(time(timeframe.period, "0200-0500", "America/New_York"))
+bool inNY = not na(time(timeframe.period, "0700-1000", "America/New_York"))
+bool inSB = not na(time(timeframe.period, "1000-1100", "America/New_York"))
+
+bool asiaStart = inAsia and not inAsia[1]
+bool londonStart = inLondon and not inLondon[1]
+bool nyStart = inNY and not inNY[1]
+bool sbStart = inSB and not inSB[1]
+
+bool asiaEnd = not inAsia and inAsia[1]
+bool londonEnd = not inLondon and inLondon[1]
+bool nyEnd = not inNY and inNY[1]
+bool sbEnd = not inSB and inSB[1]
+
+// Session tracking
+var float asiaOpen = na, var float londonOpen = na, var float nyOpen = na, var float sbOpen = na
+var float asiaHigh = na, var float asiaLow = na
+var float londonHigh = na, var float londonLow = na
+var float nyHigh = na, var float nyLow = na
+var float sbHigh = na, var float sbLow = na
+var int asiaStartBar = na, var int londonStartBar = na, var int nyStartBar = na, var int sbStartBar = na
+
+// Asia
+if asiaStart
+    asiaOpen := open, asiaHigh := high, asiaLow := low, asiaStartBar := bar_index
+if inAsia
+    asiaHigh := math.max(asiaHigh, high), asiaLow := math.min(asiaLow, low)
+
+// London  
+if londonStart
+    londonOpen := open, londonHigh := high, londonLow := low, londonStartBar := bar_index
+if inLondon
+    londonHigh := math.max(londonHigh, high), londonLow := math.min(londonLow, low)
+
+// NY
+if nyStart
+    nyOpen := open, nyHigh := high, nyLow := low, nyStartBar := bar_index
+if inNY
+    nyHigh := math.max(nyHigh, high), nyLow := math.min(nyLow, low)
+
+// Silver Bullet
+if sbStart
+    sbOpen := open, sbHigh := high, sbLow := low, sbStartBar := bar_index
+if inSB
+    sbHigh := math.max(sbHigh, high), sbLow := math.min(sbLow, low)
+
+// ═══ TFO STYLE KILLZONE BOXES ═══
+var box asiaBox = na, var box londonBox = na, var box nyBox = na, var box sbBox = na
+var line asiaHighLine = na, var line asiaLowLine = na
+var line londonHighLine = na, var line londonLowLine = na
+var line nyHighLine = na, var line nyLowLine = na
+var line sbHighLine = na, var line sbLowLine = na
+var label asiaLabel = na, var label londonLabel = na, var label nyLabel = na, var label sbLabel = na
+
+// Update boxes dynamically during session
+if showKillzones and showAsiaKZ and inAsia
+    box.delete(asiaBox)
+    line.delete(asiaHighLine), line.delete(asiaLowLine)
+    label.delete(asiaLabel)
+    asiaBox := box.new(asiaStartBar, asiaHigh, bar_index, asiaLow, border_color=color.new(color.yellow, 50), bgcolor=asiaCol, border_width=1)
+    asiaHighLine := line.new(asiaStartBar, asiaHigh, bar_index + 20, asiaHigh, color=color.new(color.yellow, 30), style=line.style_dashed, width=1)
+    asiaLowLine := line.new(asiaStartBar, asiaLow, bar_index + 20, asiaLow, color=color.new(color.yellow, 30), style=line.style_dashed, width=1)
+    asiaLabel := label.new(asiaStartBar, asiaHigh, "ASIA", style=label.style_none, textcolor=color.yellow, size=size.small)
+
+if showKillzones and showLondonKZ and inLondon
+    box.delete(londonBox)
+    line.delete(londonHighLine), line.delete(londonLowLine)
+    label.delete(londonLabel)
+    londonBox := box.new(londonStartBar, londonHigh, bar_index, londonLow, border_color=color.new(color.blue, 50), bgcolor=londonCol, border_width=1)
+    londonHighLine := line.new(londonStartBar, londonHigh, bar_index + 20, londonHigh, color=color.new(color.blue, 30), style=line.style_dashed, width=1)
+    londonLowLine := line.new(londonStartBar, londonLow, bar_index + 20, londonLow, color=color.new(color.blue, 30), style=line.style_dashed, width=1)
+    londonLabel := label.new(londonStartBar, londonHigh, "LONDON", style=label.style_none, textcolor=color.blue, size=size.small)
+
+if showKillzones and showNYKZ and inNY
+    box.delete(nyBox)
+    line.delete(nyHighLine), line.delete(nyLowLine)
+    label.delete(nyLabel)
+    nyBox := box.new(nyStartBar, nyHigh, bar_index, nyLow, border_color=color.new(color.green, 50), bgcolor=nyCol, border_width=1)
+    nyHighLine := line.new(nyStartBar, nyHigh, bar_index + 20, nyHigh, color=color.new(color.green, 30), style=line.style_dashed, width=1)
+    nyLowLine := line.new(nyStartBar, nyLow, bar_index + 20, nyLow, color=color.new(color.green, 30), style=line.style_dashed, width=1)
+    nyLabel := label.new(nyStartBar, nyHigh, "NY AM", style=label.style_none, textcolor=color.green, size=size.small)
+
+if showKillzones and showSilverBullet and inSB
+    box.delete(sbBox)
+    line.delete(sbHighLine), line.delete(sbLowLine)
+    label.delete(sbLabel)
+    sbBox := box.new(sbStartBar, sbHigh, bar_index, sbLow, border_color=color.new(color.orange, 40), bgcolor=sbCol, border_width=2)
+    sbHighLine := line.new(sbStartBar, sbHigh, bar_index + 30, sbHigh, color=color.orange, style=line.style_solid, width=2)
+    sbLowLine := line.new(sbStartBar, sbLow, bar_index + 30, sbLow, color=color.orange, style=line.style_solid, width=2)
+    sbLabel := label.new(sbStartBar, sbHigh, "🎯 SILVER BULLET", style=label.style_none, textcolor=color.orange, size=size.normal)
+
+// KZ Open lines (dotted through session)
+plot(showKZOpen and showAsiaKZ and inAsia ? asiaOpen : na, "Asia Open", color.new(color.yellow, 40), style=plot.style_linebr)
+plot(showKZOpen and showLondonKZ and inLondon ? londonOpen : na, "LDN Open", color.new(color.blue, 40), style=plot.style_linebr)
+plot(showKZOpen and showNYKZ and inNY ? nyOpen : na, "NY Open", color.new(color.green, 40), style=plot.style_linebr)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ 3. PIVOTS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+[dHigh, dLow, dClose] = request.security(syminfo.tickerid, "D", [high[1], low[1], close[1]], lookahead=barmerge.lookahead_on)
+
+calcPivots(h, l, c, pType) =>
+    float p = (h + l + c) / 3
+    float r1 = 0.0, float r2 = 0.0, float s1 = 0.0, float s2 = 0.0
+    if pType == "Traditional"
+        r1 := (2 * p) - l, s1 := (2 * p) - h
+        r2 := p + (h - l), s2 := p - (h - l)
+    else if pType == "Fibonacci"
+        r1 := p + 0.382 * (h - l), s1 := p - 0.382 * (h - l)
+        r2 := p + 0.618 * (h - l), s2 := p - 0.618 * (h - l)
+    else if pType == "Camarilla"
+        r1 := c + (h - l) * 1.1 / 12, s1 := c - (h - l) * 1.1 / 12
+        r2 := c + (h - l) * 1.1 / 6, s2 := c - (h - l) * 1.1 / 6
+    [p, r1, r2, s1, s2]
+
+[dP, dR1, dR2, dS1, dS2] = calcPivots(dHigh, dLow, dClose, pivotType)
+
+plot(showPivots and showDailyPivots ? dP : na, "Pivot", pivotCol, style=plot.style_circles, linewidth=2)
+plot(showPivots and showDailyPivots ? dR1 : na, "R1", rCol, style=plot.style_cross)
+plot(showPivots and showDailyPivots ? dR2 : na, "R2", color.new(rCol, 40), style=plot.style_cross)
+plot(showPivots and showDailyPivots ? dS1 : na, "S1", sCol, style=plot.style_cross)
+plot(showPivots and showDailyPivots ? dS2 : na, "S2", color.new(sCol, 40), style=plot.style_cross)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ 4. PDH/PDL/PWH/PWL ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+float pdh = request.security(syminfo.tickerid, "D", high[1], lookahead=barmerge.lookahead_on)
+float pdl = request.security(syminfo.tickerid, "D", low[1], lookahead=barmerge.lookahead_on)
+float pwh = request.security(syminfo.tickerid, "W", high[1], lookahead=barmerge.lookahead_on)
+float pwl = request.security(syminfo.tickerid, "W", low[1], lookahead=barmerge.lookahead_on)
+
+plot(showPDLevels ? pdh : na, "PDH", color.new(color.red, 20), style=plot.style_linebr, linewidth=2)
+plot(showPDLevels ? pdl : na, "PDL", color.new(color.green, 20), style=plot.style_linebr, linewidth=2)
+plot(showPDLevels ? pwh : na, "PWH", color.new(color.fuchsia, 40), style=plot.style_linebr, linewidth=1)
+plot(showPDLevels ? pwl : na, "PWL", color.new(color.aqua, 40), style=plot.style_linebr, linewidth=1)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ 5. FVG DETECTION (WITH MITIGATION) ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+bool isBullFVG = low > high[2]
+bool isBearFVG = high < low[2]
+
+// IFVG (Inverse FVG) - when FVG gets partially filled then reverses
+bool isIFVGBull = isBearFVG[1] and close > high[1]  // Bear FVG that gets reclaimed
+bool isIFVGBear = isBullFVG[1] and close < low[1]   // Bull FVG that gets reclaimed
+
+var box[] bullFVGs = array.new_box()
+var box[] bearFVGs = array.new_box()
+var float[] bullFVGTops = array.new_float()
+var float[] bullFVGBots = array.new_float()
+var float[] bearFVGTops = array.new_float()
+var float[] bearFVGBots = array.new_float()
+
+// Create Bull FVG
+if showFVG and isBullFVG
+    float fvgTop = low
+    float fvgBot = high[2]
+    box b = box.new(bar_index[2], fvgTop, bar_index + 50, fvgBot, border_color=color.new(#089981, 40), bgcolor=bullFvgCol, border_width=1, text="  ▮ FVG", text_color=#089981, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+    array.push(bullFVGs, b)
+    array.push(bullFVGTops, fvgTop)
+    array.push(bullFVGBots, fvgBot)
+    if array.size(bullFVGs) > maxFVG
+        box.delete(array.shift(bullFVGs))
+        array.shift(bullFVGTops)
+        array.shift(bullFVGBots)
+
+// Create Bear FVG
+if showFVG and isBearFVG
+    float fvgTop = low[2]
+    float fvgBot = high
+    box b = box.new(bar_index[2], fvgTop, bar_index + 50, fvgBot, border_color=color.new(#f23645, 40), bgcolor=bearFvgCol, border_width=1, text="  ▮ FVG", text_color=#f23645, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+    array.push(bearFVGs, b)
+    array.push(bearFVGTops, fvgTop)
+    array.push(bearFVGBots, fvgBot)
+    if array.size(bearFVGs) > maxFVG
+        box.delete(array.shift(bearFVGs))
+        array.shift(bearFVGTops)
+        array.shift(bearFVGBots)
+
+// ═══ FVG MITIGATION (Present Mode) ═══
+if presentMode and array.size(bullFVGs) > 0
+    for i = array.size(bullFVGs) - 1 to 0
+        if i < array.size(bullFVGBots)
+            float bot = array.get(bullFVGBots, i)
+            // Bull FVG mitigated when price closes below its bottom
+            if close < bot
+                box.delete(array.get(bullFVGs, i))
+                array.remove(bullFVGs, i)
+                array.remove(bullFVGTops, i)
+                array.remove(bullFVGBots, i)
+
+if presentMode and array.size(bearFVGs) > 0
+    for i = array.size(bearFVGs) - 1 to 0
+        if i < array.size(bearFVGTops)
+            float top = array.get(bearFVGTops, i)
+            // Bear FVG mitigated when price closes above its top
+            if close > top
+                box.delete(array.get(bearFVGs, i))
+                array.remove(bearFVGs, i)
+                array.remove(bearFVGTops, i)
+                array.remove(bearFVGBots, i)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ 6. ORDER BLOCKS (WITH MITIGATION) ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+float sh = ta.pivothigh(high, structLen, structLen)
+float sl = ta.pivotlow(low, structLen, structLen)
+var float lastSH = na, var float lastSL = na
+if not na(sh)
+    lastSH := sh
+if not na(sl)
+    lastSL := sl
+
+bool crossHigh = ta.crossover(close, lastSH)
+bool crossLow = ta.crossunder(close, lastSL)
+bool bosUp = not na(lastSH) and crossHigh
+bool bosDn = not na(lastSL) and crossLow
+
+if showBOS and bosUp
+    label.new(bar_index, high, "BOS↑", color=color.new(color.green, 100), style=label.style_label_down, textcolor=color.lime, size=size.tiny)
+if showBOS and bosDn
+    label.new(bar_index, low, "BOS↓", color=color.new(color.red, 100), style=label.style_label_up, textcolor=color.red, size=size.tiny)
+
+var box[] bullOBs = array.new_box()
+var box[] bearOBs = array.new_box()
+var float[] bullOBBots = array.new_float()
+var float[] bearOBTops = array.new_float()
+
+// Create Bull OB
+if showOB and bosUp
+    int idx = na
+    for i = 1 to 10
+        if close[i] < open[i]
+            idx := i
+            break
+    if not na(idx)
+        float obTop = high[idx]
+        float obBot = low[idx]
+        box b = box.new(bar_index - idx, obTop, bar_index + 60, obBot, border_color=color.new(#00bcd4, 30), bgcolor=bullObCol, border_width=2, text="  ▮ OB", text_color=#00bcd4, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+        array.push(bullOBs, b)
+        array.push(bullOBBots, obBot)
+        if array.size(bullOBs) > maxOB
+            box.delete(array.shift(bullOBs))
+            array.shift(bullOBBots)
+
+// Create Bear OB
+if showOB and bosDn
+    int idx = na
+    for i = 1 to 10
+        if close[i] > open[i]
+            idx := i
+            break
+    if not na(idx)
+        float obTop = high[idx]
+        float obBot = low[idx]
+        box b = box.new(bar_index - idx, obTop, bar_index + 60, obBot, border_color=color.new(#ff5252, 30), bgcolor=bearObCol, border_width=2, text="  ▮ OB", text_color=#ff5252, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+        array.push(bearOBs, b)
+        array.push(bearOBTops, obTop)
+        if array.size(bearOBs) > maxOB
+            box.delete(array.shift(bearOBs))
+            array.shift(bearOBTops)
+
+// ═══ ORDER BLOCK MITIGATION (Present Mode) ═══
+if presentMode and array.size(bullOBs) > 0
+    for i = array.size(bullOBs) - 1 to 0
+        if i < array.size(bullOBBots)
+            float bot = array.get(bullOBBots, i)
+            // Bull OB invalidated when price closes below
+            if close < bot
+                box.delete(array.get(bullOBs, i))
+                array.remove(bullOBs, i)
+                array.remove(bullOBBots, i)
+
+if presentMode and array.size(bearOBs) > 0
+    for i = array.size(bearOBs) - 1 to 0
+        if i < array.size(bearOBTops)
+            float top = array.get(bearOBTops, i)
+            // Bear OB invalidated when price closes above
+            if close > top
+                box.delete(array.get(bearOBs, i))
+                array.remove(bearOBs, i)
+                array.remove(bearOBTops, i)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ 7. SILVER BULLET SIGNALS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+float bodySize = math.abs(close - open)
+float avgBody = ta.sma(bodySize, 10)
+bool disp = bodySize > avgBody * 1.5
+
+bool sbLong = inSB and isBullFVG and disp and close > open
+bool sbShort = inSB and isBearFVG and disp and close < open
+
+plotshape(sbLong, style=shape.labelup, location=location.belowbar, color=color.green, text="SB", textcolor=color.white, size=size.small)
+plotshape(sbShort, style=shape.labeldown, location=location.abovebar, color=color.red, text="SB", textcolor=color.white, size=size.small)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ 8. DASHBOARD ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+var table dash = table.new(position.top_right, 2, 9, bgcolor=color.new(color.black, 60), border_width=1, border_color=color.gray)
+
+if showZodiac and barstate.islast
+    table.cell(dash, 0, 0, "ICT x ZODIAC", text_color=color.white, text_size=size.small, bgcolor=elemCol)
+    table.merge_cells(dash, 0, 0, 1, 0)
+    
+    string sess = inSB ? "🎯 SILVER BULLET" : inNY ? "🟢 NY AM" : inLondon ? "🔵 LONDON" : inAsia ? "🟡 ASIA" : "⏸️ OFF"
+    color sessCol = inSB ? color.orange : inNY ? color.green : inLondon ? color.blue : inAsia ? color.yellow : color.gray
+    table.cell(dash, 0, 1, "Session", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 1, sess, text_color=sessCol, text_size=size.tiny)
+    
+    table.cell(dash, 0, 2, "Moon", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 2, moonPhase, text_color=color.white, text_size=size.tiny)
+    
+    table.cell(dash, 0, 3, "Sign", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 3, currentZodiac, text_color=elemCol, text_size=size.tiny)
+    
+    table.cell(dash, 0, 4, "Element", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 4, element, text_color=elemCol, text_size=size.tiny)
+    
+    table.cell(dash, 0, 5, "Profile", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 5, ictBias, text_color=color.yellow, text_size=size.tiny)
+    
+    table.cell(dash, 0, 6, "Focus", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 6, ictFocus, text_color=color.lime, text_size=size.tiny)
+    
+    table.cell(dash, 0, 7, "PDH", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 7, str.tostring(pdh, format.mintick), text_color=color.red, text_size=size.tiny)
+    
+    table.cell(dash, 0, 8, "PDL", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 8, str.tostring(pdl, format.mintick), text_color=color.green, text_size=size.tiny)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ ALERTS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+alertcondition(sbLong, title="Silver Bullet LONG", message="🎯 Silver Bullet LONG")
+alertcondition(sbShort, title="Silver Bullet SHORT", message="🎯 Silver Bullet SHORT")
+alertcondition(bosUp, title="Bullish BOS", message="BOS UP")
+alertcondition(bosDn, title="Bearish BOS", message="BOS DOWN")
+alertcondition(londonStart, title="London Open", message="London Session Started")
+alertcondition(nyStart, title="NY Open", message="NY AM Session Started")
