@@ -597,7 +597,7 @@ if presentMode and array.size(bearOBs) > 0
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 7. KILLZONE SIGNALS (ZODIAC FILTERED) ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-float bodySize = math.abs(close - open)
+// bodySize reused from line 450
 bool disp = bodySize > avgBody * 1.5
 
 // Base killzone signals
