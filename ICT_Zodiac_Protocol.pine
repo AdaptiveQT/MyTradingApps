@@ -445,10 +445,9 @@ var float[] bearOBTops = array.new_float()
 var int[] bullOBScores = array.new_int()
 var int[] bearOBScores = array.new_int()
 
-// ATR & Avg Body for scoring
+// ATR & Body for scoring (avgBody reused from line 349)
 float atrVal = ta.atr(14)
 float bodySize = math.abs(close - open)
-float avgBody = ta.sma(bodySize, 14)
 
 // HTF Trend Detection (Fast EMA > Slow EMA = bullish)
 float htfFastEMA = ta.ema(close, fastLen)
