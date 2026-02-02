@@ -15,8 +15,9 @@ string gameMode = input.string("SCALPER", "Trading Mode", options=["SCALPER", "D
 // ███ ALPHA EDGE A+ STRATEGIES ███
 // ══════════════════════════════════════════════════════════════════════════════
 string alphaGroup = "═══ ALPHA EDGE ═══"
-string alphaTooltip = "Select your A+ strategy:\n• Off: Use original BB signals\n• Trend Following: 200 SMA crosses\n• Mean Reversion: RSI extremes\n• Swing Pullbacks: EMA50 zone\n• Breakout: BB squeeze expansion\n• All: Combined confluence"
-string alphaStrategy = input.string("Off", "Alpha Edge Strategy", options=["Off", "Trend Following", "Mean Reversion", "Swing Pullbacks", "Breakout", "All Signals"], group=alphaGroup, tooltip=alphaTooltip)
+string alphaTooltip = "Select your A+ strategy:\n• Off: Use original BB signals\n• Adaptive: Auto-detect market conditions\n• Trend Following: 200 SMA crosses\n• Mean Reversion: RSI extremes\n• Swing Pullbacks: EMA50 zone\n• Breakout: BB squeeze expansion\n• All: Combined confluence"
+string alphaStrategy = input.string("Off", "Alpha Edge Strategy", options=["Off", "Adaptive", "Trend Following", "Mean Reversion", "Swing Pullbacks", "Breakout", "All Signals"], group=alphaGroup, tooltip=alphaTooltip)
+int adaptiveADXThreshold = input.int(25, "ADX Trend Threshold", minval=15, maxval=40, group=alphaGroup, tooltip="ADX above this = trending market (Adaptive mode)")
 int alphaRSIPeriod = input.int(2, "RSI Period", minval=1, maxval=14, group=alphaGroup, tooltip="RSI(2) is optimal for mean reversion")
 int alphaRSIOversold = input.int(15, "RSI Oversold", minval=5, maxval=30, group=alphaGroup)
 int alphaRSIOverbought = input.int(85, "RSI Overbought", minval=70, maxval=95, group=alphaGroup)
@@ -102,6 +103,12 @@ float ema5 = ta.ema(close, emaTrail)
 // BB Squeeze for Alpha Edge Breakout strategy
 float bbWidthPct = (bbUpper - bbLower) / bbBasis
 bool bbSqueezeActive = bbWidthPct < ta.sma(bbWidthPct, 20)
+
+// ADX for Adaptive Mode - detects trending vs ranging markets
+[diPlus, diMinus, adx] = ta.dmi(14, 14)
+bool isTrending = adx > adaptiveADXThreshold
+bool isRanging = adx < 20
+bool isVolatile = bbWidthPct > ta.sma(bbWidthPct, 20) * 1.5
 
 // Alpha Edge RSI for Mean Reversion
 float alphaRSI = ta.rsi(close, alphaRSIPeriod)
@@ -281,8 +288,23 @@ bool alphaBreakoutSell = bbSqueezeActive[1] and close < bbLower and ta.crossunde
 bool originalBuy = bullCandle and touchedLowerBB and bullTrend and swingBullOK and validSession
 bool originalSell = bearCandle and touchedUpperBB and bearTrend and swingBearOK and validSession
 
+// ─── ADAPTIVE MODE: Auto-select strategy based on market conditions ───
+// Based on multi-regime backtest findings:
+// - Trending (ADX > 25) → Trend Following works best
+// - Ranging (ADX < 20) → Mean Reversion works best  
+// - Volatile (high BB width) → Mean Reversion works best
+// - Choppy (everything else) → Original BB-bounce works best
+bool adaptiveBuy = isTrending ? alphaTrendBuy : (isRanging or isVolatile) ? alphaMeanRevBuy : bbSqueezeActive ? alphaBreakoutBuy : originalBuy
+
+bool adaptiveSell = isTrending ? alphaTrendSell : (isRanging or isVolatile) ? alphaMeanRevSell : bbSqueezeActive ? alphaBreakoutSell : originalSell
+
+// Track which strategy Adaptive mode is using (for labels)
+string adaptiveActiveStrategy = isTrending ? "TREND" : (isRanging or isVolatile) ? "MEAN REV" : bbSqueezeActive ? "BREAKOUT" : "ORIGINAL"
+
+
 // ─── ALPHA EDGE SIGNAL SELECTION ───
 bool alphaBuy = switch alphaStrategy
+    "Adaptive" => adaptiveBuy and validSession
     "Trend Following" => alphaTrendBuy and validSession
     "Mean Reversion" => alphaMeanRevBuy and validSession
     "Swing Pullbacks" => alphaPullbackBuySignal and validSession
@@ -291,12 +313,14 @@ bool alphaBuy = switch alphaStrategy
     => false
 
 bool alphaSell = switch alphaStrategy
+    "Adaptive" => adaptiveSell and validSession
     "Trend Following" => alphaTrendSell and validSession
     "Mean Reversion" => alphaMeanRevSell and validSession
     "Swing Pullbacks" => alphaPullbackSellSignal and validSession
     "Breakout" => alphaBreakoutSell and validSession
     "All Signals" => (alphaTrendSell or alphaMeanRevSell or alphaPullbackSellSignal or alphaBreakoutSell) and validSession
     => false
+
 
 // ─── FINAL SIGNAL: Alpha Edge if enabled, otherwise original ───
 bool rawBuySignal = alphaStrategy != "Off" ? alphaBuy : originalBuy
@@ -309,12 +333,13 @@ bool sellSignal = rawSellSignal and barstate.isconfirmed
 
 // Alpha Edge signal labels (when enabled)
 if showAlphaLabels and buySignal and alphaStrategy != "Off" and showOnChart
-    string alphaLabel = alphaStrategy == "Trend Following" ? "📈 TREND" : alphaStrategy == "Mean Reversion" ? "🔄 MEAN REV" : alphaStrategy == "Swing Pullbacks" ? "🎯 PULLBACK" : alphaStrategy == "Breakout" ? "💥 BREAKOUT" : "⚡ ALPHA"
+    string alphaLabel = alphaStrategy == "Adaptive" ? "🔀 " + adaptiveActiveStrategy : alphaStrategy == "Trend Following" ? "📈 TREND" : alphaStrategy == "Mean Reversion" ? "🔄 MEAN REV" : alphaStrategy == "Swing Pullbacks" ? "🎯 PULLBACK" : alphaStrategy == "Breakout" ? "💥 BREAKOUT" : "⚡ ALPHA"
     label.new(bar_index, low, alphaLabel, style=label.style_label_up, color=color.new(#00E676, 30), textcolor=color.white, size=size.tiny)
 
 if showAlphaLabels and sellSignal and alphaStrategy != "Off" and showOnChart
-    string alphaLabel = alphaStrategy == "Trend Following" ? "📉 TREND" : alphaStrategy == "Mean Reversion" ? "🔄 MEAN REV" : alphaStrategy == "Swing Pullbacks" ? "🎯 PULLBACK" : alphaStrategy == "Breakout" ? "💥 BREAKOUT" : "⚡ ALPHA"
+    string alphaLabel = alphaStrategy == "Adaptive" ? "🔀 " + adaptiveActiveStrategy : alphaStrategy == "Trend Following" ? "📉 TREND" : alphaStrategy == "Mean Reversion" ? "🔄 MEAN REV" : alphaStrategy == "Swing Pullbacks" ? "🎯 PULLBACK" : alphaStrategy == "Breakout" ? "💥 BREAKOUT" : "⚡ ALPHA"
     label.new(bar_index, high, alphaLabel, style=label.style_label_down, color=color.new(#FF5252, 30), textcolor=color.white, size=size.tiny)
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ TFO-STYLE ICT KILLZONES + PIVOTS ███
@@ -1295,7 +1320,7 @@ color prob_col = score >= 80 ? color.new(#00E676, 0) : score >= 60 ? color.new(#
 // ███ DASHBOARD (HEADS-UP DISPLAY) ███
 // ══════════════════════════════════════════════════════════════════════════════
 if showDashboard
-    var table dashboard = table.new(position.bottom_right, 2, 10, bgcolor=color.new(#000000, 50), border_width=1, border_color=color.new(#FFFFFF, 80))
+    var table dashboard = table.new(position.bottom_right, 2, 12, bgcolor=color.new(#000000, 50), border_width=1, border_color=color.new(#FFFFFF, 80))
     
     // Header - Retail Beast FX Branding (matching logo)
     table.cell(dashboard, 0, 0, "🦁", text_color=color.new(#00FF00, 0), text_size=size.small, text_halign=text.align_center)
@@ -1306,10 +1331,11 @@ if showDashboard
     modeColor = gameMode == "SCALPER" ? color.lime : gameMode == "DAY TRADER" ? color.orange : color.aqua
     table.cell(dashboard, 1, 1, gameMode, text_color=modeColor, text_size=size.tiny, text_halign=text.align_left)
     
-    // Alpha Edge Strategy (NEW)
+    // Alpha Edge Strategy (shows active sub-strategy in Adaptive mode)
     table.cell(dashboard, 0, 2, "ALPHA EDGE", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
+    string alphaDisplayText = alphaStrategy == "Adaptive" ? "🔀 " + adaptiveActiveStrategy : alphaStrategy
     color alphaColor = alphaStrategy != "Off" ? color.new(#00FFFF, 0) : color.gray
-    table.cell(dashboard, 1, 2, alphaStrategy, text_color=alphaColor, text_size=size.tiny, text_halign=text.align_left)
+    table.cell(dashboard, 1, 2, alphaDisplayText, text_color=alphaColor, text_size=size.tiny, text_halign=text.align_left)
     
     // Session Status (with Silver Bullet)
     table.cell(dashboard, 0, 3, "SESSION", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
@@ -1346,6 +1372,18 @@ if showDashboard
     // THE TAPE - Money Flow (Ghost Tape)
     table.cell(dashboard, 0, 9, "THE TAPE", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
     table.cell(dashboard, 1, 9, flow_txt, text_color=flow_col, text_size=size.tiny, text_halign=text.align_left)
+    
+    // ADX / Market Regime (NEW for Adaptive Mode)
+    table.cell(dashboard, 0, 10, "REGIME", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
+    string regimeText = isTrending ? "📈 TRENDING" : isRanging ? "↔️ RANGING" : isVolatile ? "🌊 VOLATILE" : "📊 CHOPPY"
+    color regimeColor = isTrending ? color.new(#00E676, 0) : isRanging ? color.new(#FFD700, 0) : isVolatile ? color.new(#FF9800, 0) : color.gray
+    table.cell(dashboard, 1, 10, regimeText + " (ADX: " + str.tostring(adx, "#.#") + ")", text_color=regimeColor, text_size=size.tiny, text_halign=text.align_left)
+    
+    // BB Width Status
+    table.cell(dashboard, 0, 11, "BB WIDTH", text_color=color.gray, text_size=size.tiny, text_halign=text.align_right)
+    string bbText = bbSqueezeActive ? "🔷 SQUEEZE" : isVolatile ? "🔶 EXPANSION" : "NORMAL"
+    color bbWidthColor = bbSqueezeActive ? color.new(#2196F3, 0) : isVolatile ? color.new(#FF9800, 0) : color.gray
+    table.cell(dashboard, 1, 11, bbText, text_color=bbWidthColor, text_size=size.tiny, text_halign=text.align_left)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ███ MTF TREND TABLE ███
