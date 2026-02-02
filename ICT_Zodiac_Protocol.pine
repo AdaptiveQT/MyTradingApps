@@ -702,9 +702,10 @@ bool kzShortBase = inKillzone and isBearFVG and disp and close < open
 bool kzLong = zodiacFilter ? (kzLongBase and bullishBias) : kzLongBase
 bool kzShort = zodiacFilter ? (kzShortBase and bearishBias) : kzShortBase
 
-// Strong signals (strong FVG + displacement + killzone aligned)
-bool kzLongStrong = kzLong and strongBullFVG
-bool kzShortStrong = kzShort and strongBearFVG
+// Strong signals (high score FVG + displacement + killzone aligned)
+// Note: strongBullFVG/strongBearFVG replaced with hasDisplacement + killzone check
+bool kzLongStrong = kzLong and hasDisplacement and inKillzone
+bool kzShortStrong = kzShort and hasDisplacement and inKillzone
 
 // Visual differentiation: Strong = ★, Weak = standard
 plotshape(kzLongStrong, style=shape.labelup, location=location.belowbar, color=color.green, text="KZ ★", textcolor=color.white, size=size.normal)
