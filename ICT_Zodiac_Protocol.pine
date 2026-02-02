@@ -870,29 +870,13 @@ string sessText = inSilverBullet ? "Silver Bullet" : inNYPM ? "NY PM" : inNYLunc
 if nuclearLong and not nuclearLong[1]
     if not na(popupNuclearLong)
         label.delete(popupNuclearLong)
-    popupNuclearLong := label.new(
-         bar_index, low,
-         "🔥 NUCLEAR LONG\nAEP + ICT AGREE!",
-         color=color.new(#FFD700, 0),
-         textcolor=color.black,
-         style=label.style_label_up,
-         size=size.large,
-         yloc=yloc.belowbar
-    )
+    popupNuclearLong := label.new(bar_index, low, "🔥 NUCLEAR LONG", color=color.new(#FFD700, 0), textcolor=color.black, style=label.style_label_up, size=size.large, yloc=yloc.belowbar)
     alert("🔥 NUCLEAR LONG | Price: " + str.tostring(close, "#.##") + " | " + sessText, alert.freq_once_per_bar_close)
 
 if nuclearShort and not nuclearShort[1]
     if not na(popupNuclearShort)
         label.delete(popupNuclearShort)
-    popupNuclearShort := label.new(
-         bar_index, high,
-         "🔥 NUCLEAR SHORT\nAEP + ICT AGREE!",
-         color=color.new(#FF4500, 0),
-         textcolor=color.white,
-         style=label.style_label_down,
-         size=size.large,
-         yloc=yloc.abovebar
-    )
+    popupNuclearShort := label.new(bar_index, high, "🔥 NUCLEAR SHORT", color=color.new(#FF4500, 0), textcolor=color.white, style=label.style_label_down, size=size.large, yloc=yloc.abovebar)
     alert("🔥 NUCLEAR SHORT | Price: " + str.tostring(close, "#.##") + " | " + sessText, alert.freq_once_per_bar_close)
 
 // ═══ KZ POPUP (smaller, only when not nuclear) ═══
@@ -910,7 +894,7 @@ if kzShort and not kzShort[1] and not nuclearShort
 if (pdhSweep or pdlSweep) and inKillzone
     if not na(popupLiqGrab)
         label.delete(popupLiqGrab)
-    string liqText = pdhSweep ? "💧 LIQ GRAB\nPDH Swept!" : "💧 LIQ GRAB\nPDL Swept!"
+    string liqText = pdhSweep ? "💧 PDH SWEPT" : "💧 PDL SWEPT"
     color liqCol = pdhSweep ? color.red : color.green
     popupLiqGrab := label.new(bar_index, pdhSweep ? high : low, liqText, color=liqCol, textcolor=color.white, style=pdhSweep ? label.style_label_down : label.style_label_up, size=size.normal, yloc=pdhSweep ? yloc.abovebar : yloc.belowbar)
 
