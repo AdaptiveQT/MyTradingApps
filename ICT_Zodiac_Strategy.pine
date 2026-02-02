@@ -19,6 +19,11 @@ bool tradeLondon = input.bool(true, "Trade London", group=grpSession)
 bool tradeNY = input.bool(true, "Trade NY AM", group=grpSession)
 bool tradeSB = input.bool(true, "Trade Silver Bullet", group=grpSession)
 
+grpHTF = "HTF Trend Filter"
+bool useHTFFilter = input.bool(true, "Use HTF Trend Filter", group=grpHTF, tooltip="Only trade in direction of higher timeframe trend")
+string htfTimeframe = input.string("60", "HTF Timeframe", options=["15", "30", "60", "240", "D"], group=grpHTF)
+int htfEmaLen = input.int(50, "HTF EMA Length", minval=10, maxval=200, group=grpHTF)
+
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 1. ZODIAC CALCULATION ░░░
 // ══════════════════════════════════════════════════════════════════════════════
@@ -90,7 +95,17 @@ bool strongBullFVG = isBullFVG and fvgGapBull > avgRange * 0.3 and hasDisplaceme
 bool strongBearFVG = isBearFVG and fvgGapBear > avgRange * 0.3 and hasDisplacement
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 4. ENTRY CONDITIONS ░░░
+// ░░░ 4. HTF TREND FILTER ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+float htfEma = request.security(syminfo.tickerid, htfTimeframe, ta.ema(close, htfEmaLen), lookahead=barmerge.lookahead_on)
+bool htfBullish = close > htfEma
+bool htfBearish = close < htfEma
+
+// Plot HTF EMA for reference
+plot(useHTFFilter ? htfEma : na, "HTF EMA", color=color.new(color.purple, 50), linewidth=2)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ 5. ENTRY CONDITIONS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 // Silver Bullet signals
 float bodySize = math.abs(close - open)
@@ -111,9 +126,13 @@ bool fvgShortStrength = onlyStrongZones ? strongBearFVG : isBearFVG
 bool zodiacLongOK = useZodiacFilter ? bullishBias : true
 bool zodiacShortOK = useZodiacFilter ? bearishBias : true
 
-// Final entry signals
-bool entryLong = fvgLongBase and fvgLongStrength and zodiacLongOK and inTradingSession
-bool entryShort = fvgShortBase and fvgShortStrength and zodiacShortOK and inTradingSession
+// Apply HTF trend filter
+bool htfLongOK = useHTFFilter ? htfBullish : true
+bool htfShortOK = useHTFFilter ? htfBearish : true
+
+// Final entry signals (all filters must pass)
+bool entryLong = fvgLongBase and fvgLongStrength and zodiacLongOK and htfLongOK and inTradingSession
+bool entryShort = fvgShortBase and fvgShortStrength and zodiacShortOK and htfShortOK and inTradingSession
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 5. STOP LOSS & TAKE PROFIT ░░░
@@ -146,23 +165,27 @@ plotshape(entryShort, style=shape.triangledown, location=location.abovebar, colo
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 8. DASHBOARD ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-var table dash = table.new(position.top_right, 2, 5, bgcolor=color.new(color.black, 70), border_width=1)
+var table dash = table.new(position.top_right, 2, 6, bgcolor=color.new(color.black, 70), border_width=1)
 
 string elemText = isFire ? "🔥 FIRE" : isWater ? "💧 WATER" : isAir ? "🌪️ AIR" : isEarth ? "🌍 EARTH" : "Neutral"
 string biasText = bullishBias ? "BULLISH" : bearishBias ? "BEARISH" : "NEUTRAL"
 color biasCol = bullishBias ? color.green : bearishBias ? color.red : color.gray
+string htfText = htfBullish ? "↑ BULLISH" : "↓ BEARISH"
+color htfCol = htfBullish ? color.green : color.red
 
 if barstate.islast
     table.cell(dash, 0, 0, "ICT x ZODIAC", text_color=color.white, text_size=size.small, bgcolor=color.purple)
     table.merge_cells(dash, 0, 0, 1, 0)
     table.cell(dash, 0, 1, "Element", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 1, elemText, text_color=color.orange, text_size=size.tiny)
-    table.cell(dash, 0, 2, "Bias", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 0, 2, "Zodiac Bias", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 2, biasText, text_color=biasCol, text_size=size.tiny)
-    table.cell(dash, 0, 3, "Session", text_color=color.white, text_size=size.tiny)
-    table.cell(dash, 1, 3, inSB ? "🎯 SILVER BULLET" : inNY ? "NY AM" : inLondon ? "LONDON" : "OFF", text_color=inSB ? color.orange : color.gray, text_size=size.tiny)
-    table.cell(dash, 0, 4, "Mode", text_color=color.white, text_size=size.tiny)
-    table.cell(dash, 1, 4, onlyStrongZones ? "★ STRONG ONLY" : "ALL ZONES", text_color=color.yellow, text_size=size.tiny)
+    table.cell(dash, 0, 3, "HTF Trend", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 3, htfText, text_color=htfCol, text_size=size.tiny)
+    table.cell(dash, 0, 4, "Session", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 4, inSB ? "🎯 SILVER BULLET" : inNY ? "NY AM" : inLondon ? "LONDON" : "OFF", text_color=inSB ? color.orange : color.gray, text_size=size.tiny)
+    table.cell(dash, 0, 5, "Mode", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 5, onlyStrongZones ? "★ STRONG ONLY" : "ALL ZONES", text_color=color.yellow, text_size=size.tiny)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ ALERTS ░░░
