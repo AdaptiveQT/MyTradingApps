@@ -101,6 +101,16 @@ bool showOBScore = input.bool(true, "Show OB Score", group=grpOBScore)
 bool hideWeakOBs = input.bool(false, "Hide Weak OBs", group=grpOBScore, tooltip="Hide OBs below threshold instead of graying out")
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ░░░ FVG SCORING ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpFVGScore = "FVG Scoring"
+int fvgScoreThreshold = input.int(5, "Min FVG Score (0-10)", minval=0, maxval=10, group=grpFVGScore, tooltip="Only show FVGs scoring above this")
+float fvgATRMult = input.float(2.0, "Displacement ATR Mult", minval=1.0, step=0.5, group=grpFVGScore)
+bool showFVGScore = input.bool(true, "Show FVG Score", group=grpFVGScore)
+bool hideWeakFVGs = input.bool(false, "Hide Weak FVGs", group=grpFVGScore)
+bool detectIFVG = input.bool(true, "Detect Inverse FVGs (iFVG)", group=grpFVGScore, tooltip="Mark FVGs that get breached as inverse")
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ░░░ ZODIAC SETTINGS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 grpAstro = "Zodiac"
@@ -336,7 +346,7 @@ if showPDLevels and barstate.islast
     pwlLabel := label.new(bar_index + 22, pwl, "PWL", style=label.style_none, textcolor=color.aqua, size=size.small)
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 5. FVG DETECTION (WITH STRENGTH GRADING) ░░░
+// ░░░ 5. FVG DETECTION (INTELLIGENT SCORING + iFVG) ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 bool isBullFVG = low > high[2]
 bool isBearFVG = high < low[2]
@@ -347,74 +357,158 @@ float fvgGapBull = isBullFVG ? (low - high[2]) : 0
 float fvgGapBear = isBearFVG ? (low[2] - high) : 0
 float dispBody = math.abs(close[1] - open[1])
 float avgBody = ta.sma(math.abs(close - open), 14)
+float fvgATR = ta.atr(14)
 
-// Strong = Large gap + Displacement candle + During killzone
+// Killzone check
 bool inKillzone = inAsia or inLondon or inNY or inNYLunch or inNYPM
 bool hasDisplacement = dispBody > avgBody * 1.5
-bool strongBullFVG = isBullFVG and fvgGapBull > avgRange * 0.3 and hasDisplacement
-bool strongBearFVG = isBearFVG and fvgGapBear > avgRange * 0.3 and hasDisplacement
 
+// HTF Trend for FVG alignment (reuse from later if available, or calculate here)
+float fvgFastEMA = ta.ema(close, 9)
+float fvgSlowEMA = ta.ema(close, 21)
+bool fvgHtfBullTrend = fvgFastEMA > fvgSlowEMA
+bool fvgHtfBearTrend = fvgFastEMA < fvgSlowEMA
+
+// FVG Scoring Function (0-10)
+calcFVGScore(gapSize, displacement, inKZ, htfAligned, isLargeGap) =>
+    int score = 0
+    // +3 Strong displacement (middle candle > 2x ATR)
+    if displacement > fvgATR * fvgATRMult
+        score += 3
+    // +2 Unmitigated (all new FVGs are unmitigated)
+    score += 2
+    // +2 HTF trend aligned
+    if htfAligned
+        score += 2
+    // +1 In killzone
+    if inKZ
+        score += 1
+    // +1 Large gap size
+    if isLargeGap
+        score += 1
+    // +1 Strong body displacement
+    if displacement > avgBody * 1.5
+        score += 1
+    math.min(score, 10)
+
+// FVG Color by Score
+fvgColorByScore(score, isBull) =>
+    if score >= 8
+        isBull ? color.new(#00ff88, 60) : color.new(#ff4444, 60)  // Bright
+    else if score >= 5
+        isBull ? color.new(#089981, 70) : color.new(#f23645, 70)  // Normal
+    else
+        color.new(color.gray, 80)  // Weak
+
+// FVG Tracking Arrays
 var box[] bullFVGs = array.new_box()
 var box[] bearFVGs = array.new_box()
 var float[] bullFVGTops = array.new_float()
 var float[] bullFVGBots = array.new_float()
 var float[] bearFVGTops = array.new_float()
 var float[] bearFVGBots = array.new_float()
+var int[] bullFVGScores = array.new_int()
+var int[] bearFVGScores = array.new_int()
 
-// Create Bull FVG (Strong vs Weak)
+// iFVG Tracking
+var box[] iFVGs = array.new_box()
+
+// Create Bull FVG with Scoring
 if showFVG and isBullFVG
     float fvgTop = low
     float fvgBot = high[2]
-    string fvgLabel = strongBullFVG ? "▮ FVG ★" : "▮ FVG"
-    int bWidth = strongBullFVG ? 2 : 1
-    color bCol = strongBullFVG ? color.new(#089981, 75) : bullFvgCol
-    box b = box.new(bar_index[2], fvgTop, bar_index + 50, fvgBot, border_color=color.new(#089981, 30), bgcolor=bCol, border_width=bWidth, text=fvgLabel, text_color=#089981, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
-    array.push(bullFVGs, b)
-    array.push(bullFVGTops, fvgTop)
-    array.push(bullFVGBots, fvgBot)
-    if array.size(bullFVGs) > maxFVG
-        box.delete(array.shift(bullFVGs))
-        array.shift(bullFVGTops)
-        array.shift(bullFVGBots)
+    bool isLargeGap = fvgGapBull > avgRange * 0.3
+    int fvgScore = calcFVGScore(fvgGapBull, dispBody, inKillzone, fvgHtfBullTrend, isLargeGap)
+    
+    // Apply threshold filter
+    if fvgScore >= fvgScoreThreshold or not hideWeakFVGs
+        string fvgLabel = showFVGScore ? "▮ FVG " + str.tostring(fvgScore) + "/10" : "▮ FVG"
+        if fvgScore >= 8
+            fvgLabel := fvgLabel + " ★"
+        int bWidth = fvgScore >= 8 ? 3 : fvgScore >= 5 ? 2 : 1
+        color bCol = fvgColorByScore(fvgScore, true)
+        color borderCol = fvgScore >= 5 ? color.new(#089981, 30) : color.new(color.gray, 40)
+        
+        box b = box.new(bar_index[2], fvgTop, bar_index + 50, fvgBot, border_color=borderCol, bgcolor=bCol, border_width=bWidth, text=fvgLabel, text_color=#089981, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+        array.push(bullFVGs, b)
+        array.push(bullFVGTops, fvgTop)
+        array.push(bullFVGBots, fvgBot)
+        array.push(bullFVGScores, fvgScore)
+        if array.size(bullFVGs) > maxFVG
+            box.delete(array.shift(bullFVGs))
+            array.shift(bullFVGTops)
+            array.shift(bullFVGBots)
+            array.shift(bullFVGScores)
 
-// Create Bear FVG (Strong vs Weak)
+// Create Bear FVG with Scoring
 if showFVG and isBearFVG
     float fvgTop = low[2]
     float fvgBot = high
-    string fvgLabel = strongBearFVG ? "▮ FVG ★" : "▮ FVG"
-    int bWidth = strongBearFVG ? 2 : 1
-    color bCol = strongBearFVG ? color.new(#f23645, 75) : bearFvgCol
-    box b = box.new(bar_index[2], fvgTop, bar_index + 50, fvgBot, border_color=color.new(#f23645, 30), bgcolor=bCol, border_width=bWidth, text=fvgLabel, text_color=#f23645, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
-    array.push(bearFVGs, b)
-    array.push(bearFVGTops, fvgTop)
-    array.push(bearFVGBots, fvgBot)
-    if array.size(bearFVGs) > maxFVG
-        box.delete(array.shift(bearFVGs))
-        array.shift(bearFVGTops)
-        array.shift(bearFVGBots)
+    bool isLargeGap = fvgGapBear > avgRange * 0.3
+    int fvgScore = calcFVGScore(fvgGapBear, dispBody, inKillzone, fvgHtfBearTrend, isLargeGap)
+    
+    // Apply threshold filter
+    if fvgScore >= fvgScoreThreshold or not hideWeakFVGs
+        string fvgLabel = showFVGScore ? "▮ FVG " + str.tostring(fvgScore) + "/10" : "▮ FVG"
+        if fvgScore >= 8
+            fvgLabel := fvgLabel + " ★"
+        int bWidth = fvgScore >= 8 ? 3 : fvgScore >= 5 ? 2 : 1
+        color bCol = fvgColorByScore(fvgScore, false)
+        color borderCol = fvgScore >= 5 ? color.new(#f23645, 30) : color.new(color.gray, 40)
+        
+        box b = box.new(bar_index[2], fvgTop, bar_index + 50, fvgBot, border_color=borderCol, bgcolor=bCol, border_width=bWidth, text=fvgLabel, text_color=#f23645, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+        array.push(bearFVGs, b)
+        array.push(bearFVGTops, fvgTop)
+        array.push(bearFVGBots, fvgBot)
+        array.push(bearFVGScores, fvgScore)
+        if array.size(bearFVGs) > maxFVG
+            box.delete(array.shift(bearFVGs))
+            array.shift(bearFVGTops)
+            array.shift(bearFVGBots)
+            array.shift(bearFVGScores)
 
-// ═══ FVG MITIGATION (Present Mode) ═══
+// ═══ FVG MITIGATION + iFVG DETECTION ═══
 if presentMode and array.size(bullFVGs) > 0
     for i = array.size(bullFVGs) - 1 to 0
         if i < array.size(bullFVGBots)
             float bot = array.get(bullFVGBots, i)
-            // Bull FVG mitigated when price closes below its bottom
+            float top = array.get(bullFVGTops, i)
+            // Bull FVG breached completely = create iFVG (bearish)
             if close < bot
+                if detectIFVG
+                    // Create iFVG (inverse - now bearish resistance)
+                    box iFvg = box.new(bar_index - 5, top, bar_index + 30, bot, border_color=color.new(color.orange, 20), bgcolor=color.new(color.orange, 80), border_width=2, text="iFVG ↓", text_color=color.orange, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+                    array.push(iFVGs, iFvg)
+                    if array.size(iFVGs) > maxFVG
+                        box.delete(array.shift(iFVGs))
+                // Remove original
                 box.delete(array.get(bullFVGs, i))
                 array.remove(bullFVGs, i)
                 array.remove(bullFVGTops, i)
                 array.remove(bullFVGBots, i)
+                if i < array.size(bullFVGScores)
+                    array.remove(bullFVGScores, i)
 
 if presentMode and array.size(bearFVGs) > 0
     for i = array.size(bearFVGs) - 1 to 0
         if i < array.size(bearFVGTops)
             float top = array.get(bearFVGTops, i)
-            // Bear FVG mitigated when price closes above its top
+            float bot = array.get(bearFVGBots, i)
+            // Bear FVG breached completely = create iFVG (bullish)
             if close > top
+                if detectIFVG
+                    // Create iFVG (inverse - now bullish support)
+                    box iFvg = box.new(bar_index - 5, top, bar_index + 30, bot, border_color=color.new(color.orange, 20), bgcolor=color.new(color.orange, 80), border_width=2, text="iFVG ↑", text_color=color.orange, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+                    array.push(iFVGs, iFvg)
+                    if array.size(iFVGs) > maxFVG
+                        box.delete(array.shift(iFVGs))
+                // Remove original
                 box.delete(array.get(bearFVGs, i))
                 array.remove(bearFVGs, i)
                 array.remove(bearFVGTops, i)
                 array.remove(bearFVGBots, i)
+                if i < array.size(bearFVGScores)
+                    array.remove(bearFVGScores, i)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 6. ORDER BLOCKS (INTELLIGENT SCORING) ░░░
