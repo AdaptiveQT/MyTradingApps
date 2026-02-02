@@ -168,8 +168,7 @@ var box asiaBox = na, var box londonBox = na, var box nyBox = na
 var line asiaHighLine = na, var line asiaLowLine = na
 var line londonHighLine = na, var line londonLowLine = na
 var line nyHighLine = na, var line nyLowLine = na
-var line sbHighLine = na, var line sbLowLine = na
-var label asiaLabel = na, var label londonLabel = na, var label nyLabel = na, var label sbLabel = na
+var label asiaLabel = na, var label londonLabel = na, var label nyLabel = na
 
 // Update boxes dynamically during session
 if showKillzones and showAsiaKZ and inAsia
@@ -198,15 +197,6 @@ if showKillzones and showNYKZ and inNY
     nyHighLine := line.new(nyStartBar, nyHigh, bar_index + 20, nyHigh, color=color.new(color.green, 30), style=line.style_dashed, width=1)
     nyLowLine := line.new(nyStartBar, nyLow, bar_index + 20, nyLow, color=color.new(color.green, 30), style=line.style_dashed, width=1)
     nyLabel := label.new(nyStartBar, nyHigh, "NY AM", style=label.style_none, textcolor=color.green, size=size.small)
-
-if showKillzones and showSilverBullet and inSB
-    box.delete(sbBox)
-    line.delete(sbHighLine), line.delete(sbLowLine)
-    label.delete(sbLabel)
-    sbBox := box.new(sbStartBar, sbHigh, bar_index, sbLow, border_color=color.new(color.orange, 40), bgcolor=sbCol, border_width=2)
-    sbHighLine := line.new(sbStartBar, sbHigh, bar_index + 30, sbHigh, color=color.orange, style=line.style_solid, width=2)
-    sbLowLine := line.new(sbStartBar, sbLow, bar_index + 30, sbLow, color=color.orange, style=line.style_solid, width=2)
-    sbLabel := label.new(sbStartBar, sbHigh, "🎯 SILVER BULLET", style=label.style_none, textcolor=color.orange, size=size.normal)
 
 // KZ Open lines (dotted through session)
 plot(showKZOpen and showAsiaKZ and inAsia ? asiaOpen : na, "Asia Open", color.new(color.yellow, 40), style=plot.style_linebr)
