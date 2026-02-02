@@ -878,6 +878,72 @@ if judasBearTrap and not judasBearTrap[1]
     alert("⚠️ JUDAS SWING ↑ – False bearish breakout! Potential bullish trap.", alert.freq_once_per_bar_close)
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ░░░ OTE ZONE (OPTIMAL TRADE ENTRY) ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// ICT's golden pocket: 0.62-0.79 Fibonacci retracement of recent swing
+
+// OTE Settings (using existing showFVG toggle for simplicity, or add dedicated)
+bool showOTE = showFVG  // Reuses FVG toggle for now
+
+// Find recent significant swing (larger lookback for meaningful swings)
+int oteLookback = structLen * 3
+float oteSwingHigh = ta.highest(high, oteLookback)
+float oteSwingLow = ta.lowest(low, oteLookback)
+float oteRange = oteSwingHigh - oteSwingLow
+
+// Calculate OTE levels (from swing high for bearish, from swing low for bullish)
+// Bullish OTE: retracement down from swing high (buy zone)
+float ote62Bull = oteSwingHigh - oteRange * 0.62
+float ote705Bull = oteSwingHigh - oteRange * 0.705
+float ote79Bull = oteSwingHigh - oteRange * 0.79
+
+// Bearish OTE: retracement up from swing low (sell zone)
+float ote62Bear = oteSwingLow + oteRange * 0.62
+float ote705Bear = oteSwingLow + oteRange * 0.705
+float ote79Bear = oteSwingLow + oteRange * 0.79
+
+// Determine which OTE to show based on trend
+bool showBullOTE = htfBullTrend and close < ote62Bull  // Price pulled back into bull OTE
+bool showBearOTE = htfBearTrend and close > ote62Bear  // Price pulled back into bear OTE
+
+// OTE Zone colors
+color oteZoneCol = color.new(#9C27B0, 85)  // Purple for OTE
+color oteMidCol = color.new(#E91E63, 80)   // Pink for 0.705 (sweet spot)
+
+// Draw OTE zone as box (only when price is in zone)
+var box oteBox = na
+var line ote705Line = na
+var label oteLabel = na
+
+if showOTE and barstate.islast
+    // Clean up old
+    box.delete(oteBox)
+    line.delete(ote705Line)
+    label.delete(oteLabel)
+    
+    if showBullOTE
+        // Draw bullish OTE zone (0.62-0.79 from swing high)
+        oteBox := box.new(bar_index - 50, ote62Bull, bar_index + 10, ote79Bull, border_color=color.purple, bgcolor=oteZoneCol, border_width=1)
+        ote705Line := line.new(bar_index - 50, ote705Bull, bar_index + 10, ote705Bull, color=oteMidCol, style=line.style_dashed, width=2)
+        oteLabel := label.new(bar_index + 12, ote705Bull, "OTE 🎯", color=color.purple, textcolor=color.white, style=label.style_label_left, size=size.small)
+    
+    else if showBearOTE
+        // Draw bearish OTE zone (0.62-0.79 from swing low)
+        oteBox := box.new(bar_index - 50, ote79Bear, bar_index + 10, ote62Bear, border_color=color.purple, bgcolor=oteZoneCol, border_width=1)
+        ote705Line := line.new(bar_index - 50, ote705Bear, bar_index + 10, ote705Bear, color=oteMidCol, style=line.style_dashed, width=2)
+        oteLabel := label.new(bar_index + 12, ote705Bear, "OTE 🎯", color=color.purple, textcolor=color.white, style=label.style_label_left, size=size.small)
+
+// Alert when price enters OTE zone
+bool inBullOTE = close >= ote79Bull and close <= ote62Bull and htfBullTrend
+bool inBearOTE = close >= ote62Bear and close <= ote79Bear and htfBearTrend
+
+if inBullOTE and not inBullOTE[1] and inKillzone
+    alert("🎯 BULLISH OTE ZONE – Price in 0.62-0.79 retracement! Look for FVG/OB confluence.", alert.freq_once_per_bar_close)
+
+if inBearOTE and not inBearOTE[1] and inKillzone
+    alert("🎯 BEARISH OTE ZONE – Price in 0.62-0.79 retracement! Look for FVG/OB confluence.", alert.freq_once_per_bar_close)
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 8. DASHBOARD ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 var table dash = table.new(position.top_right, 2, 9, bgcolor=color.new(color.black, 60), border_width=1, border_color=color.gray)
@@ -1022,5 +1088,8 @@ alertcondition(conflictLong or conflictShort, title="⚠ AEP vs ICT Conflict", m
 alertcondition(judasBullTrap, title="⚠️ JUDAS ↓", message="⚠️ JUDAS SWING ↓ – False bullish breakout! Bearish trap.")
 alertcondition(judasBearTrap, title="⚠️ JUDAS ↑", message="⚠️ JUDAS SWING ↑ – False bearish breakout! Bullish trap.")
 alertcondition(po3Phase == "MANIPULATION", title="🎭 AMD Manipulation", message="🎭 Manipulation phase detected – Watch for Judas swing!")
+alertcondition(inBullOTE and inKillzone, title="🎯 Bullish OTE", message="🎯 Price in BULLISH OTE zone (0.62-0.79) – Look for long entry!")
+alertcondition(inBearOTE and inKillzone, title="🎯 Bearish OTE", message="🎯 Price in BEARISH OTE zone (0.62-0.79) – Look for short entry!")
+
 
 
