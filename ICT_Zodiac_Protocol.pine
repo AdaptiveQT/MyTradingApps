@@ -918,27 +918,33 @@ popupLiqGrab := fadePopup(popupLiqGrab, 6)
 plotshape(pdhSweep and inKillzone, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 20), text="LIQ GRAB ↓", textcolor=color.white, size=size.tiny)
 plotshape(pdlSweep and inKillzone, style=shape.labelup, location=location.belowbar, color=color.new(color.green, 20), text="LIQ GRAB ↑", textcolor=color.white, size=size.tiny)
 
-// ═══ BACKGROUND FLASH ON NUCLEAR ═══
-var color flashBg = na
+// ═══ BACKGROUND PULSE ON NUCLEAR (3-bar countdown) ═══
+var int nuclearFlashAge = 0
 if nuclearLong and not nuclearLong[1]
-    flashBg := color.new(#FFD700, 85)
+    nuclearFlashAge := 3
 if nuclearShort and not nuclearShort[1]
-    flashBg := color.new(#FF4500, 85)
-if barstate.isnew and not (nuclearLong or nuclearShort)
-    flashBg := na
-bgcolor(flashBg, title="Nuclear Flash")
+    nuclearFlashAge := 3
+
+color pulseBg = na
+if nuclearFlashAge > 0
+    float flashOpacity = nuclearFlashAge % 2 == 0 ? 70 : 88  // alternating pulse
+    pulseBg := nuclearLong ? color.new(#FFD700, flashOpacity) : color.new(#FF4500, flashOpacity)
+    nuclearFlashAge -= 1
+bgcolor(pulseBg, title="Nuclear Pulse")
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ ALERTS ░░░
+// ░░░ ALERTS (Enhanced AI-Style) ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 alertcondition(kzLong, title="Killzone LONG", message="🎯 Killzone LONG")
 alertcondition(kzShort, title="Killzone SHORT", message="🎯 Killzone SHORT")
-alertcondition(nuclearLong, title="🔥 NUCLEAR LONG", message="🔥 NUCLEAR CONFLUENCE: AEP + ICT agree LONG!")
-alertcondition(nuclearShort, title="🔥 NUCLEAR SHORT", message="🔥 NUCLEAR CONFLUENCE: AEP + ICT agree SHORT!")
+alertcondition(nuclearLong, title="🔥 NUCLEAR LONG", message="🔥 NUCLEAR LONG – High-confluence entry!")
+alertcondition(nuclearShort, title="🔥 NUCLEAR SHORT", message="🔥 NUCLEAR SHORT – High-confluence entry!")
 alertcondition(bosUp, title="Bullish BOS", message="BOS UP")
 alertcondition(bosDn, title="Bearish BOS", message="BOS DOWN")
 alertcondition(londonSessionStart, title="London Open", message="London Session Started")
 alertcondition(nySessionStart, title="NY Open", message="NY AM Session Started")
+alertcondition(sbSessionStart, title="Silver Bullet", message="⏰ Silver Bullet Window Open (10:00-11:00 NY)")
 alertcondition(pdhSweep and inKillzone, title="PDH Liquidity Sweep", message="💧 PDH Swept - Potential Reversal")
 alertcondition(pdlSweep and inKillzone, title="PDL Liquidity Sweep", message="💧 PDL Swept - Potential Reversal")
+alertcondition(conflictLong or conflictShort, title="⚠ AEP vs ICT Conflict", message="⚠ Signal Conflict - AEP and ICT disagree!")
 
