@@ -1,8 +1,8 @@
 // This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0
-// © ICT x Zodiac Protocol [ULTIMATE] - TFO Killzones + Pivots + FVG + OB + Astro
+// © ICT x AEP Protocol [NUCLEAR] - Confluence Trading System
 
 //@version=5
-indicator("ICT x Zodiac [ULTIMATE]", overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
+indicator("ICT x AEP [NUCLEAR]", overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ MASTER TOGGLES ░░░
@@ -561,10 +561,10 @@ bool conflictShort = kzShortStrong and aepBullAlign  // ICT says short, AEP says
 var table dash = table.new(position.top_right, 2, 9, bgcolor=color.new(color.black, 60), border_width=1, border_color=color.gray)
 
 if showZodiac and barstate.islast
-    table.cell(dash, 0, 0, "ICT x ZODIAC", text_color=color.white, text_size=size.small, bgcolor=elemCol)
+    table.cell(dash, 0, 0, "ICT x AEP 🔥", text_color=color.white, text_size=size.small, bgcolor=elemCol)
     table.merge_cells(dash, 0, 0, 1, 0)
     
-    string sess = inNYPM ? "🟣 NY PM" : inNYLunch ? "� NY LUNCH" : inNY ? "�🟢 NY AM" : inLondon ? "� LONDON" : inAsia ? "� ASIA" : "⏸️ OFF"
+    string sess = inNYPM ? "🟣 NY PM" : inNYLunch ? "🟠 NY LUNCH" : inNY ? "🟢 NY AM" : inLondon ? "🔴 LONDON" : inAsia ? "🔵 ASIA" : "⏸️ OFF"
     color sessCol = inNYPM ? nyPMCol : inNYLunch ? nyLunchCol : inNY ? nyCol : inLondon ? londonCol : inAsia ? asiaCol : color.gray
     table.cell(dash, 0, 1, "Session", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 1, sess, text_color=sessCol, text_size=size.tiny)
