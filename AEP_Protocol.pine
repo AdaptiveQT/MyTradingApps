@@ -25,6 +25,7 @@ int rsiOB = input.int(70, "RSI Overbought", minval=50, maxval=100, group=grpCore
 int rsiOS = input.int(25, "RSI Oversold", minval=0, maxval=50, group=grpCore)
 bool enableMomentumLongs = input.bool(true, "Enable Momentum Longs", group=grpCore)
 bool enableMomentumShorts = input.bool(true, "Enable Momentum Shorts", group=grpCore)
+bool simpleColorway = input.bool(false, "Simple Colorway Mode", group=grpCore, tooltip="Beginner mode: Only MA bias, no momentum/ORB gating")
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ CONSOLIDATION SETTINGS ░░░
@@ -91,9 +92,9 @@ int moonDegreeOffset = input.int(10, "Moon Degree Offset", minval=0, group=grpLu
 // ░░░ ADVANCED SETTINGS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 grpAdv = "Advanced"
-int volumePeriod = input.int(3, "Volume Period", minval=1, group=grpAdv)
+int volumePeriod = input.int(8, "Volume Period", minval=1, group=grpAdv, tooltip="Coach Eb uses 8-10 for smoother volume confirmation")
 float pivotPct = input.float(0.15, "Pivot %", minval=0.01, step=0.05, group=grpAdv)
-float momentumBodyMult = input.float(1.3, "Momentum Body Multiplier", minval=0.5, step=0.1, group=grpAdv)
+float momentumBodyMult = input.float(1.2, "Momentum Body Multiplier", minval=0.5, step=0.1, group=grpAdv, tooltip="Coach Eb uses 1.1-1.2 for gold")
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ RISK SETTINGS ░░░
@@ -341,27 +342,34 @@ if showSDZones and array.size(demandBoxes) > 0
 // ░░░ SIGNAL LOGIC ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 
-// Long conditions
+// Long conditions (RSI integrated into momentum)
 bool longBase = bullAlign and not isChop and close > fastMA and volConfirm and strongBody
-bool longMomo = bullAlign and close > fastMA and strongBody and breakPrevHigh and not isChop and enableMomentumLongs
+bool longMomo = bullAlign and close > fastMA and strongBody and breakPrevHigh and not isChop and enableMomentumLongs and rsiLongMomo
 bool longPullbackExit = pullbackLong[1] and close > fastMA and not isChop
-bool longSignal = (longBase or longMomo or longPullbackExit) and showSignals
+bool longRetestEntry = orbRetestLong and bullAlign and not isChop  // Coach Eb retest trigger
+bool longSignal = (longBase or longMomo or longPullbackExit or longRetestEntry) and showSignals
 
-// Short conditions
+// Short conditions (RSI integrated into momentum)  
 bool shortBase = bearAlign and not isChop and close < fastMA and volConfirm and strongBody
-bool shortMomo = bearAlign and close < fastMA and strongBody and breakPrevLow and not isChop and enableMomentumShorts
+bool shortMomo = bearAlign and close < fastMA and strongBody and breakPrevLow and not isChop and enableMomentumShorts and rsiShortMomo
 bool shortPullbackExit = pullbackShort[1] and close < fastMA and not isChop
-bool shortSignal = (shortBase or shortMomo or shortPullbackExit) and showSignals
+bool shortRetestEntry = orbRetestShort and bearAlign and not isChop  // Coach Eb retest trigger
+bool shortSignal = (shortBase or shortMomo or shortPullbackExit or shortRetestEntry) and showSignals
 
-// ORB Gate
-if blockCounterTrend and orbEnabled and orbComplete and barsSinceBreak <= orbHoldBars
+// Simple Colorway Mode (beginner) - just MA bias, no momentum/ORB gates
+if simpleColorway
+    longSignal := bullAlign and close > fastMA and showSignals and not longSignal[1]
+    shortSignal := bearAlign and close < fastMA and showSignals and not shortSignal[1]
+
+// ORB Gate (skip in colorway mode)
+if not simpleColorway and blockCounterTrend and orbEnabled and orbComplete and barsSinceBreak <= orbHoldBars
     if orbBreakDir == 1
         shortSignal := false
     if orbBreakDir == -1
         longSignal := false
 
-// Chop Block
-if isChop
+// Chop Block (skip in colorway mode)
+if not simpleColorway and isChop
     longSignal := false
     shortSignal := false
 
@@ -414,6 +422,12 @@ lunarAge() =>
 float moonAge = lunarAge()
 string moonPhase = moonAge < 1.85 ? "New Moon" : moonAge < 7.38 ? "Waxing Crescent" : moonAge < 9.23 ? "First Quarter" : moonAge < 14.77 ? "Waxing Gibbous" : moonAge < 16.61 ? "Full Moon" : moonAge < 22.15 ? "Waning Gibbous" : moonAge < 23.99 ? "Last Quarter" : moonAge < 27.69 ? "Waning Crescent" : "New Moon"
 float volMult = (moonAge < 1.85 or moonAge >= 27.69 or (moonAge >= 14.77 and moonAge < 16.61)) ? 1.5 * lunarStrength : (moonAge >= 7.38 and moonAge < 9.23) or (moonAge >= 22.15 and moonAge < 23.99) ? 1.0 * lunarStrength : 1.25 * lunarStrength
+
+// Apply lunar volMult to targets (Coach Eb's astro expansion)
+if longSignal
+    longTarget := close + atrVal * profitFactor * volMult
+if shortSignal
+    shortTarget := close - atrVal * profitFactor * volMult
 
 string[] zodiacSigns = array.from("Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces")
 int zodiacIdx = math.floor((moonAge / 29.53) * 12) % 12
