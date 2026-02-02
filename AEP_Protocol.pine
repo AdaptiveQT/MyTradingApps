@@ -249,6 +249,7 @@ var box orbBox = na
 var line orbHighLine = na
 var line orbLowLine = na
 var line orbMidLine = na
+var label orbMidLabel = na
 
 bool canDrawORB = not na(orbBarStart) and (last_bar_index - orbBarStart) < 450
 
@@ -256,13 +257,15 @@ if orbComplete and not inORB and inORB[1] and showORBLines and orbEnabled and ca
     orbBox := box.new(orbBarStart, orbHigh, bar_index, orbLow, border_color=color.new(color.purple, 50), bgcolor=color.new(color.purple, 90), border_width=1)
     orbHighLine := line.new(bar_index, orbHigh, bar_index + 100, orbHigh, color=color.new(color.green, 40), style=line.style_dashed, width=1)
     orbLowLine := line.new(bar_index, orbLow, bar_index + 100, orbLow, color=color.new(color.red, 40), style=line.style_dashed, width=1)
-    orbMidLine := line.new(bar_index, orbMid, bar_index + 100, orbMid, color=color.new(color.gray, 50), style=line.style_dotted, width=1)
+    orbMidLine := line.new(bar_index, orbMid, bar_index + 200, orbMid, color=color.new(color.purple, 30), style=line.style_dashed, width=1)
+    orbMidLabel := label.new(bar_index + 205, orbMid, "Mid 50%", style=label.style_none, textcolor=color.purple, size=size.tiny)
 
 if orbComplete and not na(orbHighLine) and showORBLines
     line.set_x2(orbHighLine, bar_index + 1)
     line.set_x2(orbLowLine, bar_index + 1)
     if not na(orbMidLine)
         line.set_x2(orbMidLine, bar_index + 1)
+        label.set_x(orbMidLabel, bar_index + 5)
 
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -345,21 +348,28 @@ if showSDZones and array.size(demandBoxes) > 0
 // Long conditions (RSI integrated into momentum)
 bool longBase = bullAlign and not isChop and close > fastMA and volConfirm and strongBody
 bool longMomo = bullAlign and close > fastMA and strongBody and breakPrevHigh and not isChop and enableMomentumLongs and rsiLongMomo
-bool longPullbackExit = pullbackLong[1] and close > fastMA and not isChop
+bool longPullbackEntry = pullbackLong[1] and close > fastMA and not isChop  // Pullback confirmation entry
 bool longRetestEntry = orbRetestLong and bullAlign and not isChop  // Coach Eb retest trigger
-bool longSignal = (longBase or longMomo or longPullbackExit or longRetestEntry) and showSignals
+bool longSignal = (longBase or longMomo or longPullbackEntry or longRetestEntry) and showSignals
 
 // Short conditions (RSI integrated into momentum)  
 bool shortBase = bearAlign and not isChop and close < fastMA and volConfirm and strongBody
 bool shortMomo = bearAlign and close < fastMA and strongBody and breakPrevLow and not isChop and enableMomentumShorts and rsiShortMomo
-bool shortPullbackExit = pullbackShort[1] and close < fastMA and not isChop
+bool shortPullbackEntry = pullbackShort[1] and close < fastMA and not isChop  // Pullback confirmation entry
 bool shortRetestEntry = orbRetestShort and bearAlign and not isChop  // Coach Eb retest trigger
-bool shortSignal = (shortBase or shortMomo or shortPullbackExit or shortRetestEntry) and showSignals
+bool shortSignal = (shortBase or shortMomo or shortPullbackEntry or shortRetestEntry) and showSignals
 
 // Simple Colorway Mode (beginner) - just MA bias, no momentum/ORB gates
 if simpleColorway
     longSignal := bullAlign and close > fastMA and showSignals and not longSignal[1]
     shortSignal := bearAlign and close < fastMA and showSignals and not shortSignal[1]
+
+// Fakeout Gate - invalidate signals after detected false breakout
+if not simpleColorway and barsSinceBreak <= maxBarsFakeout
+    if fakeoutLong
+        longSignal := false  // Block longs after bullish fakeout
+    if fakeoutShort
+        shortSignal := false  // Block shorts after bearish fakeout
 
 // ORB Gate (skip in colorway mode)
 if not simpleColorway and blockCounterTrend and orbEnabled and orbComplete and barsSinceBreak <= orbHoldBars
