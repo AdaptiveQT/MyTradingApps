@@ -22,17 +22,40 @@ bool zodiacFilter = input.bool(true, "Zodiac Signal Filter", group=grpMaster, to
 // ░░░ KILLZONE SETTINGS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 grpKZ = "Killzones"
-bool showAsiaKZ = input.bool(true, "Show Asia", group=grpKZ)
-string asiaTime = input.string("2000-0000", "Asia Time", group=grpKZ, tooltip="Format: HHMM-HHMM (NY time)")
-bool showLondonKZ = input.bool(true, "Show London", group=grpKZ)
-string londonTime = input.string("0200-0500", "London Time", group=grpKZ)
-bool showNYKZ = input.bool(true, "Show NY AM", group=grpKZ)
-string nyTime = input.string("0700-1000", "NY AM Time", group=grpKZ)
+bool showKZBoxes = input.bool(true, "Show Killzone Boxes", group=grpKZ)
+bool showKZText = input.bool(true, "Display Text", inline="kzdisp", group=grpKZ)
 bool showKZOpen = input.bool(true, "Show KZ Open Lines", group=grpKZ)
+int kzTransparency = input.int(70, "Box Transparency", minval=0, maxval=100, group=grpKZ)
 
-color asiaCol = input.color(color.new(color.yellow, 88), "Asia Color", group=grpKZ)
-color londonCol = input.color(color.new(color.blue, 88), "London Color", group=grpKZ)
-color nyCol = input.color(color.new(color.green, 88), "NY Color", group=grpKZ)
+grpAsia = "Asia"
+bool showAsiaKZ = input.bool(true, "", inline="asia", group=grpAsia)
+string asiaStart = input.string("20:00", "Start", inline="asia", group=grpAsia)
+string asiaEnd = input.string("00:00", "End", inline="asia", group=grpAsia)
+color asiaCol = input.color(color.blue, "", inline="asia", group=grpAsia)
+
+grpLondon = "London"
+bool showLondonKZ = input.bool(true, "", inline="ldn", group=grpLondon)
+string londonStart = input.string("02:00", "Start", inline="ldn", group=grpLondon)
+string londonEnd = input.string("05:00", "End", inline="ldn", group=grpLondon)
+color londonCol = input.color(color.red, "", inline="ldn", group=grpLondon)
+
+grpNYAM = "NY AM"
+bool showNYKZ = input.bool(true, "", inline="nyam", group=grpNYAM)
+string nyStart = input.string("09:30", "Start", inline="nyam", group=grpNYAM)
+string nyEnd = input.string("11:00", "End", inline="nyam", group=grpNYAM)
+color nyCol = input.color(color.teal, "", inline="nyam", group=grpNYAM)
+
+grpNYLunch = "NY Lunch"
+bool showNYLunch = input.bool(true, "", inline="nylunch", group=grpNYLunch)
+string nyLunchStart = input.string("12:00", "Start", inline="nylunch", group=grpNYLunch)
+string nyLunchEnd = input.string("13:00", "End", inline="nylunch", group=grpNYLunch)
+color nyLunchCol = input.color(color.orange, "", inline="nylunch", group=grpNYLunch)
+
+grpNYPM = "NY PM"
+bool showNYPM = input.bool(true, "", inline="nypm", group=grpNYPM)
+string nyPMStart = input.string("13:30", "Start", inline="nypm", group=grpNYPM)
+string nyPMEnd = input.string("16:00", "End", inline="nypm", group=grpNYPM)
+color nyPMCol = input.color(color.purple, "", inline="nypm", group=grpNYPM)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ PIVOT SETTINGS ░░░
@@ -126,82 +149,115 @@ bool bearishBias = array.includes(waterSigns, currentZodiac) or array.includes(a
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 2. KILLZONE DETECTION ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-bool inAsia = not na(time(timeframe.period, asiaTime, "America/New_York"))
-bool inLondon = not na(time(timeframe.period, londonTime, "America/New_York"))
-bool inNY = not na(time(timeframe.period, nyTime, "America/New_York"))
+// Helper function to convert time strings to session format
+asiaTimeStr = str.replace(asiaStart, ":", "") + "-" + str.replace(asiaEnd, ":", "")
+londonTimeStr = str.replace(londonStart, ":", "") + "-" + str.replace(londonEnd, ":", "")
+nyTimeStr = str.replace(nyStart, ":", "") + "-" + str.replace(nyEnd, ":", "")
+nyLunchTimeStr = str.replace(nyLunchStart, ":", "") + "-" + str.replace(nyLunchEnd, ":", "")
+nyPMTimeStr = str.replace(nyPMStart, ":", "") + "-" + str.replace(nyPMEnd, ":", "")
 
-bool asiaStart = inAsia and not inAsia[1]
-bool londonStart = inLondon and not inLondon[1]
-bool nyStart = inNY and not inNY[1]
+bool inAsia = not na(time(timeframe.period, asiaTimeStr, "America/New_York"))
+bool inLondon = not na(time(timeframe.period, londonTimeStr, "America/New_York"))
+bool inNY = not na(time(timeframe.period, nyTimeStr, "America/New_York"))
+bool inNYLunch = not na(time(timeframe.period, nyLunchTimeStr, "America/New_York"))
+bool inNYPM = not na(time(timeframe.period, nyPMTimeStr, "America/New_York"))
 
-bool asiaEnd = not inAsia and inAsia[1]
-bool londonEnd = not inLondon and inLondon[1]
-bool nyEnd = not inNY and inNY[1]
+bool asiaSessionStart = inAsia and not inAsia[1]
+bool londonSessionStart = inLondon and not inLondon[1]
+bool nySessionStart = inNY and not inNY[1]
+bool nyLunchSessionStart = inNYLunch and not inNYLunch[1]
+bool nyPMSessionStart = inNYPM and not inNYPM[1]
 
 // Session tracking
-var float asiaOpen = na, var float londonOpen = na, var float nyOpen = na
+var float asiaOpen = na, var float londonOpen = na, var float nyOpen = na, var float nyLunchOpen = na, var float nyPMOpen = na
 var float asiaHigh = na, var float asiaLow = na
 var float londonHigh = na, var float londonLow = na
 var float nyHigh = na, var float nyLow = na
-var int asiaStartBar = na, var int londonStartBar = na, var int nyStartBar = na
+var float nyLunchHigh = na, var float nyLunchLow = na
+var float nyPMHigh = na, var float nyPMLow = na
+var int asiaStartBar = na, var int londonStartBar = na, var int nyStartBar = na, var int nyLunchStartBar = na, var int nyPMStartBar = na
 
 // Asia
-if asiaStart
+if asiaSessionStart
     asiaOpen := open, asiaHigh := high, asiaLow := low, asiaStartBar := bar_index
 if inAsia
     asiaHigh := math.max(asiaHigh, high), asiaLow := math.min(asiaLow, low)
 
 // London  
-if londonStart
+if londonSessionStart
     londonOpen := open, londonHigh := high, londonLow := low, londonStartBar := bar_index
 if inLondon
     londonHigh := math.max(londonHigh, high), londonLow := math.min(londonLow, low)
 
-// NY
-if nyStart
+// NY AM
+if nySessionStart
     nyOpen := open, nyHigh := high, nyLow := low, nyStartBar := bar_index
 if inNY
     nyHigh := math.max(nyHigh, high), nyLow := math.min(nyLow, low)
 
+// NY Lunch
+if nyLunchSessionStart
+    nyLunchOpen := open, nyLunchHigh := high, nyLunchLow := low, nyLunchStartBar := bar_index
+if inNYLunch
+    nyLunchHigh := math.max(nyLunchHigh, high), nyLunchLow := math.min(nyLunchLow, low)
+
+// NY PM
+if nyPMSessionStart
+    nyPMOpen := open, nyPMHigh := high, nyPMLow := low, nyPMStartBar := bar_index
+if inNYPM
+    nyPMHigh := math.max(nyPMHigh, high), nyPMLow := math.min(nyPMLow, low)
+
 // ═══ KILLZONE BOXES ═══
-var box asiaBox = na, var box londonBox = na, var box nyBox = na
+var box asiaBox = na, var box londonBox = na, var box nyBox = na, var box nyLunchBox = na, var box nyPMBox = na
 var line asiaHighLine = na, var line asiaLowLine = na
 var line londonHighLine = na, var line londonLowLine = na
 var line nyHighLine = na, var line nyLowLine = na
-var label asiaLabel = na, var label londonLabel = na, var label nyLabel = na
+var line nyLunchHighLine = na, var line nyLunchLowLine = na
+var line nyPMHighLine = na, var line nyPMLowLine = na
+var label asiaLabel = na, var label londonLabel = na, var label nyLabel = na, var label nyLunchLabel = na, var label nyPMLabel = na
 
 // Update boxes dynamically during session
-if showKillzones and showAsiaKZ and inAsia
+if showKillzones and showKZBoxes and showAsiaKZ and inAsia
     box.delete(asiaBox)
-    line.delete(asiaHighLine), line.delete(asiaLowLine)
     label.delete(asiaLabel)
-    asiaBox := box.new(asiaStartBar, asiaHigh, bar_index, asiaLow, border_color=color.new(color.yellow, 50), bgcolor=asiaCol, border_width=1)
-    asiaHighLine := line.new(asiaStartBar, asiaHigh, bar_index + 20, asiaHigh, color=color.new(color.yellow, 30), style=line.style_dashed, width=1)
-    asiaLowLine := line.new(asiaStartBar, asiaLow, bar_index + 20, asiaLow, color=color.new(color.yellow, 30), style=line.style_dashed, width=1)
-    asiaLabel := label.new(asiaStartBar, asiaHigh, "ASIA", style=label.style_none, textcolor=color.yellow, size=size.small)
+    asiaBox := box.new(asiaStartBar, asiaHigh, bar_index, asiaLow, border_color=asiaCol, bgcolor=color.new(asiaCol, kzTransparency), border_width=1)
+    if showKZText
+        asiaLabel := label.new(asiaStartBar, asiaHigh, "ASIA", style=label.style_none, textcolor=asiaCol, size=size.small)
 
-if showKillzones and showLondonKZ and inLondon
+if showKillzones and showKZBoxes and showLondonKZ and inLondon
     box.delete(londonBox)
-    line.delete(londonHighLine), line.delete(londonLowLine)
     label.delete(londonLabel)
-    londonBox := box.new(londonStartBar, londonHigh, bar_index, londonLow, border_color=color.new(color.blue, 50), bgcolor=londonCol, border_width=1)
-    londonHighLine := line.new(londonStartBar, londonHigh, bar_index + 20, londonHigh, color=color.new(color.blue, 30), style=line.style_dashed, width=1)
-    londonLowLine := line.new(londonStartBar, londonLow, bar_index + 20, londonLow, color=color.new(color.blue, 30), style=line.style_dashed, width=1)
-    londonLabel := label.new(londonStartBar, londonHigh, "LONDON", style=label.style_none, textcolor=color.blue, size=size.small)
+    londonBox := box.new(londonStartBar, londonHigh, bar_index, londonLow, border_color=londonCol, bgcolor=color.new(londonCol, kzTransparency), border_width=1)
+    if showKZText
+        londonLabel := label.new(londonStartBar, londonHigh, "LONDON", style=label.style_none, textcolor=londonCol, size=size.small)
 
-if showKillzones and showNYKZ and inNY
+if showKillzones and showKZBoxes and showNYKZ and inNY
     box.delete(nyBox)
-    line.delete(nyHighLine), line.delete(nyLowLine)
     label.delete(nyLabel)
-    nyBox := box.new(nyStartBar, nyHigh, bar_index, nyLow, border_color=color.new(color.green, 50), bgcolor=nyCol, border_width=1)
-    nyHighLine := line.new(nyStartBar, nyHigh, bar_index + 20, nyHigh, color=color.new(color.green, 30), style=line.style_dashed, width=1)
-    nyLowLine := line.new(nyStartBar, nyLow, bar_index + 20, nyLow, color=color.new(color.green, 30), style=line.style_dashed, width=1)
-    nyLabel := label.new(nyStartBar, nyHigh, "NY AM", style=label.style_none, textcolor=color.green, size=size.small)
+    nyBox := box.new(nyStartBar, nyHigh, bar_index, nyLow, border_color=nyCol, bgcolor=color.new(nyCol, kzTransparency), border_width=1)
+    if showKZText
+        nyLabel := label.new(nyStartBar, nyHigh, "NY AM", style=label.style_none, textcolor=nyCol, size=size.small)
+
+if showKillzones and showKZBoxes and showNYLunch and inNYLunch
+    box.delete(nyLunchBox)
+    label.delete(nyLunchLabel)
+    nyLunchBox := box.new(nyLunchStartBar, nyLunchHigh, bar_index, nyLunchLow, border_color=nyLunchCol, bgcolor=color.new(nyLunchCol, kzTransparency), border_width=1)
+    if showKZText
+        nyLunchLabel := label.new(nyLunchStartBar, nyLunchHigh, "NY LUNCH", style=label.style_none, textcolor=nyLunchCol, size=size.small)
+
+if showKillzones and showKZBoxes and showNYPM and inNYPM
+    box.delete(nyPMBox)
+    label.delete(nyPMLabel)
+    nyPMBox := box.new(nyPMStartBar, nyPMHigh, bar_index, nyPMLow, border_color=nyPMCol, bgcolor=color.new(nyPMCol, kzTransparency), border_width=1)
+    if showKZText
+        nyPMLabel := label.new(nyPMStartBar, nyPMHigh, "NY PM", style=label.style_none, textcolor=nyPMCol, size=size.small)
 
 // KZ Open lines (dotted through session)
-plot(showKZOpen and showAsiaKZ and inAsia ? asiaOpen : na, "Asia Open", color.new(color.yellow, 40), style=plot.style_linebr)
-plot(showKZOpen and showLondonKZ and inLondon ? londonOpen : na, "LDN Open", color.new(color.blue, 40), style=plot.style_linebr)
-plot(showKZOpen and showNYKZ and inNY ? nyOpen : na, "NY Open", color.new(color.green, 40), style=plot.style_linebr)
+plot(showKZOpen and showAsiaKZ and inAsia ? asiaOpen : na, "Asia Open", asiaCol, style=plot.style_linebr)
+plot(showKZOpen and showLondonKZ and inLondon ? londonOpen : na, "LDN Open", londonCol, style=plot.style_linebr)
+plot(showKZOpen and showNYKZ and inNY ? nyOpen : na, "NY Open", nyCol, style=plot.style_linebr)
+plot(showKZOpen and showNYLunch and inNYLunch ? nyLunchOpen : na, "NY Lunch Open", nyLunchCol, style=plot.style_linebr)
+plot(showKZOpen and showNYPM and inNYPM ? nyPMOpen : na, "NY PM Open", nyPMCol, style=plot.style_linebr)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 3. PIVOTS ░░░
@@ -257,7 +313,7 @@ float dispBody = math.abs(close[1] - open[1])
 float avgBody = ta.sma(math.abs(close - open), 14)
 
 // Strong = Large gap + Displacement candle + During killzone
-bool inKillzone = inLondon or inNY
+bool inKillzone = inAsia or inLondon or inNY or inNYLunch or inNYPM
 bool hasDisplacement = dispBody > avgBody * 1.5
 bool strongBullFVG = isBullFVG and fvgGapBull > avgRange * 0.3 and hasDisplacement
 bool strongBearFVG = isBearFVG and fvgGapBear > avgRange * 0.3 and hasDisplacement
@@ -448,8 +504,8 @@ if showZodiac and barstate.islast
     table.cell(dash, 0, 0, "ICT x ZODIAC", text_color=color.white, text_size=size.small, bgcolor=elemCol)
     table.merge_cells(dash, 0, 0, 1, 0)
     
-    string sess = inNY ? "🟢 NY AM" : inLondon ? "🔵 LONDON" : inAsia ? "🟡 ASIA" : "⏸️ OFF"
-    color sessCol = inNY ? color.green : inLondon ? color.blue : inAsia ? color.yellow : color.gray
+    string sess = inNYPM ? "🟣 NY PM" : inNYLunch ? "� NY LUNCH" : inNY ? "�🟢 NY AM" : inLondon ? "� LONDON" : inAsia ? "� ASIA" : "⏸️ OFF"
+    color sessCol = inNYPM ? nyPMCol : inNYLunch ? nyLunchCol : inNY ? nyCol : inLondon ? londonCol : inAsia ? asiaCol : color.gray
     table.cell(dash, 0, 1, "Session", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 1, sess, text_color=sessCol, text_size=size.tiny)
     
@@ -481,5 +537,5 @@ alertcondition(kzLong, title="Killzone LONG", message="🎯 Killzone LONG")
 alertcondition(kzShort, title="Killzone SHORT", message="🎯 Killzone SHORT")
 alertcondition(bosUp, title="Bullish BOS", message="BOS UP")
 alertcondition(bosDn, title="Bearish BOS", message="BOS DOWN")
-alertcondition(londonStart, title="London Open", message="London Session Started")
-alertcondition(nyStart, title="NY Open", message="NY AM Session Started")
+alertcondition(londonSessionStart, title="London Open", message="London Session Started")
+alertcondition(nySessionStart, title="NY Open", message="NY AM Session Started")
