@@ -257,7 +257,7 @@ float dispBody = math.abs(close[1] - open[1])
 float avgBody = ta.sma(math.abs(close - open), 14)
 
 // Strong = Large gap + Displacement candle + During killzone
-bool inKillzone = inLondon or inNY or inSB
+bool inKillzone = inLondon or inNY
 bool hasDisplacement = dispBody > avgBody * 1.5
 bool strongBullFVG = isBullFVG and fvgGapBull > avgRange * 0.3 and hasDisplacement
 bool strongBearFVG = isBearFVG and fvgGapBear > avgRange * 0.3 and hasDisplacement
@@ -416,28 +416,28 @@ if presentMode and array.size(bearOBs) > 0
                 array.remove(bearOBTops, i)
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 7. SILVER BULLET SIGNALS (ZODIAC FILTERED) ░░░
+// ░░░ 7. KILLZONE SIGNALS (ZODIAC FILTERED) ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 float bodySize = math.abs(close - open)
 bool disp = bodySize > avgBody * 1.5
 
-// Base SB signals
-bool sbLongBase = inSB and isBullFVG and disp and close > open
-bool sbShortBase = inSB and isBearFVG and disp and close < open
+// Base killzone signals
+bool kzLongBase = inKillzone and isBullFVG and disp and close > open
+bool kzShortBase = inKillzone and isBearFVG and disp and close < open
 
 // Apply zodiac filter if enabled
-bool sbLong = zodiacFilter ? (sbLongBase and bullishBias) : sbLongBase
-bool sbShort = zodiacFilter ? (sbShortBase and bearishBias) : sbShortBase
+bool kzLong = zodiacFilter ? (kzLongBase and bullishBias) : kzLongBase
+bool kzShort = zodiacFilter ? (kzShortBase and bearishBias) : kzShortBase
 
 // Strong signals (strong FVG + displacement + killzone aligned)
-bool sbLongStrong = sbLong and strongBullFVG
-bool sbShortStrong = sbShort and strongBearFVG
+bool kzLongStrong = kzLong and strongBullFVG
+bool kzShortStrong = kzShort and strongBearFVG
 
 // Visual differentiation: Strong = ★, Weak = standard
-plotshape(sbLongStrong, style=shape.labelup, location=location.belowbar, color=color.green, text="SB ★", textcolor=color.white, size=size.normal)
-plotshape(sbLong and not sbLongStrong, style=shape.labelup, location=location.belowbar, color=color.new(color.green, 40), text="SB", textcolor=color.white, size=size.small)
-plotshape(sbShortStrong, style=shape.labeldown, location=location.abovebar, color=color.red, text="SB ★", textcolor=color.white, size=size.normal)
-plotshape(sbShort and not sbShortStrong, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 40), text="SB", textcolor=color.white, size=size.small)
+plotshape(kzLongStrong, style=shape.labelup, location=location.belowbar, color=color.green, text="KZ ★", textcolor=color.white, size=size.normal)
+plotshape(kzLong and not kzLongStrong, style=shape.labelup, location=location.belowbar, color=color.new(color.green, 40), text="KZ", textcolor=color.white, size=size.small)
+plotshape(kzShortStrong, style=shape.labeldown, location=location.abovebar, color=color.red, text="KZ ★", textcolor=color.white, size=size.normal)
+plotshape(kzShort and not kzShortStrong, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 40), text="KZ", textcolor=color.white, size=size.small)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 8. DASHBOARD ░░░
@@ -448,8 +448,8 @@ if showZodiac and barstate.islast
     table.cell(dash, 0, 0, "ICT x ZODIAC", text_color=color.white, text_size=size.small, bgcolor=elemCol)
     table.merge_cells(dash, 0, 0, 1, 0)
     
-    string sess = inSB ? "🎯 SILVER BULLET" : inNY ? "🟢 NY AM" : inLondon ? "🔵 LONDON" : inAsia ? "🟡 ASIA" : "⏸️ OFF"
-    color sessCol = inSB ? color.orange : inNY ? color.green : inLondon ? color.blue : inAsia ? color.yellow : color.gray
+    string sess = inNY ? "🟢 NY AM" : inLondon ? "🔵 LONDON" : inAsia ? "🟡 ASIA" : "⏸️ OFF"
+    color sessCol = inNY ? color.green : inLondon ? color.blue : inAsia ? color.yellow : color.gray
     table.cell(dash, 0, 1, "Session", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 1, sess, text_color=sessCol, text_size=size.tiny)
     
@@ -477,8 +477,8 @@ if showZodiac and barstate.islast
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ ALERTS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-alertcondition(sbLong, title="Silver Bullet LONG", message="🎯 Silver Bullet LONG")
-alertcondition(sbShort, title="Silver Bullet SHORT", message="🎯 Silver Bullet SHORT")
+alertcondition(kzLong, title="Killzone LONG", message="🎯 Killzone LONG")
+alertcondition(kzShort, title="Killzone SHORT", message="🎯 Killzone SHORT")
 alertcondition(bosUp, title="Bullish BOS", message="BOS UP")
 alertcondition(bosDn, title="Bearish BOS", message="BOS DOWN")
 alertcondition(londonStart, title="London Open", message="London Session Started")
