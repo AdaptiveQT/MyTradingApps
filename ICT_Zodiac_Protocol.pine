@@ -21,17 +21,18 @@ bool zodiacFilter = input.bool(true, "Zodiac Signal Filter", group=grpMaster, to
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ KILLZONE SETTINGS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-grpKZ = "Killzones (TFO Style)"
-bool showAsiaKZ = input.bool(true, "Asia (8PM-12AM)", group=grpKZ)
-bool showLondonKZ = input.bool(true, "London (2AM-5AM)", group=grpKZ)
-bool showNYKZ = input.bool(true, "NY AM (7AM-10AM)", group=grpKZ)
-bool showSilverBullet = input.bool(true, "Silver Bullet (10-11AM)", group=grpKZ)
+grpKZ = "Killzones"
+bool showAsiaKZ = input.bool(true, "Show Asia", group=grpKZ)
+string asiaTime = input.string("2000-0000", "Asia Time", group=grpKZ, tooltip="Format: HHMM-HHMM (NY time)")
+bool showLondonKZ = input.bool(true, "Show London", group=grpKZ)
+string londonTime = input.string("0200-0500", "London Time", group=grpKZ)
+bool showNYKZ = input.bool(true, "Show NY AM", group=grpKZ)
+string nyTime = input.string("0700-1000", "NY AM Time", group=grpKZ)
 bool showKZOpen = input.bool(true, "Show KZ Open Lines", group=grpKZ)
 
-color asiaCol = input.color(color.new(color.yellow, 88), "Asia", group=grpKZ)
-color londonCol = input.color(color.new(color.blue, 88), "London", group=grpKZ)
-color nyCol = input.color(color.new(color.green, 88), "NY", group=grpKZ)
-color sbCol = input.color(color.new(color.orange, 85), "Silver Bullet", group=grpKZ)
+color asiaCol = input.color(color.new(color.yellow, 88), "Asia Color", group=grpKZ)
+color londonCol = input.color(color.new(color.blue, 88), "London Color", group=grpKZ)
+color nyCol = input.color(color.new(color.green, 88), "NY Color", group=grpKZ)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ PIVOT SETTINGS ░░░
@@ -123,30 +124,26 @@ bool bullishBias = array.includes(fireSigns, currentZodiac) or array.includes(ea
 bool bearishBias = array.includes(waterSigns, currentZodiac) or array.includes(airSigns, currentZodiac)
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 2. KILLZONE DETECTION (TFO STYLE) ░░░
+// ░░░ 2. KILLZONE DETECTION ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-bool inAsia = not na(time(timeframe.period, "2000-0000", "America/New_York"))
-bool inLondon = not na(time(timeframe.period, "0200-0500", "America/New_York"))
-bool inNY = not na(time(timeframe.period, "0700-1000", "America/New_York"))
-bool inSB = not na(time(timeframe.period, "1000-1100", "America/New_York"))
+bool inAsia = not na(time(timeframe.period, asiaTime, "America/New_York"))
+bool inLondon = not na(time(timeframe.period, londonTime, "America/New_York"))
+bool inNY = not na(time(timeframe.period, nyTime, "America/New_York"))
 
 bool asiaStart = inAsia and not inAsia[1]
 bool londonStart = inLondon and not inLondon[1]
 bool nyStart = inNY and not inNY[1]
-bool sbStart = inSB and not inSB[1]
 
 bool asiaEnd = not inAsia and inAsia[1]
 bool londonEnd = not inLondon and inLondon[1]
 bool nyEnd = not inNY and inNY[1]
-bool sbEnd = not inSB and inSB[1]
 
 // Session tracking
-var float asiaOpen = na, var float londonOpen = na, var float nyOpen = na, var float sbOpen = na
+var float asiaOpen = na, var float londonOpen = na, var float nyOpen = na
 var float asiaHigh = na, var float asiaLow = na
 var float londonHigh = na, var float londonLow = na
 var float nyHigh = na, var float nyLow = na
-var float sbHigh = na, var float sbLow = na
-var int asiaStartBar = na, var int londonStartBar = na, var int nyStartBar = na, var int sbStartBar = na
+var int asiaStartBar = na, var int londonStartBar = na, var int nyStartBar = na
 
 // Asia
 if asiaStart
@@ -166,14 +163,8 @@ if nyStart
 if inNY
     nyHigh := math.max(nyHigh, high), nyLow := math.min(nyLow, low)
 
-// Silver Bullet
-if sbStart
-    sbOpen := open, sbHigh := high, sbLow := low, sbStartBar := bar_index
-if inSB
-    sbHigh := math.max(sbHigh, high), sbLow := math.min(sbLow, low)
-
-// ═══ TFO STYLE KILLZONE BOXES ═══
-var box asiaBox = na, var box londonBox = na, var box nyBox = na, var box sbBox = na
+// ═══ KILLZONE BOXES ═══
+var box asiaBox = na, var box londonBox = na, var box nyBox = na
 var line asiaHighLine = na, var line asiaLowLine = na
 var line londonHighLine = na, var line londonLowLine = na
 var line nyHighLine = na, var line nyLowLine = na

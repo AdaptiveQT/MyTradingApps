@@ -12,12 +12,13 @@ float riskPercent = input.float(1.0, "Risk %", minval=0.1, maxval=5, step=0.1, g
 float rrRatio = input.float(2.0, "Risk:Reward", minval=1.0, maxval=5.0, step=0.5, group=grpStrat)
 bool useZodiacFilter = input.bool(true, "Use Zodiac Alignment Filter", group=grpStrat, tooltip="Only trade when zodiac element aligns with signal direction")
 bool onlyStrongZones = input.bool(true, "Only Trade Strong ★ Zones", group=grpStrat)
-bool sbOnly = input.bool(true, "Silver Bullet Window Only", group=grpStrat)
+bool sbOnly = input.bool(false, "Only Trade During Killzones", group=grpStrat)
 
 grpSession = "Session Filter"
 bool tradeLondon = input.bool(true, "Trade London", group=grpSession)
+string londonTime = input.string("0200-0500", "London Time", group=grpSession, tooltip="Format: HHMM-HHMM (NY time)")
 bool tradeNY = input.bool(true, "Trade NY AM", group=grpSession)
-bool tradeSB = input.bool(true, "Trade Silver Bullet", group=grpSession)
+string nyTime = input.string("0700-1000", "NY AM Time", group=grpSession)
 
 grpHTF = "HTF Trend Filter"
 bool useHTFFilter = input.bool(true, "Use HTF Trend Filter", group=grpHTF, tooltip="Only trade in direction of higher timeframe trend")
@@ -70,12 +71,11 @@ bool bearishBias = isWater or isAir
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 2. KILLZONE DETECTION ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-bool inLondon = not na(time(timeframe.period, "0200-0500", "America/New_York"))
-bool inNY = not na(time(timeframe.period, "0700-1000", "America/New_York"))
-bool inSB = not na(time(timeframe.period, "1000-1100", "America/New_York"))
+bool inLondon = not na(time(timeframe.period, londonTime, "America/New_York"))
+bool inNY = not na(time(timeframe.period, nyTime, "America/New_York"))
 
-bool inTradingSession = (tradeLondon and inLondon) or (tradeNY and inNY) or (tradeSB and inSB)
-bool inKillzone = inLondon or inNY or inSB
+bool inTradingSession = (tradeLondon and inLondon) or (tradeNY and inNY)
+bool inKillzone = inLondon or inNY
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 3. FVG DETECTION ░░░
@@ -107,16 +107,16 @@ plot(useHTFFilter ? htfEma : na, "HTF EMA", color=color.new(color.purple, 50), l
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 5. ENTRY CONDITIONS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-// Silver Bullet signals
 float bodySize = math.abs(close - open)
 bool disp = bodySize > avgBody * 1.5
 
-bool sbSignalLong = inSB and isBullFVG and disp and close > open
-bool sbSignalShort = inSB and isBearFVG and disp and close < open
+// Killzone entry signals
+bool kzSignalLong = inKillzone and isBullFVG and disp and close > open
+bool kzSignalShort = inKillzone and isBearFVG and disp and close < open
 
-// Full entry conditions
-bool fvgLongBase = sbOnly ? sbSignalLong : (isBullFVG and disp and close > open and inKillzone)
-bool fvgShortBase = sbOnly ? sbSignalShort : (isBearFVG and disp and close < open and inKillzone)
+// Full entry conditions (optionally require killzone)
+bool fvgLongBase = sbOnly ? kzSignalLong : (isBullFVG and disp and close > open)
+bool fvgShortBase = sbOnly ? kzSignalShort : (isBearFVG and disp and close < open)
 
 // Apply strength filter
 bool fvgLongStrength = onlyStrongZones ? strongBullFVG : isBullFVG
@@ -183,7 +183,7 @@ if barstate.islast
     table.cell(dash, 0, 3, "HTF Trend", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 3, htfText, text_color=htfCol, text_size=size.tiny)
     table.cell(dash, 0, 4, "Session", text_color=color.white, text_size=size.tiny)
-    table.cell(dash, 1, 4, inSB ? "🎯 SILVER BULLET" : inNY ? "NY AM" : inLondon ? "LONDON" : "OFF", text_color=inSB ? color.orange : color.gray, text_size=size.tiny)
+    table.cell(dash, 1, 4, inNY ? "🟢 NY AM" : inLondon ? "🔵 LONDON" : "OFF", text_color=inKillzone ? color.green : color.gray, text_size=size.tiny)
     table.cell(dash, 0, 5, "Mode", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 5, onlyStrongZones ? "★ STRONG ONLY" : "ALL ZONES", text_color=color.yellow, text_size=size.tiny)
 
