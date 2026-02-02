@@ -1,20 +1,21 @@
-// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
-// © AEP Protocol v3 - STRATEGY MODE (Gold Calibrated)
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0
+// © AEP Protocol v3 [STRATEGY] - Coach Eb Calibrated for Gold Backtesting
 
 //@version=5
-strategy("AEP Protocol v3 [STRATEGY]", overlay=true, initial_capital=10000, default_qty_type=strategy.fixed, default_qty_value=1, currency=currency.USD, max_bars_back=1000)
+strategy("AEP Protocol v3 [STRATEGY]", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=2, currency=currency.USD, max_bars_back=1000, pyramiding=0, calc_on_every_tick=false, process_orders_on_close=true)
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ COPIED INPUTS & LOGIC ░░░
+// ░░░ STRATEGY SETTINGS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
+grpStrat = "Strategy"
+bool longEnabled = input.bool(true, "Enable Longs", group=grpStrat)
+bool shortEnabled = input.bool(true, "Enable Shorts", group=grpStrat)
+bool useSession = input.bool(true, "Only Trade During Session", group=grpStrat)
+string tradeSession = input.session("0930-1600", "Trading Session (NY)", group=grpStrat)
 
-// --- VISUAL ---
-grpVis = "Visual"
-bool showSignals = input.bool(true, "Show Signals", group=grpVis)
-bool drawMAs = input.bool(true, "Draw MAs", group=grpVis)
-bool fillBackground = input.bool(true, "Fill Background", group=grpVis)
-
-// --- CORE (Adjusted Defaults for Frequency) ---
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ CORE SETTINGS (Coach Eb v3 Calibrated) ░░░
+// ══════════════════════════════════════════════════════════════════════════════
 grpCore = "Core"
 string maType = input.string("EMA", "MA Type", options=["EMA", "SMA", "WMA", "VWMA"], group=grpCore)
 int fastLen = input.int(9, "Fast MA", minval=1, group=grpCore)
@@ -24,41 +25,47 @@ int rsiOB = input.int(70, "RSI Overbought", minval=50, group=grpCore)
 int rsiOS = input.int(25, "RSI Oversold", minval=0, group=grpCore)
 bool enableMomentumLongs = input.bool(true, "Enable Momentum Longs", group=grpCore)
 bool enableMomentumShorts = input.bool(true, "Enable Momentum Shorts", group=grpCore)
+bool simpleColorway = input.bool(false, "Simple Colorway Mode", group=grpCore, tooltip="Beginner mode: Just MA bias")
 
-// --- CHOP ---
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ CHOP SETTINGS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
 grpChop = "Consolidation"
 float consolEMAPct = input.float(0.4, "Consolidation EMA %", minval=0.1, step=0.1, group=grpChop)
 float consolMaxMovePct = input.float(0.6, "Consolidation Max Price Move %", minval=0.1, step=0.1, group=grpChop)
 int rangeBarCount = input.int(20, "Range Bar Count", minval=5, group=grpChop)
 
-// --- ORB ---
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ ORB SETTINGS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
 grpORB = "Breakouts"
 bool orbEnabled = input.bool(true, "Enable ORB", group=grpORB)
-string orbSession = input.session("0930-0945", "ORB Session (NY time)", group=grpORB)
-string fullSession = input.session("0930-1600", "Full Trading Session", group=grpORB)
+string orbSession = input.session("0930-0945", "ORB Session (NY)", group=grpORB)
 int orbHoldBars = input.int(15, "ORB Breakout Hold Bars", minval=1, group=grpORB)
-// TIP: Try unchecking this to see if frequency improves
-bool blockCounterTrend = input.bool(true, "Block counter-trend during ORB breakout", group=grpORB) 
+bool blockCounterTrend = input.bool(true, "Block counter-trend during ORB", group=grpORB)
 float orbRetestTol = input.float(30.0, "ORB Retest Tolerance %", minval=1.0, group=grpORB)
 int maxBarsRetest = input.int(25, "Max Bars After ORB For Retest", minval=5, group=grpORB)
+int maxBarsFakeout = input.int(15, "Max Bars for Fakeout Detection", minval=1, group=grpORB)
 
-// --- ADVANCED ---
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ ADVANCED SETTINGS (Coach Eb Calibrated) ░░░
+// ══════════════════════════════════════════════════════════════════════════════
 grpAdv = "Advanced"
-int volumePeriod = input.int(10, "Volume Period", minval=1, group=grpAdv) // Relaxed to 10
-// TIP: Lower this to 1.1 if you want more trades
-float momentumBodyMult = input.float(1.3, "Momentum Body Multiplier", minval=0.5, step=0.1, group=grpAdv) 
+int volumePeriod = input.int(8, "Volume Period", minval=1, group=grpAdv, tooltip="Coach Eb uses 8-10")
+float momentumBodyMult = input.float(1.2, "Momentum Body Multiplier", minval=0.5, step=0.1, group=grpAdv, tooltip="Coach Eb uses 1.1-1.2")
 
-// --- RISK ---
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ RISK SETTINGS ░░░
+// ══════════════════════════════════════════════════════════════════════════════
 grpRisk = "Risk"
-float profitFactor = input.float(2.0, "Profit Factor", minval=0.5, step=0.5, group=grpRisk)
-float stopFactor = input.float(1.0, "Stop Factor", minval=0.5, step=0.5, group=grpRisk)
-
+float profitFactor = input.float(2.0, "Profit Factor (ATR mult)", minval=0.5, step=0.5, group=grpRisk)
+float stopFactor = input.float(1.0, "Stop Factor (ATR mult)", minval=0.5, step=0.5, group=grpRisk)
+bool useLunarMult = input.bool(true, "Apply Lunar Multiplier to Targets", group=grpRisk)
+float lunarStrength = input.float(1.0, "Lunar Strength", minval=0.5, maxval=2.0, step=0.1, group=grpRisk)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ CALCULATIONS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-
-// MA & RSI
 ma(src, len, t) =>
     switch t
         "EMA" => ta.ema(src, len)
@@ -79,7 +86,7 @@ bool slowDn = slowMA < slowMA[3]
 bool bullAlign = fastMA > slowMA and fastUp and slowUp
 bool bearAlign = fastMA < slowMA and fastDn and slowDn
 
-// Chop
+// Chop Detection
 float maDistPct = (math.abs(fastMA - slowMA) / close) * 100
 float rangeHi = ta.highest(high, rangeBarCount)
 float rangeLo = ta.lowest(low, rangeBarCount)
@@ -99,6 +106,12 @@ bool breakPrevLow = close < low[1]
 bool pullbackLong = bullAlign and close < fastMA and close > slowMA
 bool pullbackShort = bearAlign and close > fastMA and close < slowMA
 
+// RSI Momentum (Coach Eb integration)
+bool rsiLongMomo = rsiVal < rsiOS and enableMomentumLongs
+bool rsiShortMomo = rsiVal > rsiOB and enableMomentumShorts
+
+// Session Check
+bool inSession = useSession ? not na(time(timeframe.period, tradeSession, "America/New_York")) : true
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ ORB LOGIC ░░░
@@ -142,39 +155,100 @@ if dayofweek != dayofweek[1]
 
 int barsSinceBreak = na(orbBreakBar) ? 999 : bar_index - orbBreakBar
 
+// ORB Retest Detection
+bool inRetestWindow = barsSinceBreak <= maxBarsRetest
+float retestTolAmt = (orbHigh - orbLow) * (orbRetestTol / 100)
+bool orbRetestLong = orbBreakDir == 1 and inRetestWindow and low <= orbHigh + retestTolAmt and low >= orbHigh - retestTolAmt
+bool orbRetestShort = orbBreakDir == -1 and inRetestWindow and high >= orbLow - retestTolAmt and high <= orbLow + retestTolAmt
+
+// ORB Midline & Fakeout
+var float orbMid = na
+if orbComplete
+    orbMid := math.avg(orbHigh, orbLow)
+
+bool inFakeoutWindow = barsSinceBreak <= maxBarsFakeout
+bool fakeoutLong = orbBreakDir == 1 and inFakeoutWindow and close < orbMid
+bool fakeoutShort = orbBreakDir == -1 and inFakeoutWindow and close > orbMid
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ SIGNALS ░░░
+// ░░░ LUNAR MODULE ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+lunarAge() =>
+    int y = year
+    int m = month
+    int d = dayofmonth
+    if m <= 2
+        y := y - 1
+        m := m + 12
+    int A = math.floor(y / 100)
+    int B = 2 - A + math.floor(A / 4)
+    float JD = math.floor(365.25 * (y + 4716)) + math.floor(30.6001 * (m + 1)) + d + B - 1524.5
+    float age = (JD - 2451550.1) % 29.53058867
+    if age < 0
+        age := age + 29.53058867
+    age
+
+float moonAge = lunarAge()
+float volMult = useLunarMult ? ((moonAge < 1.85 or moonAge >= 27.69 or (moonAge >= 14.77 and moonAge < 16.61)) ? 1.5 * lunarStrength : (moonAge >= 7.38 and moonAge < 9.23) or (moonAge >= 22.15 and moonAge < 23.99) ? 1.0 * lunarStrength : 1.25 * lunarStrength) : 1.0
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ SIGNAL LOGIC (Coach Eb v3 Complete) ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 
+// Long conditions (RSI integrated into momentum)
 bool longBase = bullAlign and not isChop and close > fastMA and volConfirm and strongBody
-bool longMomo = bullAlign and close > fastMA and strongBody and breakPrevHigh and not isChop and enableMomentumLongs
-bool longPullbackExit = pullbackLong[1] and close > fastMA and not isChop
-bool longSignal = (longBase or longMomo or longPullbackExit)
+bool longMomo = bullAlign and close > fastMA and strongBody and breakPrevHigh and not isChop and enableMomentumLongs and rsiLongMomo
+bool longPullbackEntry = pullbackLong[1] and close > fastMA and not isChop
+bool longRetestEntry = orbRetestLong and bullAlign and not isChop
+bool longSignal = (longBase or longMomo or longPullbackEntry or longRetestEntry)
 
+// Short conditions (RSI integrated into momentum)
 bool shortBase = bearAlign and not isChop and close < fastMA and volConfirm and strongBody
-bool shortMomo = bearAlign and close < fastMA and strongBody and breakPrevLow and not isChop and enableMomentumShorts
-bool shortPullbackExit = pullbackShort[1] and close < fastMA and not isChop
-bool shortSignal = (shortBase or shortMomo or shortPullbackExit)
+bool shortMomo = bearAlign and close < fastMA and strongBody and breakPrevLow and not isChop and enableMomentumShorts and rsiShortMomo
+bool shortPullbackEntry = pullbackShort[1] and close < fastMA and not isChop
+bool shortRetestEntry = orbRetestShort and bearAlign and not isChop
+bool shortSignal = (shortBase or shortMomo or shortPullbackEntry or shortRetestEntry)
+
+// Simple Colorway Mode
+if simpleColorway
+    longSignal := bullAlign and close > fastMA
+    shortSignal := bearAlign and close < fastMA
+
+// Fakeout Gate
+if not simpleColorway and barsSinceBreak <= maxBarsFakeout
+    if fakeoutLong
+        longSignal := false
+    if fakeoutShort
+        shortSignal := false
 
 // ORB Gate
-if blockCounterTrend and orbEnabled and orbComplete and barsSinceBreak <= orbHoldBars
+if not simpleColorway and blockCounterTrend and orbEnabled and orbComplete and barsSinceBreak <= orbHoldBars
     if orbBreakDir == 1
         shortSignal := false
     if orbBreakDir == -1
         longSignal := false
 
 // Chop Block
-if isChop
+if not simpleColorway and isChop
     longSignal := false
     shortSignal := false
 
+// Session Filter
+if useSession and not inSession
+    longSignal := false
+    shortSignal := false
+
+// Enable Filters
+longSignal := longSignal and longEnabled
+shortSignal := shortSignal and shortEnabled
+
+// Duplicate Block
+longSignal := longSignal and not longSignal[1]
+shortSignal := shortSignal and not shortSignal[1]
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ STRATEGY EXECUTION ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-
-// ATR Calculation for Stops/Targets
 float atrVal = ta.atr(14)
 
 // ENTRY
@@ -184,20 +258,20 @@ if longSignal and strategy.position_size == 0
 if shortSignal and strategy.position_size == 0
     strategy.entry("Short", strategy.short, comment="AEP S")
 
-// EXIT LOGIC (ATR Dynamic)
+// EXIT LOGIC (ATR Dynamic with Lunar Multiplier)
 if strategy.position_size > 0
     float entryPrice = strategy.opentrades.entry_price(strategy.opentrades - 1)
     float lStop = entryPrice - (atrVal * stopFactor)
-    float lTarget = entryPrice + (atrVal * profitFactor)
+    float lTarget = entryPrice + (atrVal * profitFactor * volMult)
     strategy.exit("Exit Long", "Long", stop=lStop, limit=lTarget, comment_loss="SL", comment_profit="TP")
 
 if strategy.position_size < 0
     float entryPrice = strategy.opentrades.entry_price(strategy.opentrades - 1)
     float sStop = entryPrice + (atrVal * stopFactor)
-    float sTarget = entryPrice - (atrVal * profitFactor)
+    float sTarget = entryPrice - (atrVal * profitFactor * volMult)
     strategy.exit("Exit Short", "Short", stop=sStop, limit=sTarget, comment_loss="SL", comment_profit="TP")
 
-// REVERSAL LOGIC (If opposite signal fires, close and flip)
+// REVERSAL LOGIC
 if longSignal and strategy.position_size < 0
     strategy.close("Short", comment="Flip L")
     strategy.entry("Long", strategy.long, comment="AEP L (Flip)")
@@ -209,6 +283,10 @@ if shortSignal and strategy.position_size > 0
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ VISUALS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
-plot(drawMAs ? fastMA : na, "Fast MA", color=color.blue)
-plot(drawMAs ? slowMA : na, "Slow MA", color=color.orange)
-bgcolor(fillBackground ? (isChop ? color.new(color.gray, 90) : bullAlign ? color.new(color.green, 92) : bearAlign ? color.new(color.red, 92) : na) : na)
+plot(fastMA, "Fast MA", color=color.blue)
+plot(slowMA, "Slow MA", color=color.orange)
+bgcolor(isChop ? color.new(color.gray, 90) : bullAlign ? color.new(color.green, 92) : bearAlign ? color.new(color.red, 92) : na)
+
+// Signal markers
+plotshape(longSignal, style=shape.labelup, location=location.belowbar, color=color.green, text="L", textcolor=color.white, size=size.small)
+plotshape(shortSignal, style=shape.labeldown, location=location.abovebar, color=color.red, text="S", textcolor=color.white, size=size.small)
