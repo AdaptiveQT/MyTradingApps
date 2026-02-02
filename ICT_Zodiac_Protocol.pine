@@ -978,8 +978,8 @@ if showZodiac and barstate.islast
     table.cell(dash, 0, 8, "PDL", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 8, str.tostring(pdl, format.mintick), text_color=color.green, text_size=size.tiny)
 
-// Expand dashboard for PO3 (separate table to avoid row limit issues)
-var table po3Dash = table.new(position.top_right, 2, 1, bgcolor=color.new(color.black, 70), border_width=1)
+// Expand dashboard for PO3 (separate table - positioned below main dash)
+var table po3Dash = table.new(position.middle_right, 2, 1, bgcolor=color.new(color.black, 70), border_width=1)
 if showZodiac and barstate.islast
     color po3DashCol = po3Phase == "ACCUMULATION" ? color.green : po3Phase == "MANIPULATION" ? color.orange : po3Phase == "DISTRIBUTION" ? color.red : color.gray
     table.cell(po3Dash, 0, 0, "AMD", text_color=color.white, text_size=size.tiny)
