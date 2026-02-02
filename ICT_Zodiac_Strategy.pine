@@ -19,6 +19,8 @@ bool tradeLondon = input.bool(true, "Trade London", group=grpSession)
 string londonTime = input.string("0200-0500", "London Time", group=grpSession, tooltip="Format: HHMM-HHMM (NY time)")
 bool tradeNY = input.bool(true, "Trade NY AM", group=grpSession)
 string nyTime = input.string("0700-1000", "NY AM Time", group=grpSession)
+bool tradeSB = input.bool(true, "Trade Silver Bullet", group=grpSession)
+string sbTime = input.string("1000-1100", "Silver Bullet Time", group=grpSession, tooltip="ICT's high-probability window")
 
 grpHTF = "HTF Trend Filter"
 bool useHTFFilter = input.bool(true, "Use HTF Trend Filter", group=grpHTF, tooltip="Only trade in direction of higher timeframe trend")
@@ -73,9 +75,10 @@ bool bearishBias = isWater or isAir
 // ══════════════════════════════════════════════════════════════════════════════
 bool inLondon = not na(time(timeframe.period, londonTime, "America/New_York"))
 bool inNY = not na(time(timeframe.period, nyTime, "America/New_York"))
+bool inSB = not na(time(timeframe.period, sbTime, "America/New_York"))
 
-bool inTradingSession = (tradeLondon and inLondon) or (tradeNY and inNY)
-bool inKillzone = inLondon or inNY
+bool inTradingSession = (tradeLondon and inLondon) or (tradeNY and inNY) or (tradeSB and inSB)
+bool inKillzone = inLondon or inNY or inSB
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 3. FVG DETECTION ░░░
@@ -131,6 +134,10 @@ bool htfLongOK = useHTFFilter ? htfBullish : true
 bool htfShortOK = useHTFFilter ? htfBearish : true
 
 // Final entry signals (all filters must pass)
+// NUCLEAR: Strongest when all confluences align
+bool nuclearLong = fvgLongBase and fvgLongStrength and zodiacLongOK and htfLongOK and inSB  // Silver Bullet boost
+bool nuclearShort = fvgShortBase and fvgShortStrength and zodiacShortOK and htfShortOK and inSB
+
 bool entryLong = fvgLongBase and fvgLongStrength and zodiacLongOK and htfLongOK and inTradingSession
 bool entryShort = fvgShortBase and fvgShortStrength and zodiacShortOK and htfShortOK and inTradingSession
 
@@ -159,8 +166,10 @@ if entryShort and strategy.position_size == 0
 // ══════════════════════════════════════════════════════════════════════════════
 bgcolor(inSB ? color.new(color.orange, 92) : inNY ? color.new(color.green, 95) : inLondon ? color.new(color.blue, 95) : na)
 
-plotshape(entryLong, style=shape.triangleup, location=location.belowbar, color=color.green, text="🎯", size=size.small)
-plotshape(entryShort, style=shape.triangledown, location=location.abovebar, color=color.red, text="🎯", size=size.small)
+plotshape(nuclearLong, style=shape.diamond, location=location.belowbar, color=color.new(#FFD700, 0), text="🔥 NUCLEAR", textcolor=color.white, size=size.large)
+plotshape(nuclearShort, style=shape.diamond, location=location.abovebar, color=color.new(#FFD700, 0), text="🔥 NUCLEAR", textcolor=color.white, size=size.large)
+plotshape(entryLong and not nuclearLong, style=shape.triangleup, location=location.belowbar, color=color.green, text="🎯", size=size.small)
+plotshape(entryShort and not nuclearShort, style=shape.triangledown, location=location.abovebar, color=color.red, text="🎯", size=size.small)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 8. DASHBOARD ░░░
