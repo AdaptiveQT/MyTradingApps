@@ -16,6 +16,7 @@ bool showOB = input.bool(true, "Show Order Blocks", group=grpMaster)
 bool showBOS = input.bool(true, "Show Break of Structure", group=grpMaster)
 bool showZodiac = input.bool(true, "Show Zodiac Dashboard", group=grpMaster)
 bool presentMode = input.bool(true, "Present Mode (Fresh Zones Only)", group=grpMaster, tooltip="When ON, removes FVGs/OBs when price fills them")
+bool zodiacFilter = input.bool(true, "Zodiac Signal Filter", group=grpMaster, tooltip="Only show signals when zodiac aligns with direction")
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ KILLZONE SETTINGS ░░░
@@ -48,8 +49,8 @@ color sCol = input.color(color.green, "S Levels", group=grpPivot)
 // ══════════════════════════════════════════════════════════════════════════════
 grpICT = "ICT Structure"
 int structLen = input.int(5, "Structure Lookback", minval=3, group=grpICT)
-int maxFVG = input.int(20, "Max FVGs", minval=5, group=grpICT)
-int maxOB = input.int(10, "Max Order Blocks", minval=3, group=grpICT)
+int maxFVG = input.int(3, "Max FVGs", minval=1, maxval=20, group=grpICT)
+int maxOB = input.int(3, "Max Order Blocks", minval=1, maxval=10, group=grpICT)
 color bullFvgCol = input.color(color.new(#089981, 85), "Bull FVG", group=grpICT)
 color bearFvgCol = input.color(color.new(#f23645, 85), "Bear FVG", group=grpICT)
 color bullObCol = input.color(color.new(#00bcd4, 80), "Bull OB", group=grpICT)
@@ -116,6 +117,10 @@ else if array.includes(earthSigns, currentZodiac)
     ictBias := "STRUCTURE"
     ictFocus := "Deep OTE"
     elemCol := color.green
+
+// Zodiac Bias for filtering
+bool bullishBias = array.includes(fireSigns, currentZodiac) or array.includes(earthSigns, currentZodiac)
+bool bearishBias = array.includes(waterSigns, currentZodiac) or array.includes(airSigns, currentZodiac)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 2. KILLZONE DETECTION (TFO STYLE) ░░░
@@ -258,14 +263,23 @@ plot(showPDLevels ? pwh : na, "PWH", color.new(color.fuchsia, 40), style=plot.st
 plot(showPDLevels ? pwl : na, "PWL", color.new(color.aqua, 40), style=plot.style_linebr, linewidth=1)
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 5. FVG DETECTION (WITH MITIGATION) ░░░
+// ░░░ 5. FVG DETECTION (WITH STRENGTH GRADING) ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 bool isBullFVG = low > high[2]
 bool isBearFVG = high < low[2]
 
-// IFVG (Inverse FVG) - when FVG gets partially filled then reverses
-bool isIFVGBull = isBearFVG[1] and close > high[1]  // Bear FVG that gets reclaimed
-bool isIFVGBear = isBullFVG[1] and close < low[1]   // Bull FVG that gets reclaimed
+// Strength Detection
+float avgRange = ta.sma(high - low, 14)
+float fvgGapBull = isBullFVG ? (low - high[2]) : 0
+float fvgGapBear = isBearFVG ? (low[2] - high) : 0
+float dispBody = math.abs(close[1] - open[1])
+float avgBody = ta.sma(math.abs(close - open), 14)
+
+// Strong = Large gap + Displacement candle + During killzone
+bool inKillzone = inLondon or inNY or inSB
+bool hasDisplacement = dispBody > avgBody * 1.5
+bool strongBullFVG = isBullFVG and fvgGapBull > avgRange * 0.3 and hasDisplacement
+bool strongBearFVG = isBearFVG and fvgGapBear > avgRange * 0.3 and hasDisplacement
 
 var box[] bullFVGs = array.new_box()
 var box[] bearFVGs = array.new_box()
@@ -274,11 +288,14 @@ var float[] bullFVGBots = array.new_float()
 var float[] bearFVGTops = array.new_float()
 var float[] bearFVGBots = array.new_float()
 
-// Create Bull FVG
+// Create Bull FVG (Strong vs Weak)
 if showFVG and isBullFVG
     float fvgTop = low
     float fvgBot = high[2]
-    box b = box.new(bar_index[2], fvgTop, bar_index + 50, fvgBot, border_color=color.new(#089981, 40), bgcolor=bullFvgCol, border_width=1, text="  ▮ FVG", text_color=#089981, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+    string fvgLabel = strongBullFVG ? "▮ FVG ★" : "▮ FVG"
+    int bWidth = strongBullFVG ? 2 : 1
+    color bCol = strongBullFVG ? color.new(#089981, 75) : bullFvgCol
+    box b = box.new(bar_index[2], fvgTop, bar_index + 50, fvgBot, border_color=color.new(#089981, 30), bgcolor=bCol, border_width=bWidth, text=fvgLabel, text_color=#089981, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
     array.push(bullFVGs, b)
     array.push(bullFVGTops, fvgTop)
     array.push(bullFVGBots, fvgBot)
@@ -287,11 +304,14 @@ if showFVG and isBullFVG
         array.shift(bullFVGTops)
         array.shift(bullFVGBots)
 
-// Create Bear FVG
+// Create Bear FVG (Strong vs Weak)
 if showFVG and isBearFVG
     float fvgTop = low[2]
     float fvgBot = high
-    box b = box.new(bar_index[2], fvgTop, bar_index + 50, fvgBot, border_color=color.new(#f23645, 40), bgcolor=bearFvgCol, border_width=1, text="  ▮ FVG", text_color=#f23645, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+    string fvgLabel = strongBearFVG ? "▮ FVG ★" : "▮ FVG"
+    int bWidth = strongBearFVG ? 2 : 1
+    color bCol = strongBearFVG ? color.new(#f23645, 75) : bearFvgCol
+    box b = box.new(bar_index[2], fvgTop, bar_index + 50, fvgBot, border_color=color.new(#f23645, 30), bgcolor=bCol, border_width=bWidth, text=fvgLabel, text_color=#f23645, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
     array.push(bearFVGs, b)
     array.push(bearFVGTops, fvgTop)
     array.push(bearFVGBots, fvgBot)
@@ -349,7 +369,7 @@ var box[] bearOBs = array.new_box()
 var float[] bullOBBots = array.new_float()
 var float[] bearOBTops = array.new_float()
 
-// Create Bull OB
+// Create Bull OB (Strong vs Weak)
 if showOB and bosUp
     int idx = na
     for i = 1 to 10
@@ -359,14 +379,19 @@ if showOB and bosUp
     if not na(idx)
         float obTop = high[idx]
         float obBot = low[idx]
-        box b = box.new(bar_index - idx, obTop, bar_index + 60, obBot, border_color=color.new(#00bcd4, 30), bgcolor=bullObCol, border_width=2, text="  ▮ OB", text_color=#00bcd4, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+        float obBody = math.abs(close[idx] - open[idx])
+        bool strongOB = obBody > avgBody * 1.3 and inKillzone
+        string obLabel = strongOB ? "▮ OB ★" : "▮ OB"
+        int obWidth = strongOB ? 3 : 1
+        color obBgCol = strongOB ? color.new(#00bcd4, 70) : bullObCol
+        box b = box.new(bar_index - idx, obTop, bar_index + 60, obBot, border_color=color.new(#00bcd4, 20), bgcolor=obBgCol, border_width=obWidth, text=obLabel, text_color=#00bcd4, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
         array.push(bullOBs, b)
         array.push(bullOBBots, obBot)
         if array.size(bullOBs) > maxOB
             box.delete(array.shift(bullOBs))
             array.shift(bullOBBots)
 
-// Create Bear OB
+// Create Bear OB (Strong vs Weak)
 if showOB and bosDn
     int idx = na
     for i = 1 to 10
@@ -376,7 +401,12 @@ if showOB and bosDn
     if not na(idx)
         float obTop = high[idx]
         float obBot = low[idx]
-        box b = box.new(bar_index - idx, obTop, bar_index + 60, obBot, border_color=color.new(#ff5252, 30), bgcolor=bearObCol, border_width=2, text="  ▮ OB", text_color=#ff5252, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+        float obBody = math.abs(close[idx] - open[idx])
+        bool strongOB = obBody > avgBody * 1.3 and inKillzone
+        string obLabel = strongOB ? "▮ OB ★" : "▮ OB"
+        int obWidth = strongOB ? 3 : 1
+        color obBgCol = strongOB ? color.new(#ff5252, 70) : bearObCol
+        box b = box.new(bar_index - idx, obTop, bar_index + 60, obBot, border_color=color.new(#ff5252, 20), bgcolor=obBgCol, border_width=obWidth, text=obLabel, text_color=#ff5252, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
         array.push(bearOBs, b)
         array.push(bearOBTops, obTop)
         if array.size(bearOBs) > maxOB
@@ -405,17 +435,28 @@ if presentMode and array.size(bearOBs) > 0
                 array.remove(bearOBTops, i)
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 7. SILVER BULLET SIGNALS ░░░
+// ░░░ 7. SILVER BULLET SIGNALS (ZODIAC FILTERED) ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 float bodySize = math.abs(close - open)
-float avgBody = ta.sma(bodySize, 10)
 bool disp = bodySize > avgBody * 1.5
 
-bool sbLong = inSB and isBullFVG and disp and close > open
-bool sbShort = inSB and isBearFVG and disp and close < open
+// Base SB signals
+bool sbLongBase = inSB and isBullFVG and disp and close > open
+bool sbShortBase = inSB and isBearFVG and disp and close < open
 
-plotshape(sbLong, style=shape.labelup, location=location.belowbar, color=color.green, text="SB", textcolor=color.white, size=size.small)
-plotshape(sbShort, style=shape.labeldown, location=location.abovebar, color=color.red, text="SB", textcolor=color.white, size=size.small)
+// Apply zodiac filter if enabled
+bool sbLong = zodiacFilter ? (sbLongBase and bullishBias) : sbLongBase
+bool sbShort = zodiacFilter ? (sbShortBase and bearishBias) : sbShortBase
+
+// Strong signals (strong FVG + displacement + killzone aligned)
+bool sbLongStrong = sbLong and strongBullFVG
+bool sbShortStrong = sbShort and strongBearFVG
+
+// Visual differentiation: Strong = ★, Weak = standard
+plotshape(sbLongStrong, style=shape.labelup, location=location.belowbar, color=color.green, text="SB ★", textcolor=color.white, size=size.normal)
+plotshape(sbLong and not sbLongStrong, style=shape.labelup, location=location.belowbar, color=color.new(color.green, 40), text="SB", textcolor=color.white, size=size.small)
+plotshape(sbShortStrong, style=shape.labeldown, location=location.abovebar, color=color.red, text="SB ★", textcolor=color.white, size=size.normal)
+plotshape(sbShort and not sbShortStrong, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 40), text="SB", textcolor=color.white, size=size.small)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 8. DASHBOARD ░░░
