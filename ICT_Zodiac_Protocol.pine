@@ -19,6 +19,17 @@ bool presentMode = input.bool(true, "Present Mode (Fresh Zones Only)", group=grp
 bool zodiacFilter = input.bool(true, "Zodiac Signal Filter", group=grpMaster, tooltip="Only show signals when zodiac aligns with direction")
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ░░░ CONFLUENCE SETTINGS (AEP + ICT) ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+grpConfl = "🔥 Confluence (AEP + ICT)"
+bool enableConfluence = input.bool(true, "Enable Confluence Detection", group=grpConfl)
+int fastLen = input.int(9, "Fast MA Length", minval=1, group=grpConfl)
+int slowLen = input.int(21, "Slow MA Length", minval=1, group=grpConfl)
+int rsiLen = input.int(14, "RSI Length", minval=1, group=grpConfl)
+float rsiOB = input.float(70, "RSI Overbought", group=grpConfl)
+float rsiOS = input.float(30, "RSI Oversold", group=grpConfl)
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ░░░ KILLZONE SETTINGS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 grpKZ = "Killzones"
@@ -294,10 +305,26 @@ float pdl = request.security(syminfo.tickerid, "D", low[1], lookahead=barmerge.l
 float pwh = request.security(syminfo.tickerid, "W", high[1], lookahead=barmerge.lookahead_on)
 float pwl = request.security(syminfo.tickerid, "W", low[1], lookahead=barmerge.lookahead_on)
 
-plot(showPDLevels ? pdh : na, "PDH", color.new(color.red, 20), style=plot.style_linebr, linewidth=2)
-plot(showPDLevels ? pdl : na, "PDL", color.new(color.green, 20), style=plot.style_linebr, linewidth=2)
-plot(showPDLevels ? pwh : na, "PWH", color.new(color.fuchsia, 40), style=plot.style_linebr, linewidth=1)
-plot(showPDLevels ? pwl : na, "PWL", color.new(color.aqua, 40), style=plot.style_linebr, linewidth=1)
+// Horizontal lines for PDH/PDL/PWH/PWL
+var line pdhLine = na, var line pdlLine = na, var line pwhLine = na, var line pwlLine = na
+var label pdhLabel = na, var label pdlLabel = na, var label pwhLabel = na, var label pwlLabel = na
+
+if showPDLevels and barstate.islast
+    // Delete old lines
+    line.delete(pdhLine), line.delete(pdlLine), line.delete(pwhLine), line.delete(pwlLine)
+    label.delete(pdhLabel), label.delete(pdlLabel), label.delete(pwhLabel), label.delete(pwlLabel)
+    
+    // PDH/PDL
+    pdhLine := line.new(bar_index - 100, pdh, bar_index + 20, pdh, color=color.red, style=line.style_solid, width=2)
+    pdlLine := line.new(bar_index - 100, pdl, bar_index + 20, pdl, color=color.green, style=line.style_solid, width=2)
+    pdhLabel := label.new(bar_index + 22, pdh, "PDH", style=label.style_none, textcolor=color.red, size=size.small)
+    pdlLabel := label.new(bar_index + 22, pdl, "PDL", style=label.style_none, textcolor=color.green, size=size.small)
+    
+    // PWH/PWL
+    pwhLine := line.new(bar_index - 100, pwh, bar_index + 20, pwh, color=color.fuchsia, style=line.style_dashed, width=1)
+    pwlLine := line.new(bar_index - 100, pwl, bar_index + 20, pwl, color=color.aqua, style=line.style_dashed, width=1)
+    pwhLabel := label.new(bar_index + 22, pwh, "PWH", style=label.style_none, textcolor=color.fuchsia, size=size.small)
+    pwlLabel := label.new(bar_index + 22, pwl, "PWL", style=label.style_none, textcolor=color.aqua, size=size.small)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 5. FVG DETECTION (WITH STRENGTH GRADING) ░░░
@@ -496,6 +523,39 @@ plotshape(kzShortStrong, style=shape.labeldown, location=location.abovebar, colo
 plotshape(kzShort and not kzShortStrong, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 40), text="KZ", textcolor=color.white, size=size.small)
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ░░░ 7B. CONFLUENCE DETECTION (AEP + ICT) ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+// AEP-style trend detection
+float fastMA = ta.ema(close, fastLen)
+float slowMA = ta.ema(close, slowLen)
+float rsiVal = ta.rsi(close, rsiLen)
+
+// MA alignment (AEP style)
+bool fastUp = fastMA > fastMA[3]
+bool fastDn = fastMA < fastMA[3]
+bool slowUp = slowMA > slowMA[3]
+bool slowDn = slowMA < slowMA[3]
+bool aepBullAlign = fastMA > slowMA and fastUp and slowUp
+bool aepBearAlign = fastMA < slowMA and fastDn and slowDn
+
+// RSI confirmation
+bool rsiNotOB = rsiVal < rsiOB  // Not overbought for longs
+bool rsiNotOS = rsiVal > rsiOS  // Not oversold for shorts
+
+// ═══ NUCLEAR CONFLUENCE ═══
+// Both AEP (trend) and ICT (structure) agree on STRONG signals
+bool nuclearLong = enableConfluence and kzLongStrong and aepBullAlign and rsiNotOB
+bool nuclearShort = enableConfluence and kzShortStrong and aepBearAlign and rsiNotOS
+
+// Visual: Diamond marker for nuclear confluence
+plotshape(nuclearLong, style=shape.diamond, location=location.belowbar, color=color.new(#FFD700, 0), text="🔥 NUCLEAR", textcolor=color.white, size=size.large, offset=-1)
+plotshape(nuclearShort, style=shape.diamond, location=location.abovebar, color=color.new(#FFD700, 0), text="🔥 NUCLEAR", textcolor=color.white, size=size.large, offset=-1)
+
+// Conflict detection (AEP and ICT disagree)
+bool conflictLong = kzLongStrong and aepBearAlign  // ICT says long, AEP says bearish
+bool conflictShort = kzShortStrong and aepBullAlign  // ICT says short, AEP says bullish
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ░░░ 8. DASHBOARD ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 var table dash = table.new(position.top_right, 2, 9, bgcolor=color.new(color.black, 60), border_width=1, border_color=color.gray)
@@ -535,6 +595,8 @@ if showZodiac and barstate.islast
 // ══════════════════════════════════════════════════════════════════════════════
 alertcondition(kzLong, title="Killzone LONG", message="🎯 Killzone LONG")
 alertcondition(kzShort, title="Killzone SHORT", message="🎯 Killzone SHORT")
+alertcondition(nuclearLong, title="🔥 NUCLEAR LONG", message="🔥 NUCLEAR CONFLUENCE: AEP + ICT agree LONG!")
+alertcondition(nuclearShort, title="🔥 NUCLEAR SHORT", message="🔥 NUCLEAR CONFLUENCE: AEP + ICT agree SHORT!")
 alertcondition(bosUp, title="Bullish BOS", message="BOS UP")
 alertcondition(bosDn, title="Bearish BOS", message="BOS DOWN")
 alertcondition(londonSessionStart, title="London Open", message="London Session Started")
