@@ -1,8 +1,8 @@
 // This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
-// © RetailBeastFX Protocol - Professional Trend + ORB System [DUAL-MODE]
+// © RetailBeastFX Protocol - Strategy Version for Backtesting [DUAL-MODE]
 
 //@version=5
-indicator("RetailBeastFX Protocol [Trend + ORB]", overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
+strategy("RetailBeastFX Protocol [Strategy]", overlay=true, initial_capital=100000, default_qty_type=strategy.percent_of_equity, default_qty_value=10, currency=currency.USD, calc_on_every_tick=true)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ SYSTEM MODE ░░░
@@ -394,9 +394,10 @@ if isChop
     longSignal := false
     shortSignal := false
 
-// Prevent duplicate signals (only in Standard/Safe mode usually, but kept for all for clean charts)
-longSignal := longSignal and not longSignal[1]
-shortSignal := shortSignal and not shortSignal[1]
+// Prevent duplicate signals (REMOVED for strategy to allow scaling/re-entry logic if desired, 
+// though built-in strategy calls handle this. Keeping clean for logic)
+// longSignal := longSignal and not longSignal[1]
+// shortSignal := shortSignal and not shortSignal[1]
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ TARGET & STOP CALCULATION ░░░
@@ -423,6 +424,18 @@ if shortSignal
     longStop := na
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ░░░ STRATEGY EXECUTION ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+
+if longSignal
+    strategy.entry("Long", strategy.long, comment="L")
+    strategy.exit("Exit Long", "Long", limit=longTarget, stop=longStop, comment_profit="TP", comment_loss="SL")
+
+if shortSignal
+    strategy.entry("Short", strategy.short, comment="S")
+    strategy.exit("Exit Short", "Short", limit=shortTarget, stop=shortStop, comment_profit="TP", comment_loss="SL")
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ░░░ VISUALIZATION ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -441,61 +454,6 @@ bgcolor(fillBackground ? bgCol : na, title="Trend Background")
 // Pullback bar coloring
 barcolor(pullbackLong ? color.new(color.orange, 40) : 
  pullbackShort ? color.new(color.orange, 40) : na)
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ ENTRY SIGNAL LABELS ░░░
-// ══════════════════════════════════════════════════════════════════════════════
-
-if longSignal
-    label.new(bar_index, low, "LONG\nENTRY", 
-     style=label.style_label_up, color=bullishCol, textcolor=color.white, size=size.normal)
-    
-    label.new(bar_index, longTarget, "TARGET\n" + str.tostring(longTarget, format.mintick), 
-     style=label.style_label_left, color=color.new(bullishCol, 30), 
-     textcolor=color.white, size=size.small)
-    
-    label.new(bar_index, longStop, "STOP\n" + str.tostring(longStop, format.mintick), 
-     style=label.style_label_left, color=color.new(bearishCol, 30), 
-     textcolor=color.white, size=size.small)
-
-if shortSignal
-    label.new(bar_index, high, "SHORT\nENTRY", 
-     style=label.style_label_down, color=bearishCol, textcolor=color.white, size=size.normal)
-    
-    label.new(bar_index, shortTarget, "TARGET\n" + str.tostring(shortTarget, format.mintick), 
-     style=label.style_label_left, color=color.new(bullishCol, 30), 
-     textcolor=color.white, size=size.small)
-    
-    label.new(bar_index, shortStop, "STOP\n" + str.tostring(shortStop, format.mintick), 
-     style=label.style_label_left, color=color.new(bearishCol, 30), 
-     textcolor=color.white, size=size.small)
-
-// Pullback zone labels
-if pullbackLong and not pullbackLong[1]
-    label.new(bar_index, low, "PULLBACK", 
-     style=label.style_label_up, color=color.new(color.orange, 40), 
-     textcolor=color.white, size=size.small)
-
-if pullbackShort and not pullbackShort[1]
-    label.new(bar_index, high, "PULLBACK", 
-     style=label.style_label_down, color=color.new(color.orange, 40), 
-     textcolor=color.white, size=size.small)
-
-// ORB retest labels
-if orbRetestLong and showSignals
-    label.new(bar_index, low, "ORB RETEST", 
-     style=label.style_label_up, color=color.new(color.purple, 30), 
-     textcolor=color.white, size=size.small)
-
-if orbRetestShort and showSignals
-    label.new(bar_index, high, "ORB RETEST", 
-     style=label.style_label_down, color=color.new(color.purple, 30), 
-     textcolor=color.white, size=size.small)
-
-// Consolidation warning
-if isChop and not isChop[1]
-    label.new(bar_index, high, "CHOP", 
-     style=label.style_label_down, color=color.gray, textcolor=color.white, size=size.small)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ DASHBOARD ░░░
@@ -556,12 +514,3 @@ if barstate.islast and showDashboard
     color sessionCol = inSession ? bullishCol : neutralCol
     table.cell(dash, 0, 7, "Session", text_color=color.white, text_size=size.small)
     table.cell(dash, 1, 7, sessionTxt, text_color=sessionCol, text_size=size.small)
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ ALERTS ░░░
-// ══════════════════════════════════════════════════════════════════════════════
-
-alertcondition(longSignal, title="Long Entry", message="RetailBeastFX: LONG Entry Signal")
-alertcondition(shortSignal, title="Short Entry", message="RetailBeastFX: SHORT Entry Signal")
-alertcondition(isChop and not isChop[1], title="Consolidation Alert", message="RetailBeastFX: Market Consolidating - Avoid Entries")
-alertcondition(orbRetestLong or orbRetestShort, title="ORB Retest", message="RetailBeastFX: ORB Retest Opportunity")
