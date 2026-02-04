@@ -1,8 +1,8 @@
 // This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
-// © AEP Protocol v3 - Discretionary Trading Framework (Gold Calibrated)
+// © AEP Protocol v3 - ENHANCED with Big Popups & Trade Instructions
 
 //@version=5
-indicator("AEP Protocol v3 [Gold Calibrated]", overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
+indicator("AEP Protocol v3 [ENHANCED]", overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ VISUAL SETTINGS ░░░
@@ -12,6 +12,8 @@ bool showSignals = input.bool(true, "Show Signals", group=grpVis)
 bool drawMAs = input.bool(true, "Draw MAs", group=grpVis)
 bool fillBackground = input.bool(true, "Fill Background", group=grpVis)
 bool showConsolidationPopup = input.bool(true, "Show Consolidation Popup", group=grpVis)
+bool showBigAlerts = input.bool(true, "Show Big Center Alerts", group=grpVis, tooltip="Large center-screen trade instructions")
+bool showTradeInstructions = input.bool(true, "Show Trade Instructions", group=grpVis, tooltip="Real-time entry/exit guidance")
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ CORE SETTINGS (Coach Eb Defaults) ░░░
@@ -19,7 +21,7 @@ bool showConsolidationPopup = input.bool(true, "Show Consolidation Popup", group
 grpCore = "Core"
 string maType = input.string("EMA", "MA Type", options=["EMA", "SMA", "WMA", "VWMA"], group=grpCore)
 int fastLen = input.int(9, "Fast MA", minval=1, group=grpCore)
-int slowLen = input.int(30, "Slow MA", minval=1, group=grpCore) // "Swing Rhythm"
+int slowLen = input.int(30, "Slow MA", minval=1, group=grpCore)
 int rsiLen = input.int(14, "RSI Length", minval=2, group=grpCore)
 int rsiOB = input.int(70, "RSI Overbought", minval=50, maxval=100, group=grpCore)
 int rsiOS = input.int(25, "RSI Oversold", minval=0, maxval=50, group=grpCore)
@@ -40,13 +42,11 @@ int rangeBarCount = input.int(20, "Range Bar Count", minval=5, group=grpChop)
 // ══════════════════════════════════════════════════════════════════════════════
 grpORB = "Breakouts"
 bool orbEnabled = input.bool(true, "Enable ORB", group=grpORB)
-// Default to NY Open for Indices/Gold Volatility
 string orbSession = input.session("0930-0945", "ORB Session (NY time)", group=grpORB)
 string fullSession = input.session("0930-1600", "Full Trading Session", group=grpORB)
 int orbHoldBars = input.int(15, "ORB Breakout Hold Bars", minval=1, group=grpORB)
 bool blockCounterTrend = input.bool(true, "Block counter-trend during ORB breakout", group=grpORB)
 bool showORBLines = input.bool(true, "Show ORB Range Box/Lines", group=grpORB)
-// CORRECTION: She uses 30% tolerance, not 0.1%
 float orbRetestTol = input.float(30.0, "ORB Retest Tolerance %", minval=1.0, step=0.5, group=grpORB)
 int maxBarsRetest = input.int(25, "Max Bars After ORB For Retest", minval=5, group=grpORB)
 
@@ -62,7 +62,6 @@ int maxBarsFakeout = input.int(15, "Max bars after ORB for fakeout", minval=1, g
 // ══════════════════════════════════════════════════════════════════════════════
 grpSD = "Supply & Demand"
 bool showSDZones = input.bool(true, "Show S/D Zones", group=grpSD)
-// CORRECTION: She explicitly said "10" for Supply (Pivot Left) on Gold
 int pivotLeft = input.int(10, "Pivot Left (Supply Strength)", minval=1, group=grpSD)
 int pivotRight = input.int(3, "Pivot Right (Confirmation)", minval=1, group=grpSD)
 int maxLevels = input.int(20, "Max levels to keep", minval=5, group=grpSD)
@@ -76,7 +75,6 @@ int brokenLevelFade = input.int(80, "Broken level fade", minval=0, maxval=100, g
 // ░░░ CLEANUP SETTINGS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 grpClean = "Cleanup"
-// CORRECTION: She keeps this at 10 to keep the chart clean
 int cleanupAfterBars = input.int(10, "Cleanup After (bars)", minval=5, group=grpClean)
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -92,9 +90,9 @@ int moonDegreeOffset = input.int(10, "Moon Degree Offset", minval=0, group=grpLu
 // ░░░ ADVANCED SETTINGS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 grpAdv = "Advanced"
-int volumePeriod = input.int(8, "Volume Period", minval=1, group=grpAdv, tooltip="Coach Eb uses 8-10 for smoother volume confirmation")
+int volumePeriod = input.int(8, "Volume Period", minval=1, group=grpAdv)
 float pivotPct = input.float(0.15, "Pivot %", minval=0.01, step=0.05, group=grpAdv)
-float momentumBodyMult = input.float(1.2, "Momentum Body Multiplier", minval=0.5, step=0.1, group=grpAdv, tooltip="Coach Eb uses 1.1-1.2 for gold")
+float momentumBodyMult = input.float(1.2, "Momentum Body Multiplier", minval=0.5, step=0.1, group=grpAdv)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ RISK SETTINGS ░░░
@@ -112,7 +110,6 @@ color bearishCol = input.color(color.red, "Bearish", group=grpColors)
 color neutralCol = input.color(color.yellow, "Neutral", group=grpColors)
 color pullbackCol = input.color(color.orange, "Pullback", group=grpColors)
 color earlyCol = input.color(color.purple, "Early", group=grpColors)
-
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ CALCULATIONS ░░░
@@ -158,13 +155,10 @@ bool rsiShortMomo = rsiVal > rsiOB and enableMomentumShorts
 float avgVol = ta.sma(volume, volumePeriod)
 bool volConfirm = volume > avgVol
 
-// --- Momentum Body Check (Coach Eb's Strict Logic) ---
-// 1. Body size > average of last 3
+// --- Momentum Body Check ---
 float bodySize = math.abs(close - open)
 float avgBody = ta.sma(bodySize, 3)
 bool strongBody = bodySize > avgBody * momentumBodyMult
-
-// 2. Break previous candle High/Low
 bool breakPrevHigh = close > high[1]
 bool breakPrevLow = close < low[1]
 
@@ -173,7 +167,6 @@ float pivotThresh = close * (pivotPct / 100)
 
 // --- Market State ---
 string mktState = isChop ? "CONSOLIDATION" : bullAlign ? "BULLISH" : bearAlign ? "BEARISH" : "NEUTRAL"
-
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ ORB MODULE ░░░
@@ -207,7 +200,6 @@ if inORB and orbEnabled
 var int orbBreakDir = 0
 var int orbBreakBar = na
 
-// Pre-calculate crossover/crossunder to avoid scope warnings
 bool crossAboveORBHigh = ta.crossover(close, orbHigh)
 bool crossBelowORBLow = ta.crossunder(close, orbLow)
 
@@ -219,7 +211,6 @@ if orbComplete and not inORB and orbEnabled
         orbBreakDir := -1
         orbBreakBar := bar_index
 
-// Reset on new day
 if dayofweek != dayofweek[1]
     orbBreakDir := 0
     orbBreakBar := na
@@ -228,23 +219,21 @@ if dayofweek != dayofweek[1]
 int barsSinceBreak = na(orbBreakBar) ? 999 : bar_index - orbBreakBar
 bool inRetestWindow = barsSinceBreak <= maxBarsRetest
 
-// Retest Tolerance Calculation (Using the 30% Logic)
 float retestTolAmt = (orbHigh - orbLow) * (orbRetestTol / 100)
 
 bool orbRetestLong = orbBreakDir == 1 and inRetestWindow and low <= orbHigh + retestTolAmt and low >= orbHigh - retestTolAmt
 bool orbRetestShort = orbBreakDir == -1 and inRetestWindow and high >= orbLow - retestTolAmt and high <= orbLow + retestTolAmt
 
-// ORB Midline Calculation (The 50% Rule)
+// ORB Midline Calculation
 var float orbMid = na
 if orbComplete
     orbMid := math.avg(orbHigh, orbLow)
 
-// Fakeout Detection (Coach Eb's 50% Rule)
+// Fakeout Detection
 bool inFakeoutWindow = barsSinceBreak <= maxBarsFakeout
 bool fakeoutLong = orbBreakDir == 1 and inFakeoutWindow and close < orbMid
 bool fakeoutShort = orbBreakDir == -1 and inFakeoutWindow and close > orbMid
 
-// Fakeout tracking for dashboard
 var bool fakeoutActiveLong = false
 var bool fakeoutActiveShort = false
 if fakeoutLong
@@ -279,7 +268,6 @@ if orbComplete and not na(orbHighLine) and showORBLines
     if not na(orbMidLine)
         line.set_x2(orbMidLine, bar_index + 1)
         label.set_x(orbMidLabel, bar_index + 5)
-
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ SUPPLY & DEMAND ZONES ░░░
@@ -353,45 +341,44 @@ if showSDZones and array.size(demandBoxes) > 0
                 label.delete(array.get(demandLabels, i))
                 array.remove(demandLabels, i)
 
-
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ SIGNAL LOGIC ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 
-// Long conditions (RSI integrated into momentum)
+// Long conditions
 bool longBase = bullAlign and not isChop and close > fastMA and volConfirm and strongBody
 bool longMomo = bullAlign and close > fastMA and strongBody and breakPrevHigh and not isChop and enableMomentumLongs and rsiLongMomo
-bool longPullbackEntry = pullbackLong[1] and close > fastMA and not isChop  // Pullback confirmation entry
-bool longRetestEntry = orbRetestLong and bullAlign and not isChop  // Coach Eb retest trigger
+bool longPullbackEntry = pullbackLong[1] and close > fastMA and not isChop
+bool longRetestEntry = orbRetestLong and bullAlign and not isChop
 bool longSignal = (longBase or longMomo or longPullbackEntry or longRetestEntry) and showSignals
 
-// Short conditions (RSI integrated into momentum)  
+// Short conditions
 bool shortBase = bearAlign and not isChop and close < fastMA and volConfirm and strongBody
 bool shortMomo = bearAlign and close < fastMA and strongBody and breakPrevLow and not isChop and enableMomentumShorts and rsiShortMomo
-bool shortPullbackEntry = pullbackShort[1] and close < fastMA and not isChop  // Pullback confirmation entry
-bool shortRetestEntry = orbRetestShort and bearAlign and not isChop  // Coach Eb retest trigger
+bool shortPullbackEntry = pullbackShort[1] and close < fastMA and not isChop
+bool shortRetestEntry = orbRetestShort and bearAlign and not isChop
 bool shortSignal = (shortBase or shortMomo or shortPullbackEntry or shortRetestEntry) and showSignals
 
-// Simple Colorway Mode (beginner) - just MA bias, no momentum/ORB gates
+// Simple Colorway Mode
 if simpleColorway
     longSignal := bullAlign and close > fastMA and showSignals and not longSignal[1]
     shortSignal := bearAlign and close < fastMA and showSignals and not shortSignal[1]
 
-// Fakeout Gate - invalidate signals after detected false breakout
+// Fakeout Gate
 if not simpleColorway and barsSinceBreak <= maxBarsFakeout
     if fakeoutLong
-        longSignal := false  // Block longs after bullish fakeout
+        longSignal := false
     if fakeoutShort
-        shortSignal := false  // Block shorts after bearish fakeout
+        shortSignal := false
 
-// ORB Gate (skip in colorway mode)
+// ORB Gate
 if not simpleColorway and blockCounterTrend and orbEnabled and orbComplete and barsSinceBreak <= orbHoldBars
     if orbBreakDir == 1
         shortSignal := false
     if orbBreakDir == -1
         longSignal := false
 
-// Chop Block (skip in colorway mode)
+// Chop Block
 if not simpleColorway and isChop
     longSignal := false
     shortSignal := false
@@ -422,7 +409,6 @@ if shortSignal
     longTarget := na
     longStop := na
 
-
 // ══════════════════════════════════════════════════════════════════════════════
 // ░░░ LUNAR CONTEXT ░░░
 // ══════════════════════════════════════════════════════════════════════════════
@@ -446,7 +432,7 @@ float moonAge = lunarAge()
 string moonPhase = moonAge < 1.85 ? "New Moon" : moonAge < 7.38 ? "Waxing Crescent" : moonAge < 9.23 ? "First Quarter" : moonAge < 14.77 ? "Waxing Gibbous" : moonAge < 16.61 ? "Full Moon" : moonAge < 22.15 ? "Waning Gibbous" : moonAge < 23.99 ? "Last Quarter" : moonAge < 27.69 ? "Waning Crescent" : "New Moon"
 float volMult = (moonAge < 1.85 or moonAge >= 27.69 or (moonAge >= 14.77 and moonAge < 16.61)) ? 1.5 * lunarStrength : (moonAge >= 7.38 and moonAge < 9.23) or (moonAge >= 22.15 and moonAge < 23.99) ? 1.0 * lunarStrength : 1.25 * lunarStrength
 
-// Apply lunar volMult to targets (Coach Eb's astro expansion)
+// Apply lunar volMult to targets
 if longSignal
     longTarget := close + atrVal * profitFactor * volMult
 if shortSignal
@@ -472,7 +458,83 @@ else if array.includes(waterSigns, currentZodiac)
     element := "WATER"
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ░░░ VISUALS ░░░
+// ░░░ BIG ALERT SYSTEM (NEW!) ░░░
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Track setup states
+var string currentSetup = ""
+var int setupBar = na
+var label bigAlertLabel = na
+
+// Helper function to calculate alert position
+getAlertYPos() =>
+    high + (high - low) * 0.3
+
+// CONSOLIDATION ALERT (Big Yellow Box)
+if isChop and not isChop[1] and showConsolidationPopup and showBigAlerts
+    label.delete(bigAlertLabel)
+    bigAlertLabel := label.new(bar_index, getAlertYPos(), "⚠️ CONSOLIDATION ⚠️\nPrice Action Unclear\nWAIT BEFORE ENTERING", style=label.style_label_center, color=color.new(color.gray, 20), textcolor=color.white, size=size.large, xloc=xloc.bar_index, yloc=yloc.price)
+    currentSetup := "CONSOLIDATION"
+    setupBar := bar_index
+
+// FAKEOUT ALERT (Big Orange Warning)
+if (fakeoutLong or fakeoutShort) and showFakeoutPopup and showBigAlerts
+    string fakeDir = fakeoutLong ? "BULLISH" : "BEARISH"
+    label.delete(bigAlertLabel)
+    bigAlertLabel := label.new(bar_index, getAlertYPos(), "⚠️ POTENTIAL FAKEOUT ⚠️\n" + fakeDir + " ORB BREAKOUT FAILED\nWAIT FOR CONFIRMATION", style=label.style_label_center, color=color.new(color.orange, 20), textcolor=color.white, size=size.large, xloc=xloc.bar_index, yloc=yloc.price)
+    currentSetup := "FAKEOUT"
+    setupBar := bar_index
+
+// TRADE INSTRUCTION ALERTS (Big Red/Green Boxes)
+if showTradeInstructions and not simpleColorway and showBigAlerts
+    
+    // BEARISH PULLBACK SETUP
+    if bearAlign and pullbackShort and not pullbackShort[1]
+        label.delete(bigAlertLabel)
+        bigAlertLabel := label.new(bar_index, getAlertYPos(), "🔴 BEARISH TREND\nBEARISH PULLBACK IN PROGRESS\nACTION: ENTER SHORT ON CONFIRMATION", style=label.style_label_center, color=color.new(color.red, 10), textcolor=color.white, size=size.large, xloc=xloc.bar_index, yloc=yloc.price)
+        currentSetup := "BEARISH PULLBACK"
+        setupBar := bar_index
+    
+    // BULLISH PULLBACK SETUP
+    if bullAlign and pullbackLong and not pullbackLong[1]
+        label.delete(bigAlertLabel)
+        bigAlertLabel := label.new(bar_index, getAlertYPos(), "🟢 BULLISH TREND\nBULLISH PULLBACK IN PROGRESS\nACTION: ENTER LONG ON CONFIRMATION", style=label.style_label_center, color=color.new(color.green, 10), textcolor=color.white, size=size.large, xloc=xloc.bar_index, yloc=yloc.price)
+        currentSetup := "BULLISH PULLBACK"
+        setupBar := bar_index
+    
+    // ORB BREAKOUT ALERTS
+    if orbBreakDir == 1 and barsSinceBreak == 0
+        label.delete(bigAlertLabel)
+        bigAlertLabel := label.new(bar_index, getAlertYPos(), "⚡ ORB BREAKOUT LONG ⚡\nBULLISH MOMENTUM\nHOLD FOR " + str.tostring(orbHoldBars) + " BARS", style=label.style_label_center, color=color.new(color.green, 10), textcolor=color.white, size=size.large, xloc=xloc.bar_index, yloc=yloc.price)
+        currentSetup := "ORB LONG"
+        setupBar := bar_index
+    
+    if orbBreakDir == -1 and barsSinceBreak == 0
+        label.delete(bigAlertLabel)
+        bigAlertLabel := label.new(bar_index, getAlertYPos(), "⚡ ORB BREAKOUT SHORT ⚡\nBEARISH MOMENTUM\nHOLD FOR " + str.tostring(orbHoldBars) + " BARS", style=label.style_label_center, color=color.new(color.red, 10), textcolor=color.white, size=size.large, xloc=xloc.bar_index, yloc=yloc.price)
+        currentSetup := "ORB SHORT"
+        setupBar := bar_index
+    
+    // RETEST OPPORTUNITIES
+    if orbRetestLong and not orbRetestLong[1]
+        label.delete(bigAlertLabel)
+        bigAlertLabel := label.new(bar_index, getAlertYPos(), "🎯 RETEST OPPORTUNITY\nORB HIGH RETEST\nHIGH PROBABILITY LONG ENTRY", style=label.style_label_center, color=color.new(color.purple, 10), textcolor=color.white, size=size.large, xloc=xloc.bar_index, yloc=yloc.price)
+        currentSetup := "RETEST LONG"
+        setupBar := bar_index
+    
+    if orbRetestShort and not orbRetestShort[1]
+        label.delete(bigAlertLabel)
+        bigAlertLabel := label.new(bar_index, getAlertYPos(), "🎯 RETEST OPPORTUNITY\nORB LOW RETEST\nHIGH PROBABILITY SHORT ENTRY", style=label.style_label_center, color=color.new(color.purple, 10), textcolor=color.white, size=size.large, xloc=xloc.bar_index, yloc=yloc.price)
+        currentSetup := "RETEST SHORT"
+        setupBar := bar_index
+
+// Clear alert after 3 bars
+if not na(setupBar) and bar_index > setupBar + 3
+    label.delete(bigAlertLabel)
+    bigAlertLabel := na
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ░░░ ENHANCED VISUALS ░░░
 // ══════════════════════════════════════════════════════════════════════════════
 
 // Plot MAs
@@ -486,69 +548,82 @@ bgcolor(fillBackground ? bgCol : na, title="Trend BG")
 // Pullback bar color
 barcolor(pullbackLong ? color.new(pullbackCol, 30) : pullbackShort ? color.new(pullbackCol, 30) : na)
 
-// Signal Labels
+// ENHANCED SIGNAL LABELS (Bigger & More Prominent)
 if longSignal
-    label.new(bar_index, low, "LONG", style=label.style_label_up, color=bullishCol, textcolor=color.white, size=size.small)
-    label.new(bar_index, longTarget, "TARGET", style=label.style_label_left, color=color.new(bullishCol, 30), textcolor=color.white, size=size.tiny)
-    label.new(bar_index, longStop, "STOP", style=label.style_label_left, color=color.new(bearishCol, 30), textcolor=color.white, size=size.tiny)
+    label.new(bar_index, low, "⬆️ LONG ENTRY\nHIGH PROBABILITY", style=label.style_label_up, color=bullishCol, textcolor=color.white, size=size.normal)
+    label.new(bar_index, longTarget, "🎯 TARGET\n" + str.tostring(longTarget, format.mintick), style=label.style_label_left, color=color.new(bullishCol, 20), textcolor=color.white, size=size.small)
+    label.new(bar_index, longStop, "❌ STOP\n" + str.tostring(longStop, format.mintick), style=label.style_label_left, color=color.new(bearishCol, 20), textcolor=color.white, size=size.small)
 
 if shortSignal
-    label.new(bar_index, high, "SHORT", style=label.style_label_down, color=bearishCol, textcolor=color.white, size=size.small)
-    label.new(bar_index, shortTarget, "TARGET", style=label.style_label_left, color=color.new(bullishCol, 30), textcolor=color.white, size=size.tiny)
-    label.new(bar_index, shortStop, "STOP", style=label.style_label_left, color=color.new(bearishCol, 30), textcolor=color.white, size=size.tiny)
+    label.new(bar_index, high, "⬇️ SHORT ENTRY\nHIGH PROBABILITY", style=label.style_label_down, color=bearishCol, textcolor=color.white, size=size.normal)
+    label.new(bar_index, shortTarget, "🎯 TARGET\n" + str.tostring(shortTarget, format.mintick), style=label.style_label_left, color=color.new(bullishCol, 20), textcolor=color.white, size=size.small)
+    label.new(bar_index, shortStop, "❌ STOP\n" + str.tostring(shortStop, format.mintick), style=label.style_label_left, color=color.new(bearishCol, 20), textcolor=color.white, size=size.small)
 
-// Labels (conditional for colorway mode)
+// ENHANCED ORB RETEST LABELS (Bigger & More Visible)
 bool showAdvancedLabels = not simpleColorway
+
 if showAdvancedLabels and pullbackLong and not pullbackLong[1]
-    label.new(bar_index, low, "PULLBACK", style=label.style_label_up, color=color.new(pullbackCol, 40), textcolor=color.white, size=size.tiny)
+    label.new(bar_index, low, "🟠 PULLBACK ZONE\nWAIT FOR BOUNCE", style=label.style_label_up, color=color.new(pullbackCol, 30), textcolor=color.white, size=size.small)
+
 if showAdvancedLabels and pullbackShort and not pullbackShort[1]
-    label.new(bar_index, high, "PULLBACK", style=label.style_label_down, color=color.new(pullbackCol, 40), textcolor=color.white, size=size.tiny)
+    label.new(bar_index, high, "🟠 PULLBACK ZONE\nWAIT FOR REJECTION", style=label.style_label_down, color=color.new(pullbackCol, 30), textcolor=color.white, size=size.small)
+
 if showAdvancedLabels and orbRetestLong and showSignals
-    label.new(bar_index, low, "RETEST", style=label.style_label_up, color=color.new(earlyCol, 30), textcolor=color.white, size=size.tiny)
+    label.new(bar_index, low, "🎯 RETEST ORB LONG\nHIGH PROBABILITY ENTRY", style=label.style_label_up, color=color.new(earlyCol, 20), textcolor=color.white, size=size.normal)
+
 if showAdvancedLabels and orbRetestShort and showSignals
-    label.new(bar_index, high, "RETEST", style=label.style_label_down, color=color.new(earlyCol, 30), textcolor=color.white, size=size.tiny)
-if showAdvancedLabels and fakeoutLong and showFakeoutPopup
-    label.new(bar_index, high, "FAKEOUT", style=label.style_label_down, color=color.new(color.yellow, 20), textcolor=color.black, size=size.small)
-if showAdvancedLabels and fakeoutShort and showFakeoutPopup
-    label.new(bar_index, low, "FAKEOUT", style=label.style_label_up, color=color.new(color.yellow, 20), textcolor=color.black, size=size.small)
-if showAdvancedLabels and isChop and not isChop[1] and showConsolidationPopup
+    label.new(bar_index, high, "🎯 RETEST ORB SHORT\nHIGH PROBABILITY ENTRY", style=label.style_label_down, color=color.new(earlyCol, 20), textcolor=color.white, size=size.normal)
+
+// CHOP LABEL (Smaller, on candle)
+if showAdvancedLabels and isChop and not isChop[1] and not showBigAlerts
     label.new(bar_index, high, "CHOP", style=label.style_label_down, color=color.gray, textcolor=color.white, size=size.normal)
 
 // Dashboard
-var table dash = table.new(position.top_right, 2, 9, bgcolor=color.new(color.black, 80), border_width=1, border_color=color.gray)
+var table dash = table.new(position.top_right, 2, 10, bgcolor=color.new(color.black, 80), border_width=1, border_color=color.gray)
 if barstate.islast
-    string modeStr = simpleColorway ? "COLORWAY" : "FULL"
-    color modeCol = simpleColorway ? color.blue : color.purple
+    string modeStr = simpleColorway ? "COLORWAY" : showBigAlerts ? "ENHANCED" : "FULL"
+    color modeCol = simpleColorway ? color.blue : showBigAlerts ? color.purple : color.aqua
     table.cell(dash, 0, 0, "AEP " + modeStr, text_color=color.white, text_size=size.small, bgcolor=color.new(modeCol, 50))
     table.merge_cells(dash, 0, 0, 1, 0)
+    
     color stCol = isChop ? color.gray : bullAlign ? color.green : bearAlign ? color.red : color.gray
     table.cell(dash, 0, 1, "Market", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 1, mktState, text_color=stCol, text_size=size.tiny)
+    
     color rsiCol = rsiVal > rsiOB ? color.red : rsiVal < rsiOS ? color.green : color.gray
     table.cell(dash, 0, 2, "RSI", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 2, str.tostring(rsiVal, "#.#"), text_color=rsiCol, text_size=size.tiny)
+    
     string orbTxt = not orbEnabled ? "OFF" : not orbComplete ? "Pending" : orbBreakDir == 1 ? "LONG" : orbBreakDir == -1 ? "SHORT" : "Ranging"
     color orbCol = orbBreakDir == 1 ? color.green : orbBreakDir == -1 ? color.red : color.gray
     table.cell(dash, 0, 3, "ORB", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 3, orbTxt, text_color=orbCol, text_size=size.tiny)
-    // Fakeout row
+    
     string fakeoutTxt = fakeoutActiveLong ? "⚠️ LONG" : fakeoutActiveShort ? "⚠️ SHORT" : "None"
     color fakeoutCol = fakeoutActiveLong or fakeoutActiveShort ? color.yellow : color.gray
     table.cell(dash, 0, 4, "Fakeout", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 4, fakeoutTxt, text_color=fakeoutCol, text_size=size.tiny)
+    
+    // Setup Status
+    table.cell(dash, 0, 5, "Setup", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 5, currentSetup, text_color=color.aqua, text_size=size.tiny)
+    
     string zonesTxt = str.tostring(array.size(supplyBoxes)) + "S / " + str.tostring(array.size(demandBoxes)) + "D"
-    table.cell(dash, 0, 5, "Zones", text_color=color.white, text_size=size.tiny)
-    table.cell(dash, 1, 5, zonesTxt, text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 0, 6, "Zones", text_color=color.white, text_size=size.tiny)
+    table.cell(dash, 1, 6, zonesTxt, text_color=color.white, text_size=size.tiny)
+    
     if showLunar
-        table.cell(dash, 0, 6, "Moon", text_color=color.white, text_size=size.tiny)
-        table.cell(dash, 1, 6, moonPhase, text_color=color.new(color.white, 30), text_size=size.tiny)
-        table.cell(dash, 0, 7, "volMult", text_color=color.white, text_size=size.tiny)
-        table.cell(dash, 1, 7, str.tostring(volMult, "#.##") + "x", text_color=color.aqua, text_size=size.tiny)
+        table.cell(dash, 0, 7, "Moon", text_color=color.white, text_size=size.tiny)
+        table.cell(dash, 1, 7, moonPhase, text_color=color.new(color.white, 30), text_size=size.tiny)
+        table.cell(dash, 0, 8, "volMult", text_color=color.white, text_size=size.tiny)
+        table.cell(dash, 1, 8, str.tostring(volMult, "#.##") + "x", text_color=color.aqua, text_size=size.tiny)
+    
     if showZodiac
         color elemCol = element == "FIRE" ? color.orange : element == "EARTH" ? color.green : element == "AIR" ? color.yellow : element == "WATER" ? color.aqua : color.gray
-        table.cell(dash, 0, 8, "Element", text_color=color.white, text_size=size.tiny)
-        table.cell(dash, 1, 8, element + " (" + currentZodiac + ")", text_color=elemCol, text_size=size.tiny)
+        table.cell(dash, 0, 9, "Element", text_color=color.white, text_size=size.tiny)
+        table.cell(dash, 1, 9, element + " (" + currentZodiac + ")", text_color=elemCol, text_size=size.tiny)
 
-alertcondition(longSignal, title="Long", message="AEP Long")
-alertcondition(shortSignal, title="Short", message="AEP Short")
+alertcondition(longSignal, title="Long", message="🟢 AEP Long Entry Signal")
+alertcondition(shortSignal, title="Short", message="🔴 AEP Short Entry Signal")
 alertcondition(fakeoutLong or fakeoutShort, title="Fakeout", message="⚠️ Fakeout Detected!")
+alertcondition(isChop and not isChop[1], title="Consolidation", message="⚠️ Consolidation - Wait!")

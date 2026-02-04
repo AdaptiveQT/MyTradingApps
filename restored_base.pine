@@ -1,12 +1,12 @@
-// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0
-// © ICT x AEP Protocol [NUCLEAR] - Confluence Trading System
+﻿// This Pine ScriptΓäó code is subject to the terms of the Mozilla Public License 2.0
+// ┬⌐ ICT x AEP Protocol [NUCLEAR] - Confluence Trading System
 
 //@version=5
 indicator("ICT x AEP [NUCLEAR]", overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ MASTER TOGGLES ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ MASTER TOGGLES ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 grpMaster = "Master Toggles"
 bool showKillzones = input.bool(true, "Show Killzones", group=grpMaster)
 bool showPivots = input.bool(true, "Show Pivots", group=grpMaster)
@@ -18,28 +18,10 @@ bool showZodiac = input.bool(true, "Show Zodiac Dashboard", group=grpMaster)
 bool presentMode = input.bool(true, "Present Mode (Fresh Zones Only)", group=grpMaster, tooltip="When ON, removes FVGs/OBs when price fills them")
 bool zodiacFilter = input.bool(true, "Zodiac Signal Filter", group=grpMaster, tooltip="Only show signals when zodiac aligns with direction")
 
-// --- Suvo Market Structure Settings ---
-grpSuvoMS = "Suvo Market Structure"
-bool showms = input.bool(true, 'Show Market Structure Labels', group=grpSuvoMS)
-string ms_type = input.string('All', options=['All', 'External', 'Internal'], title='Type', group=grpSuvoMS)
-int swingSize_swing = input.int(10, 'Swing Length', group=grpSuvoMS)
-bool showSwing = input.bool(false, 'Show HH/LL Labels', group=grpSuvoMS)
-color bosColor1 = input.color(#09ff00, 'Bullish Color', group=grpSuvoMS)
-color bosColor2 = input.color(color.rgb(255, 0, 0), 'Bearish Color', group=grpSuvoMS)
-color swingColor = input.color(#787b86, 'Swing Label Color', group=grpSuvoMS)
-string label_sizes_s = input.string('Medium', options=['Small', 'Medium', 'Large'], title='Label Size', group=grpSuvoMS)
-
-// --- Suvo Trendline Settings ---
-grpSuvoLiq = "Suvo Liquidity Trendline"
-bool enable_period = input.bool(true, "Enable Liquidity Trendlines", group=grpSuvoLiq)
-int len2 = input.int(5, "Trendline Period", group=grpSuvoLiq)
-color cup = input.color(color.rgb(0, 255, 21), "Uptrend Color", group=grpSuvoLiq)
-color cdn = input.color(#ff2b00, "Downtrend Color", group=grpSuvoLiq)
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ CONFLUENCE SETTINGS (AEP + ICT) ░░░
-// ══════════════════════════════════════════════════════════════════════════════
-grpConfl = "🔥 Confluence (AEP + ICT)"
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ CONFLUENCE SETTINGS (AEP + ICT) ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+grpConfl = "≡ƒöÑ Confluence (AEP + ICT)"
 bool enableConfluence = input.bool(true, "Enable Confluence Detection", group=grpConfl)
 int fastLen = input.int(9, "Fast MA Length", minval=1, group=grpConfl)
 int slowLen = input.int(21, "Slow MA Length", minval=1, group=grpConfl)
@@ -47,9 +29,9 @@ int rsiLen = input.int(14, "RSI Length", minval=1, group=grpConfl)
 float rsiOB = input.float(70, "RSI Overbought", group=grpConfl)
 float rsiOS = input.float(30, "RSI Oversold", group=grpConfl)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ KILLZONE SETTINGS ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ KILLZONE SETTINGS ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 grpKZ = "Killzones"
 bool showKZBoxes = input.bool(true, "Show Killzone Boxes", group=grpKZ)
 bool showKZText = input.bool(true, "Display Text", inline="kzdisp", group=grpKZ)
@@ -92,9 +74,9 @@ string sbStart = input.string("10:00", "Start", inline="sb", group=grpSilverBull
 string sbEnd = input.string("11:00", "End", inline="sb", group=grpSilverBullet)
 color sbCol = input.color(color.lime, "", inline="sb", group=grpSilverBullet)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ PIVOT SETTINGS ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ PIVOT SETTINGS ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 grpPivot = "Pivots"
 bool showDailyPivots = input.bool(true, "Daily Pivots", group=grpPivot)
 bool showWeeklyPivots = input.bool(false, "Weekly Pivots", group=grpPivot)
@@ -103,9 +85,9 @@ color pivotCol = input.color(color.orange, "Pivot (P)", group=grpPivot)
 color rCol = input.color(color.red, "R Levels", group=grpPivot)
 color sCol = input.color(color.green, "S Levels", group=grpPivot)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ ICT STRUCTURE SETTINGS ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ ICT STRUCTURE SETTINGS ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 grpICT = "ICT Structure"
 int structLen = input.int(5, "Structure Lookback", minval=3, group=grpICT)
 int maxFVG = input.int(3, "Max FVGs", minval=1, maxval=20, group=grpICT)
@@ -115,18 +97,18 @@ color bearFvgCol = input.color(color.new(#f23645, 85), "Bear FVG", group=grpICT)
 color bullObCol = input.color(color.new(#00bcd4, 80), "Bull OB", group=grpICT)
 color bearObCol = input.color(color.new(#ff5252, 80), "Bear OB", group=grpICT)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ ORDER BLOCK SCORING ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ ORDER BLOCK SCORING ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 grpOBScore = "OB Scoring"
 int obScoreThreshold = input.int(5, "Min OB Score (0-10)", minval=0, maxval=10, group=grpOBScore, tooltip="Only show OBs scoring above this")
 float obATRMult = input.float(2.0, "Displacement ATR Mult", minval=1.0, step=0.5, group=grpOBScore, tooltip="Move away must exceed this * ATR")
 bool showOBScore = input.bool(true, "Show OB Score", group=grpOBScore)
 bool hideWeakOBs = input.bool(false, "Hide Weak OBs", group=grpOBScore, tooltip="Hide OBs below threshold instead of graying out")
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ FVG SCORING ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ FVG SCORING ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 grpFVGScore = "FVG Scoring"
 int fvgScoreThreshold = input.int(5, "Min FVG Score (0-10)", minval=0, maxval=10, group=grpFVGScore, tooltip="Only show FVGs scoring above this")
 float fvgATRMult = input.float(2.0, "Displacement ATR Mult", minval=1.0, step=0.5, group=grpFVGScore)
@@ -134,15 +116,15 @@ bool showFVGScore = input.bool(true, "Show FVG Score", group=grpFVGScore)
 bool hideWeakFVGs = input.bool(false, "Hide Weak FVGs", group=grpFVGScore)
 bool detectIFVG = input.bool(true, "Detect Inverse FVGs (iFVG)", group=grpFVGScore, tooltip="Mark FVGs that get breached as inverse")
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ ZODIAC SETTINGS ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ ZODIAC SETTINGS ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 grpAstro = "Zodiac"
 int moonOffset = input.int(10, "Moon Degree Offset", group=grpAstro)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 1. ZODIAC CALCULATION ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ 1. ZODIAC CALCULATION ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 lunarAge() =>
     int y = year
     int m = month
@@ -163,7 +145,7 @@ string[] zodiacSigns = array.from("Aries", "Taurus", "Gemini", "Cancer", "Leo", 
 int zodiacIdx = math.floor((moonAge / 29.53) * 12) % 12
 string currentZodiac = array.get(zodiacSigns, zodiacIdx)
 
-string moonPhase = moonAge < 1.85 ? "🌑 New" : moonAge < 7.38 ? "🌒 Wax Cres" : moonAge < 11.07 ? "🌓 1st Qtr" : moonAge < 14.76 ? "🌔 Wax Gib" : moonAge < 16.61 ? "🌕 Full" : moonAge < 22.14 ? "🌖 Wan Gib" : moonAge < 25.83 ? "🌗 3rd Qtr" : "🌘 Wan Cres"
+string moonPhase = moonAge < 1.85 ? "≡ƒîæ New" : moonAge < 7.38 ? "≡ƒîÆ Wax Cres" : moonAge < 11.07 ? "≡ƒîô 1st Qtr" : moonAge < 14.76 ? "≡ƒîö Wax Gib" : moonAge < 16.61 ? "≡ƒîò Full" : moonAge < 22.14 ? "≡ƒîû Wan Gib" : moonAge < 25.83 ? "≡ƒîù 3rd Qtr" : "≡ƒîÿ Wan Cres"
 
 string element = "Neutral"
 string ictBias = "Balanced"
@@ -176,22 +158,22 @@ string[] airSigns = array.from("Gemini", "Libra", "Aquarius")
 string[] waterSigns = array.from("Cancer", "Scorpio", "Pisces")
 
 if array.includes(fireSigns, currentZodiac)
-    element := "🔥 FIRE"
+    element := "≡ƒöÑ FIRE"
     ictBias := "EXPANSION"
     ictFocus := "Trust BOS & FVGs"
     elemCol := color.orange
 else if array.includes(waterSigns, currentZodiac)
-    element := "💧 WATER"
+    element := "≡ƒÆº WATER"
     ictBias := "MANIPULATION"
     ictFocus := "Fade Liq Grabs"
     elemCol := color.aqua
 else if array.includes(airSigns, currentZodiac)
-    element := "🌪️ AIR"
+    element := "≡ƒî¬∩╕Å AIR"
     ictBias := "CONSOLIDATION"
     ictFocus := "Scalp IRL"
     elemCol := color.silver
 else if array.includes(earthSigns, currentZodiac)
-    element := "🌍 EARTH"
+    element := "≡ƒîì EARTH"
     ictBias := "STRUCTURE"
     ictFocus := "Deep OTE"
     elemCol := color.green
@@ -200,9 +182,9 @@ else if array.includes(earthSigns, currentZodiac)
 bool bullishBias = array.includes(fireSigns, currentZodiac) or array.includes(earthSigns, currentZodiac)
 bool bearishBias = array.includes(waterSigns, currentZodiac) or array.includes(airSigns, currentZodiac)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 2. KILLZONE DETECTION ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ 2. KILLZONE DETECTION ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 // Helper function to convert time strings to session format
 asiaTimeStr = str.replace(asiaStart, ":", "") + "-" + str.replace(asiaEnd, ":", "")
 londonTimeStr = str.replace(londonStart, ":", "") + "-" + str.replace(londonEnd, ":", "")
@@ -265,7 +247,7 @@ if nyPMSessionStart
 if inNYPM
     nyPMHigh := math.max(nyPMHigh, high), nyPMLow := math.min(nyPMLow, low)
 
-// ═══ KILLZONE BOXES ═══
+// ΓòÉΓòÉΓòÉ KILLZONE BOXES ΓòÉΓòÉΓòÉ
 var box asiaBox = na, var box londonBox = na, var box nyBox = na, var box nyLunchBox = na, var box nyPMBox = na
 var line asiaHighLine = na, var line asiaLowLine = na
 var line londonHighLine = na, var line londonLowLine = na
@@ -317,9 +299,9 @@ plot(showKZOpen and showNYKZ and inNY ? nyOpen : na, "NY Open", nyCol, style=plo
 plot(showKZOpen and showNYLunch and inNYLunch ? nyLunchOpen : na, "NY Lunch Open", nyLunchCol, style=plot.style_linebr)
 plot(showKZOpen and showNYPM and inNYPM ? nyPMOpen : na, "NY PM Open", nyPMCol, style=plot.style_linebr)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 3. PIVOTS ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ 3. PIVOTS ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 [dHigh, dLow, dClose] = request.security(syminfo.tickerid, "D", [high[1], low[1], close[1]], lookahead=barmerge.lookahead_on)
 
 calcPivots(h, l, c, pType) =>
@@ -344,9 +326,9 @@ plot(showPivots and showDailyPivots ? dR2 : na, "R2", color.new(rCol, 40), style
 plot(showPivots and showDailyPivots ? dS1 : na, "S1", sCol, style=plot.style_cross)
 plot(showPivots and showDailyPivots ? dS2 : na, "S2", color.new(sCol, 40), style=plot.style_cross)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 4. PDH/PDL/PWH/PWL ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ 4. PDH/PDL/PWH/PWL ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 float pdh = request.security(syminfo.tickerid, "D", high[1], lookahead=barmerge.lookahead_on)
 float pdl = request.security(syminfo.tickerid, "D", low[1], lookahead=barmerge.lookahead_on)
 float pwh = request.security(syminfo.tickerid, "W", high[1], lookahead=barmerge.lookahead_on)
@@ -373,7 +355,7 @@ if showPDLevels and barstate.islast
     pwhLabel := label.new(bar_index + 22, pwh, "PWH", style=label.style_none, textcolor=color.fuchsia, size=size.small)
     pwlLabel := label.new(bar_index + 22, pwl, "PWL", style=label.style_none, textcolor=color.aqua, size=size.small)
 
-// ═══ LIQUIDITY SWEEP DETECTION ═══
+// ΓòÉΓòÉΓòÉ LIQUIDITY SWEEP DETECTION ΓòÉΓòÉΓòÉ
 // Wick beyond PDH/PDL but close back inside = liquidity grab
 bool pdhSweep = high > pdh and close < pdh  // Swept PDH, closed below
 bool pdlSweep = low < pdl and close > pdl   // Swept PDL, closed above
@@ -382,9 +364,9 @@ bool pwlSweep = low < pwl and close > pwl   // Swept PWL
 
 // Note: Liquidity sweep labels plotted in signals section after inKillzone is defined
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 5. FVG DETECTION (INTELLIGENT SCORING + iFVG) ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ 5. FVG DETECTION (INTELLIGENT SCORING + iFVG) ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 bool isBullFVG = low > high[2]
 bool isBearFVG = high < low[2]
 
@@ -459,9 +441,9 @@ if showFVG and isBullFVG
     
     // Apply threshold filter
     if fvgScore >= fvgScoreThreshold or not hideWeakFVGs
-        string fvgLabel = showFVGScore ? "▮ FVG " + str.tostring(fvgScore) + "/10" : "▮ FVG"
+        string fvgLabel = showFVGScore ? "Γû« FVG " + str.tostring(fvgScore) + "/10" : "Γû« FVG"
         if fvgScore >= 8
-            fvgLabel := fvgLabel + " ★"
+            fvgLabel := fvgLabel + " Γÿà"
         int bWidth = fvgScore >= 8 ? 3 : fvgScore >= 5 ? 2 : 1
         color bCol = fvgColorByScore(fvgScore, true)
         color borderCol = fvgScore >= 5 ? color.new(#089981, 30) : color.new(color.gray, 40)
@@ -486,9 +468,9 @@ if showFVG and isBearFVG
     
     // Apply threshold filter
     if fvgScore >= fvgScoreThreshold or not hideWeakFVGs
-        string fvgLabel = showFVGScore ? "▮ FVG " + str.tostring(fvgScore) + "/10" : "▮ FVG"
+        string fvgLabel = showFVGScore ? "Γû« FVG " + str.tostring(fvgScore) + "/10" : "Γû« FVG"
         if fvgScore >= 8
-            fvgLabel := fvgLabel + " ★"
+            fvgLabel := fvgLabel + " Γÿà"
         int bWidth = fvgScore >= 8 ? 3 : fvgScore >= 5 ? 2 : 1
         color bCol = fvgColorByScore(fvgScore, false)
         color borderCol = fvgScore >= 5 ? color.new(#f23645, 30) : color.new(color.gray, 40)
@@ -504,7 +486,7 @@ if showFVG and isBearFVG
             array.shift(bearFVGBots)
             array.shift(bearFVGScores)
 
-// ═══ FVG MITIGATION + iFVG DETECTION ═══
+// ΓòÉΓòÉΓòÉ FVG MITIGATION + iFVG DETECTION ΓòÉΓòÉΓòÉ
 if presentMode and array.size(bullFVGs) > 0
     for i = array.size(bullFVGs) - 1 to 0
         if i < array.size(bullFVGBots)
@@ -514,7 +496,7 @@ if presentMode and array.size(bullFVGs) > 0
             if close < bot
                 if detectIFVG
                     // Create iFVG (inverse - now bearish resistance)
-                    box iFvg = box.new(bar_index - 5, top, bar_index + 30, bot, border_color=color.new(color.orange, 20), bgcolor=color.new(color.orange, 80), border_width=2, text="iFVG ↓", text_color=color.orange, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+                    box iFvg = box.new(bar_index - 5, top, bar_index + 30, bot, border_color=color.new(color.orange, 20), bgcolor=color.new(color.orange, 80), border_width=2, text="iFVG Γåô", text_color=color.orange, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
                     array.push(iFVGs, iFvg)
                     if array.size(iFVGs) > maxFVG
                         box.delete(array.shift(iFVGs))
@@ -535,7 +517,7 @@ if presentMode and array.size(bearFVGs) > 0
             if close > top
                 if detectIFVG
                     // Create iFVG (inverse - now bullish support)
-                    box iFvg = box.new(bar_index - 5, top, bar_index + 30, bot, border_color=color.new(color.orange, 20), bgcolor=color.new(color.orange, 80), border_width=2, text="iFVG ↑", text_color=color.orange, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
+                    box iFvg = box.new(bar_index - 5, top, bar_index + 30, bot, border_color=color.new(color.orange, 20), bgcolor=color.new(color.orange, 80), border_width=2, text="iFVG Γåæ", text_color=color.orange, text_size=size.small, text_halign=text.align_right, text_valign=text.align_center)
                     array.push(iFVGs, iFvg)
                     if array.size(iFVGs) > maxFVG
                         box.delete(array.shift(iFVGs))
@@ -547,9 +529,9 @@ if presentMode and array.size(bearFVGs) > 0
                 if i < array.size(bearFVGScores)
                     array.remove(bearFVGScores, i)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 6. ORDER BLOCKS (INTELLIGENT SCORING) ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ 6. ORDER BLOCKS (INTELLIGENT SCORING) ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 float sh = ta.pivothigh(high, structLen, structLen)
 float sl = ta.pivotlow(low, structLen, structLen)
 var float lastSH = na, var float lastSL = na
@@ -564,9 +546,9 @@ bool bosUp = not na(lastSH) and crossHigh
 bool bosDn = not na(lastSL) and crossLow
 
 if showBOS and bosUp
-    label.new(bar_index, high, "BOS↑", color=color.new(color.green, 100), style=label.style_label_down, textcolor=color.lime, size=size.tiny)
+    label.new(bar_index, high, "BOSΓåæ", color=color.new(color.green, 100), style=label.style_label_down, textcolor=color.lime, size=size.tiny)
 if showBOS and bosDn
-    label.new(bar_index, low, "BOS↓", color=color.new(color.red, 100), style=label.style_label_up, textcolor=color.red, size=size.tiny)
+    label.new(bar_index, low, "BOSΓåô", color=color.new(color.red, 100), style=label.style_label_up, textcolor=color.red, size=size.tiny)
 
 // OB Tracking Arrays
 var box[] bullOBs = array.new_box()
@@ -651,9 +633,9 @@ if showOB and bosUp
         
         // Apply threshold filter
         if obScore >= obScoreThreshold or not hideWeakOBs
-            string obLabel = showOBScore ? "▮ OB " + str.tostring(obScore) + "/10" : "▮ OB"
+            string obLabel = showOBScore ? "Γû« OB " + str.tostring(obScore) + "/10" : "Γû« OB"
             if obScore >= 8
-                obLabel := obLabel + " ★"
+                obLabel := obLabel + " Γÿà"
             int obWidth = obScore >= 8 ? 3 : obScore >= 5 ? 2 : 1
             color obBgCol = obColorByScore(obScore, true)
             color obBorderCol = obScore >= 5 ? color.new(#00bcd4, 20) : color.new(color.gray, 40)
@@ -684,9 +666,9 @@ if showOB and bosDn
         
         // Apply threshold filter
         if obScore >= obScoreThreshold or not hideWeakOBs
-            string obLabel = showOBScore ? "▮ OB " + str.tostring(obScore) + "/10" : "▮ OB"
+            string obLabel = showOBScore ? "Γû« OB " + str.tostring(obScore) + "/10" : "Γû« OB"
             if obScore >= 8
-                obLabel := obLabel + " ★"
+                obLabel := obLabel + " Γÿà"
             int obWidth = obScore >= 8 ? 3 : obScore >= 5 ? 2 : 1
             color obBgCol = obColorByScore(obScore, false)
             color obBorderCol = obScore >= 5 ? color.new(#ff5252, 20) : color.new(color.gray, 40)
@@ -700,7 +682,7 @@ if showOB and bosDn
                 array.shift(bearOBTops)
                 array.shift(bearOBScores)
 
-// ═══ ORDER BLOCK MITIGATION (Present Mode) ═══
+// ΓòÉΓòÉΓòÉ ORDER BLOCK MITIGATION (Present Mode) ΓòÉΓòÉΓòÉ
 if presentMode and array.size(bullOBs) > 0
     for i = array.size(bullOBs) - 1 to 0
         if i < array.size(bullOBBots)
@@ -725,9 +707,9 @@ if presentMode and array.size(bearOBs) > 0
                 if i < array.size(bearOBScores)
                     array.remove(bearOBScores, i)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 7. KILLZONE SIGNALS (ZODIAC FILTERED) ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ 7. KILLZONE SIGNALS (ZODIAC FILTERED) ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 // bodySize reused from line 450
 bool disp = bodySize > avgBody * 1.5
 
@@ -744,15 +726,15 @@ bool kzShort = zodiacFilter ? (kzShortBase and bearishBias) : kzShortBase
 bool kzLongStrong = kzLong and hasDisplacement and inKillzone
 bool kzShortStrong = kzShort and hasDisplacement and inKillzone
 
-// Visual differentiation: Strong = ★, Weak = standard
-plotshape(kzLongStrong, style=shape.labelup, location=location.belowbar, color=color.green, text="KZ ★", textcolor=color.white, size=size.normal)
+// Visual differentiation: Strong = Γÿà, Weak = standard
+plotshape(kzLongStrong, style=shape.labelup, location=location.belowbar, color=color.green, text="KZ Γÿà", textcolor=color.white, size=size.normal)
 plotshape(kzLong and not kzLongStrong, style=shape.labelup, location=location.belowbar, color=color.new(color.green, 40), text="KZ", textcolor=color.white, size=size.small)
-plotshape(kzShortStrong, style=shape.labeldown, location=location.abovebar, color=color.red, text="KZ ★", textcolor=color.white, size=size.normal)
+plotshape(kzShortStrong, style=shape.labeldown, location=location.abovebar, color=color.red, text="KZ Γÿà", textcolor=color.white, size=size.normal)
 plotshape(kzShort and not kzShortStrong, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 40), text="KZ", textcolor=color.white, size=size.small)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 7B. CONFLUENCE DETECTION (AEP + ICT) ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ 7B. CONFLUENCE DETECTION (AEP + ICT) ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 // AEP-style trend detection
 float fastMA = ta.ema(close, fastLen)
 float slowMA = ta.ema(close, slowLen)
@@ -770,7 +752,7 @@ bool aepBearAlign = fastMA < slowMA and fastDn and slowDn
 bool rsiNotOB = rsiVal < rsiOB  // Not overbought for longs
 bool rsiNotOS = rsiVal > rsiOS  // Not oversold for shorts
 
-// ═══ OB/FVG PROXIMITY CHECK FOR NUCLEAR ═══
+// ΓòÉΓòÉΓòÉ OB/FVG PROXIMITY CHECK FOR NUCLEAR ΓòÉΓòÉΓòÉ
 // Check if price is within 0.5 ATR of a high-score OB or FVG
 float nuclearATR = ta.atr(14)
 bool nearHighScoreBullOB = false
@@ -812,28 +794,28 @@ if array.size(bearFVGScores) > 0
 bool nearBullZone = nearHighScoreBullOB or nearHighScoreBullFVG
 bool nearBearZone = nearHighScoreBearOB or nearHighScoreBearFVG
 
-// ═══ NUCLEAR CONFLUENCE ═══
+// ΓòÉΓòÉΓòÉ NUCLEAR CONFLUENCE ΓòÉΓòÉΓòÉ
 // Both AEP (trend) and ICT (structure) agree on STRONG signals
 // Enhanced: Require proximity to high-score OB/FVG
 bool nuclearLong = enableConfluence and kzLongStrong and aepBullAlign and rsiNotOB and nearBullZone
 bool nuclearShort = enableConfluence and kzShortStrong and aepBearAlign and rsiNotOS and nearBearZone
 
 // Visual: Diamond marker for nuclear confluence
-plotshape(nuclearLong, style=shape.diamond, location=location.belowbar, color=color.new(#FFD700, 0), text="🔥 NUCLEAR", textcolor=color.white, size=size.large, offset=-1)
-plotshape(nuclearShort, style=shape.diamond, location=location.abovebar, color=color.new(#FFD700, 0), text="🔥 NUCLEAR", textcolor=color.white, size=size.large, offset=-1)
+plotshape(nuclearLong, style=shape.diamond, location=location.belowbar, color=color.new(#FFD700, 0), text="≡ƒöÑ NUCLEAR", textcolor=color.white, size=size.large, offset=-1)
+plotshape(nuclearShort, style=shape.diamond, location=location.abovebar, color=color.new(#FFD700, 0), text="≡ƒöÑ NUCLEAR", textcolor=color.white, size=size.large, offset=-1)
 
 // Conflict detection (AEP and ICT disagree)
 bool conflictLong = kzLongStrong and aepBearAlign  // ICT says long, AEP says bearish
 bool conflictShort = kzShortStrong and aepBullAlign  // ICT says short, AEP says bullish
 
-// ═══ CONFLICT WARNING LABELS ═══
-plotshape(conflictLong, style=shape.xcross, location=location.belowbar, color=color.new(color.orange, 0), text="⚠ CONFLICT", textcolor=color.orange, size=size.small)
-plotshape(conflictShort, style=shape.xcross, location=location.abovebar, color=color.new(color.orange, 0), text="⚠ CONFLICT", textcolor=color.orange, size=size.small)
+// ΓòÉΓòÉΓòÉ CONFLICT WARNING LABELS ΓòÉΓòÉΓòÉ
+plotshape(conflictLong, style=shape.xcross, location=location.belowbar, color=color.new(color.orange, 0), text="ΓÜá CONFLICT", textcolor=color.orange, size=size.small)
+plotshape(conflictShort, style=shape.xcross, location=location.abovebar, color=color.new(color.orange, 0), text="ΓÜá CONFLICT", textcolor=color.orange, size=size.small)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ POWER OF 3 (PO3) – AMD CYCLE ░░░
-// ══════════════════════════════════════════════════════════════════════════════
-// Accumulation → Manipulation → Distribution (core ICT cycle)
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ POWER OF 3 (PO3) ΓÇô AMD CYCLE ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// Accumulation ΓåÆ Manipulation ΓåÆ Distribution (core ICT cycle)
 
 // PO3 EMAs for trend context
 float po3Fast = ta.ema(close, 9)
@@ -875,34 +857,29 @@ if po3Changed and showKillzones
     color po3Col = po3Phase == "ACCUMULATION" ? color.green : po3Phase == "MANIPULATION" ? color.orange : color.red
     label.new(bar_index, po3Phase == "DISTRIBUTION" ? high : low, "AMD: " + po3Phase, color=po3Col, textcolor=color.white, style=po3Phase == "DISTRIBUTION" ? label.style_label_down : label.style_label_up, size=size.tiny)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ JUDAS SWING DETECTION (FIXED - MAJOR LIQUIDITY ONLY) ░░░
-// ══════════════════════════════════════════════════════════════════════════════
-// Logic: A Judas Swing is a false breakout of a MAJOR session/daily level, not internal noise.
-// It typically raids Asia High/Low or London High/Low (or PDH/PDL) and then immediately rejects.
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ JUDAS SWING DETECTION ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// Classic ICT fakeout: False breakout in opposite direction of true trend
 
-// STRICT DEFINITION: Session Sweep (London sweeps Asia, NY sweeps London/Asia)
-// (If in London, we watch Asia High/Low. If in NY, we watch London/Asia/PDH/PDL)
-float judasHighTarget = inLondon ? asiaHigh : inNY ? math.max(londonHigh, asiaHigh) : inNYPM ? math.max(nyHigh, londonHigh) : high[1]
-float judasLowTarget = inLondon ? asiaLow : inNY ? math.min(londonLow, asiaLow) : inNYPM ? math.min(nyLow, londonLow) : low[1]
-
-bool judasBearTrap = low < judasLowTarget and close > judasLowTarget and close > open and inKillzone // Swept Low, closed Bullish
-bool judasBullTrap = high > judasHighTarget and close < judasHighTarget and close < open and inKillzone // Swept High, closed Bearish
+// Detect false breakout + immediate reversal (within killzone for higher probability)
+bool judasBearTrap = low < swingLow[1] and close > swingLow[1] and close > open and inKillzone  // Swept low, closed bullish
+bool judasBullTrap = high > swingHigh[1] and close < swingHigh[1] and close < open and inKillzone  // Swept high, closed bearish
 
 // Visual markers
-plotshape(judasBullTrap, style=shape.labeldown, location=location.abovebar, color=color.new(#FF00FF, 0), text="JUDAS", textcolor=color.white, size=size.small, title="Judas Bull Trap")
-plotshape(judasBearTrap, style=shape.labelup, location=location.belowbar, color=color.new(#00FFFF, 0), text="JUDAS", textcolor=color.black, size=size.small, title="Judas Bear Trap")
+plotshape(judasBullTrap, style=shape.xcross, location=location.abovebar, color=color.new(#FF00FF, 0), text="JUDAS Γåô", textcolor=#FF00FF, size=size.small)
+plotshape(judasBearTrap, style=shape.xcross, location=location.belowbar, color=color.new(#00FFFF, 0), text="JUDAS Γåæ", textcolor=#00FFFF, size=size.small)
 
 // Judas alerts
 if judasBullTrap and not judasBullTrap[1]
-    alert("⚠️ JUDAS SWING (BEARISH) – Price raided Major Liquidity and rejected!", alert.freq_once_per_bar_close)
+    alert("ΓÜá∩╕Å JUDAS SWING Γåô ΓÇô False bullish breakout! Potential bearish trap.", alert.freq_once_per_bar_close)
 
 if judasBearTrap and not judasBearTrap[1]
-    alert("⚠️ JUDAS SWING (BULLISH) – Price raided Major Liquidity and rejected!", alert.freq_once_per_bar_close)
+    alert("ΓÜá∩╕Å JUDAS SWING Γåæ ΓÇô False bearish breakout! Potential bullish trap.", alert.freq_once_per_bar_close)
 
-// ░░░ OTE ZONE (OPTIMAL TRADE ENTRY) ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ OTE ZONE (OPTIMAL TRADE ENTRY) ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 // ICT's golden pocket: 0.62-0.79 Fibonacci retracement of recent swing
 
 // OTE Settings (using existing showFVG toggle for simplicity, or add dedicated)
@@ -948,34 +925,34 @@ if showOTE and barstate.islast
         // Draw bullish OTE zone (0.62-0.79 from swing high)
         oteBox := box.new(bar_index - 50, ote62Bull, bar_index + 10, ote79Bull, border_color=color.purple, bgcolor=oteZoneCol, border_width=1)
         ote705Line := line.new(bar_index - 50, ote705Bull, bar_index + 10, ote705Bull, color=oteMidCol, style=line.style_dashed, width=2)
-        oteLabel := label.new(bar_index + 12, ote705Bull, "OTE 🎯", color=color.purple, textcolor=color.white, style=label.style_label_left, size=size.small)
+        oteLabel := label.new(bar_index + 12, ote705Bull, "OTE ≡ƒÄ»", color=color.purple, textcolor=color.white, style=label.style_label_left, size=size.small)
     
     else if showBearOTE
         // Draw bearish OTE zone (0.62-0.79 from swing low)
         oteBox := box.new(bar_index - 50, ote79Bear, bar_index + 10, ote62Bear, border_color=color.purple, bgcolor=oteZoneCol, border_width=1)
         ote705Line := line.new(bar_index - 50, ote705Bear, bar_index + 10, ote705Bear, color=oteMidCol, style=line.style_dashed, width=2)
-        oteLabel := label.new(bar_index + 12, ote705Bear, "OTE 🎯", color=color.purple, textcolor=color.white, style=label.style_label_left, size=size.small)
+        oteLabel := label.new(bar_index + 12, ote705Bear, "OTE ≡ƒÄ»", color=color.purple, textcolor=color.white, style=label.style_label_left, size=size.small)
 
 // Alert when price enters OTE zone
 bool inBullOTE = close >= ote79Bull and close <= ote62Bull and htfBullTrend
 bool inBearOTE = close >= ote62Bear and close <= ote79Bear and htfBearTrend
 
 if inBullOTE and not inBullOTE[1] and inKillzone
-    alert("🎯 BULLISH OTE ZONE – Price in 0.62-0.79 retracement! Look for FVG/OB confluence.", alert.freq_once_per_bar_close)
+    alert("≡ƒÄ» BULLISH OTE ZONE ΓÇô Price in 0.62-0.79 retracement! Look for FVG/OB confluence.", alert.freq_once_per_bar_close)
 
 if inBearOTE and not inBearOTE[1] and inKillzone
-    alert("🎯 BEARISH OTE ZONE – Price in 0.62-0.79 retracement! Look for FVG/OB confluence.", alert.freq_once_per_bar_close)
+    alert("≡ƒÄ» BEARISH OTE ZONE ΓÇô Price in 0.62-0.79 retracement! Look for FVG/OB confluence.", alert.freq_once_per_bar_close)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ 8. DASHBOARD ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ 8. DASHBOARD ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 var table dash = table.new(position.top_right, 2, 9, bgcolor=color.new(color.black, 60), border_width=1, border_color=color.gray)
 
 if showZodiac and barstate.islast
-    table.cell(dash, 0, 0, "ICT x AEP 🔥", text_color=color.white, text_size=size.small, bgcolor=elemCol)
+    table.cell(dash, 0, 0, "ICT x AEP ≡ƒöÑ", text_color=color.white, text_size=size.small, bgcolor=elemCol)
     table.merge_cells(dash, 0, 0, 1, 0)
     
-    string sess = inNYPM ? "🟣 NY PM" : inNYLunch ? "🟠 NY LUNCH" : inNY ? "🟢 NY AM" : inLondon ? "🔴 LONDON" : inAsia ? "🔵 ASIA" : "⏸️ OFF"
+    string sess = inNYPM ? "≡ƒƒú NY PM" : inNYLunch ? "≡ƒƒá NY LUNCH" : inNY ? "≡ƒƒó NY AM" : inLondon ? "≡ƒö┤ LONDON" : inAsia ? "≡ƒö╡ ASIA" : "ΓÅ╕∩╕Å OFF"
     color sessCol = inNYPM ? nyPMCol : inNYLunch ? nyLunchCol : inNY ? nyCol : inLondon ? londonCol : inAsia ? asiaCol : color.gray
     table.cell(dash, 0, 1, "Session", text_color=color.white, text_size=size.tiny)
     table.cell(dash, 1, 1, sess, text_color=sessCol, text_size=size.tiny)
@@ -1008,9 +985,9 @@ if showZodiac and barstate.islast
     table.cell(po3Dash, 0, 0, "AMD", text_color=color.white, text_size=size.tiny)
     table.cell(po3Dash, 1, 0, po3Phase, text_color=po3DashCol, text_size=size.tiny)
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ DYNAMIC POP-UP LABELS – FADE ANIMATION ░░░
-// ══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ DYNAMIC POP-UP LABELS ΓÇô FADE ANIMATION ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
 // Persistent label references
 var label popupNuclearLong = na
@@ -1025,39 +1002,39 @@ int fadeDuration = 12
 // Session text for alerts
 string sessText = inSilverBullet ? "Silver Bullet" : inNYPM ? "NY PM" : inNYLunch ? "NY Lunch" : inNY ? "NY AM" : inLondon ? "London" : inAsia ? "Asia" : "Off"
 
-// ═══ NUCLEAR POPUP ═══
+// ΓòÉΓòÉΓòÉ NUCLEAR POPUP ΓòÉΓòÉΓòÉ
 if nuclearLong and not nuclearLong[1]
     if not na(popupNuclearLong)
         label.delete(popupNuclearLong)
-    popupNuclearLong := label.new(bar_index, low, "🔥 NUCLEAR LONG", color=color.new(#FFD700, 0), textcolor=color.black, style=label.style_label_up, size=size.large, yloc=yloc.belowbar)
-    alert("🔥 NUCLEAR LONG | Price: " + str.tostring(close, "#.##") + " | " + sessText, alert.freq_once_per_bar_close)
+    popupNuclearLong := label.new(bar_index, low, "≡ƒöÑ NUCLEAR LONG", color=color.new(#FFD700, 0), textcolor=color.black, style=label.style_label_up, size=size.large, yloc=yloc.belowbar)
+    alert("≡ƒöÑ NUCLEAR LONG | Price: " + str.tostring(close, "#.##") + " | " + sessText, alert.freq_once_per_bar_close)
 
 if nuclearShort and not nuclearShort[1]
     if not na(popupNuclearShort)
         label.delete(popupNuclearShort)
-    popupNuclearShort := label.new(bar_index, high, "🔥 NUCLEAR SHORT", color=color.new(#FF4500, 0), textcolor=color.white, style=label.style_label_down, size=size.large, yloc=yloc.abovebar)
-    alert("🔥 NUCLEAR SHORT | Price: " + str.tostring(close, "#.##") + " | " + sessText, alert.freq_once_per_bar_close)
+    popupNuclearShort := label.new(bar_index, high, "≡ƒöÑ NUCLEAR SHORT", color=color.new(#FF4500, 0), textcolor=color.white, style=label.style_label_down, size=size.large, yloc=yloc.abovebar)
+    alert("≡ƒöÑ NUCLEAR SHORT | Price: " + str.tostring(close, "#.##") + " | " + sessText, alert.freq_once_per_bar_close)
 
-// ═══ KZ POPUP (smaller, only when not nuclear) ═══
+// ΓòÉΓòÉΓòÉ KZ POPUP (smaller, only when not nuclear) ΓòÉΓòÉΓòÉ
 if kzLong and not kzLong[1] and not nuclearLong
     if not na(popupKZLong)
         label.delete(popupKZLong)
-    popupKZLong := label.new(bar_index, low, "KZ LONG ⚡", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.normal, yloc=yloc.belowbar)
+    popupKZLong := label.new(bar_index, low, "KZ LONG ΓÜí", color=color.green, textcolor=color.white, style=label.style_label_up, size=size.normal, yloc=yloc.belowbar)
 
 if kzShort and not kzShort[1] and not nuclearShort
     if not na(popupKZShort)
         label.delete(popupKZShort)
-    popupKZShort := label.new(bar_index, high, "KZ SHORT ⚡", color=color.red, textcolor=color.white, style=label.style_label_down, size=size.normal, yloc=yloc.abovebar)
+    popupKZShort := label.new(bar_index, high, "KZ SHORT ΓÜí", color=color.red, textcolor=color.white, style=label.style_label_down, size=size.normal, yloc=yloc.abovebar)
 
-// ═══ LIQUIDITY GRAB POPUP ═══
+// ΓòÉΓòÉΓòÉ LIQUIDITY GRAB POPUP ΓòÉΓòÉΓòÉ
 if (pdhSweep or pdlSweep) and inKillzone
     if not na(popupLiqGrab)
         label.delete(popupLiqGrab)
-    string liqText = pdhSweep ? "💧 PDH SWEPT" : "💧 PDL SWEPT"
+    string liqText = pdhSweep ? "≡ƒÆº PDH SWEPT" : "≡ƒÆº PDL SWEPT"
     color liqCol = pdhSweep ? color.red : color.green
     popupLiqGrab := label.new(bar_index, pdhSweep ? high : low, liqText, color=liqCol, textcolor=color.white, style=pdhSweep ? label.style_label_down : label.style_label_up, size=size.normal, yloc=pdhSweep ? yloc.abovebar : yloc.belowbar)
 
-// ═══ FADE ANIMATION (simplified - delete after duration) ═══
+// ΓòÉΓòÉΓòÉ FADE ANIMATION (simplified - delete after duration) ΓòÉΓòÉΓòÉ
 fadePopup(lbl, duration) =>
     if not na(lbl)
         int age = bar_index - label.get_x(lbl)
@@ -1075,11 +1052,11 @@ popupKZLong := fadePopup(popupKZLong, 8)
 popupKZShort := fadePopup(popupKZShort, 8)
 popupLiqGrab := fadePopup(popupLiqGrab, 6)
 
-// ═══ LIQUIDITY GRAB LABELS (plotshape after inKillzone defined) ═══
-plotshape(pdhSweep and inKillzone, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 20), text="LIQ GRAB ↓", textcolor=color.white, size=size.tiny)
-plotshape(pdlSweep and inKillzone, style=shape.labelup, location=location.belowbar, color=color.new(color.green, 20), text="LIQ GRAB ↑", textcolor=color.white, size=size.tiny)
+// ΓòÉΓòÉΓòÉ LIQUIDITY GRAB LABELS (plotshape after inKillzone defined) ΓòÉΓòÉΓòÉ
+plotshape(pdhSweep and inKillzone, style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 20), text="LIQ GRAB Γåô", textcolor=color.white, size=size.tiny)
+plotshape(pdlSweep and inKillzone, style=shape.labelup, location=location.belowbar, color=color.new(color.green, 20), text="LIQ GRAB Γåæ", textcolor=color.white, size=size.tiny)
 
-// ═══ BACKGROUND PULSE ON NUCLEAR (3-bar countdown) ═══
+// ΓòÉΓòÉΓòÉ BACKGROUND PULSE ON NUCLEAR (3-bar countdown) ΓòÉΓòÉΓòÉ
 var int nuclearFlashAge = 0
 if nuclearLong and not nuclearLong[1]
     nuclearFlashAge := 3
@@ -1093,128 +1070,26 @@ if nuclearFlashAge > 0
     nuclearFlashAge -= 1
 bgcolor(pulseBg, title="Nuclear Pulse")
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ ALERTS (Enhanced AI-Style) ░░░
-// ══════════════════════════════════════════════════════════════════════════════
-alertcondition(kzLong, title="Killzone LONG", message="🎯 Killzone LONG")
-alertcondition(kzShort, title="Killzone SHORT", message="🎯 Killzone SHORT")
-alertcondition(nuclearLong, title="🔥 NUCLEAR LONG", message="🔥 NUCLEAR LONG – High-confluence entry!")
-alertcondition(nuclearShort, title="🔥 NUCLEAR SHORT", message="🔥 NUCLEAR SHORT – High-confluence entry!")
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓûæΓûæΓûæ ALERTS (Enhanced AI-Style) ΓûæΓûæΓûæ
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+alertcondition(kzLong, title="Killzone LONG", message="≡ƒÄ» Killzone LONG")
+alertcondition(kzShort, title="Killzone SHORT", message="≡ƒÄ» Killzone SHORT")
+alertcondition(nuclearLong, title="≡ƒöÑ NUCLEAR LONG", message="≡ƒöÑ NUCLEAR LONG ΓÇô High-confluence entry!")
+alertcondition(nuclearShort, title="≡ƒöÑ NUCLEAR SHORT", message="≡ƒöÑ NUCLEAR SHORT ΓÇô High-confluence entry!")
 alertcondition(bosUp, title="Bullish BOS", message="BOS UP")
 alertcondition(bosDn, title="Bearish BOS", message="BOS DOWN")
 alertcondition(londonSessionStart, title="London Open", message="London Session Started")
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ SUVO MARKET STRUCTURE (Event Driven) ░░░
-// ══════════════════════════════════════════════════════════════════════════════
-color CLEAR = color.rgb(0,0,0,100)
-string lbl_size = label_sizes_s == 'Small' ? size.tiny : label_sizes_s == 'Medium' ? size.small : size.normal
-
-// Helpers for Suvo
-calculate_swing_points_suvo(len) =>
-    hh = ta.highest(len)
-    ll = ta.lowest(len)
-    var int prev = 0
-    prev := high[len] > hh ? 0 : low[len] < ll ? 1 : prev[1]
-    t = prev == 0 and prev[1] != 0 ? high[len] : 0
-    b = prev == 1 and prev[1] != 1 ? low[len] : 0
-    [t, b]
-
-[high_ms, low_ms] = calculate_swing_points_suvo(50) // External
-[int_high_ms, int_low_ms] = calculate_swing_points_suvo(swingSize_swing) // Internal
-
-var float y_up = 0., var float y_dn = 0.
-var int x_up = 0, var int x_dn = 0
-var bool crossed_up = true, var bool crossed_down = true
-var int t_MS = 0
-
-// External BOS
-if high_ms != 0
-    y_up := high_ms, x_up := bar_index - 50, crossed_up := true
-if low_ms != 0
-    y_dn := low_ms, x_dn := bar_index - 50, crossed_down := true
-
-bool bosUpSuvo = false, bool bosDnSuvo = false // Renamed to avoid conflict
-
-if ta.crossover(close, y_up) and crossed_up
-    bool isMSS = t_MS < 0
-    t_MS := 1, crossed_up := false, bosUpSuvo := true
-    if showms and (ms_type != 'Internal')
-        label.new(int(math.avg(x_up, bar_index)), y_up, isMSS ? 'MSS+' : 'BOS+', color=CLEAR, textcolor=bosColor1, style=label.style_label_down, size=lbl_size)
-        line.new(x_up, y_up, bar_index, y_up, color=bosColor1)
-
-if ta.crossunder(close, y_dn) and crossed_down
-    bool isMSS = t_MS > 0
-    t_MS := -1, crossed_down := false, bosDnSuvo := true
-    if showms and (ms_type != 'Internal')
-        label.new(int(math.avg(x_dn, bar_index)), y_dn, isMSS ? 'MSS-' : 'BOS-', color=CLEAR, textcolor=bosColor2, style=label.style_label_up, size=lbl_size)
-        line.new(x_dn, y_dn, bar_index, y_dn, color=bosColor2)
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ░░░ SUVO LIQUIDITY TRENDLINES ░░░
-// ══════════════════════════════════════════════════════════════════════════════
-type store
-    float src
-    int n
-
-type drawSuvo
-    line[] upln
-    line[] dnln
-
-// Global variables for trendlines
-var store[] upbin = array.new<store>()
-var store[] dnbin = array.new<store>()
-var drawSuvo d = drawSuvo.new(array.new<line>(), array.new<line>())
-
-// Pivot Calculation
-ph1 = enable_period ? ta.pivothigh(high, len2, len2) : na
-pl1 = enable_period ? ta.pivotlow(low, len2, len2) : na
-
-// Volatility for spacing
-atr200 = ta.atr(200)
-vol_suvo = math.min(atr200 * 0.1, close * 0.001)
-space = 2.0
-
-// Methods
-method slope(line ln) =>
-    (ln.get_y2() - ln.get_y1()) / (ln.get_x2() - ln.get_x1())
-
-var bool brokenLogic = false // Renamed from 'broken' to avoid conflict if any
-
-// Uptrend Logic
-if not na(ph1)
-    bool remove = false
-    var bool valid = false
-    upbin.unshift(store.new(high[len2], bar_index[len2]))
-    
-    if upbin.size() > 1
-        current = upbin.get(0), before = upbin.get(1)
-        if current.src < before.src
-            valid := brokenLogic ? true : false
-            // Check past points for validity
-            if not brokenLogic and upbin.size() > 3
-                if current.src < upbin.get(2).src and current.src < upbin.get(3).src
-                    valid := true
-        
-        if valid
-            // Draw channel
-            d.upln.unshift(line.new(before.n, before.src, current.n, current.src, color=cdn))
-            d.upln.unshift(line.new(before.n, before.src - vol_suvo * space, current.n, current.src - vol_suvo * space, color=cdn))
-            
-            // Visual cleanup (simplified for robustness)
-            if d.upln.size() > 2
-                line.delete(d.upln.pop())
-                line.delete(d.upln.pop())
 alertcondition(nySessionStart, title="NY Open", message="NY AM Session Started")
-alertcondition(sbSessionStart, title="Silver Bullet", message="⏰ Silver Bullet Window Open (10:00-11:00 NY)")
-alertcondition(pdhSweep and inKillzone, title="PDH Liquidity Sweep", message="💧 PDH Swept - Potential Reversal")
-alertcondition(pdlSweep and inKillzone, title="PDL Liquidity Sweep", message="💧 PDL Swept - Potential Reversal")
-alertcondition(conflictLong or conflictShort, title="⚠ AEP vs ICT Conflict", message="⚠ Signal Conflict - AEP and ICT disagree!")
-alertcondition(judasBullTrap, title="⚠️ JUDAS ↓", message="⚠️ JUDAS SWING ↓ – False bullish breakout! Bearish trap.")
-alertcondition(judasBearTrap, title="⚠️ JUDAS ↑", message="⚠️ JUDAS SWING ↑ – False bearish breakout! Bullish trap.")
-alertcondition(po3Phase == "MANIPULATION", title="🎭 AMD Manipulation", message="🎭 Manipulation phase detected – Watch for Judas swing!")
-alertcondition(inBullOTE and inKillzone, title="🎯 Bullish OTE", message="🎯 Price in BULLISH OTE zone (0.62-0.79) – Look for long entry!")
-alertcondition(inBearOTE and inKillzone, title="🎯 Bearish OTE", message="🎯 Price in BEARISH OTE zone (0.62-0.79) – Look for short entry!")
+alertcondition(sbSessionStart, title="Silver Bullet", message="ΓÅ░ Silver Bullet Window Open (10:00-11:00 NY)")
+alertcondition(pdhSweep and inKillzone, title="PDH Liquidity Sweep", message="≡ƒÆº PDH Swept - Potential Reversal")
+alertcondition(pdlSweep and inKillzone, title="PDL Liquidity Sweep", message="≡ƒÆº PDL Swept - Potential Reversal")
+alertcondition(conflictLong or conflictShort, title="ΓÜá AEP vs ICT Conflict", message="ΓÜá Signal Conflict - AEP and ICT disagree!")
+alertcondition(judasBullTrap, title="ΓÜá∩╕Å JUDAS Γåô", message="ΓÜá∩╕Å JUDAS SWING Γåô ΓÇô False bullish breakout! Bearish trap.")
+alertcondition(judasBearTrap, title="ΓÜá∩╕Å JUDAS Γåæ", message="ΓÜá∩╕Å JUDAS SWING Γåæ ΓÇô False bearish breakout! Bullish trap.")
+alertcondition(po3Phase == "MANIPULATION", title="≡ƒÄ¡ AMD Manipulation", message="≡ƒÄ¡ Manipulation phase detected ΓÇô Watch for Judas swing!")
+alertcondition(inBullOTE and inKillzone, title="≡ƒÄ» Bullish OTE", message="≡ƒÄ» Price in BULLISH OTE zone (0.62-0.79) ΓÇô Look for long entry!")
+alertcondition(inBearOTE and inKillzone, title="≡ƒÄ» Bearish OTE", message="≡ƒÄ» Price in BEARISH OTE zone (0.62-0.79) ΓÇô Look for short entry!")
 
 
 

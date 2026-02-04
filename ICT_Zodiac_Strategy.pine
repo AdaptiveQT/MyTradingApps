@@ -219,7 +219,7 @@ if bosUp
         bool hasFVG = fvgNearOB(obTop, obBot, true)
         int obScore = calcOBScore(obBody, displacement, inKillzone, htfBullish, hasFVG)
         
-        array.push(bullOBs, box.new(bar_index, obTop, bar_index, obBot /* placeholder */)) 
+        array.push(bullOBs, box.new(bar_index, obTop, bar_index, obBot)) 
         array.push(bullOBBots, obBot)
         array.push(bullOBScores, obScore)
         if array.size(bullOBs) > maxOB
@@ -242,7 +242,7 @@ if bosDn
         bool hasFVG = fvgNearOB(obTop, obBot, false)
         int obScore = calcOBScore(obBody, displacement, inKillzone, htfBearish, hasFVG)
         
-        array.push(bearOBs, box.new(bar_index, obTop, bar_index, obBot /* placeholder */))
+        array.push(bearOBs, box.new(bar_index, obTop, bar_index, obBot))
         array.push(bearOBTops, obTop)
         array.push(bearOBScores, obScore)
         if array.size(bearOBs) > maxOB
